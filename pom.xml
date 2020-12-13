@@ -18,6 +18,8 @@
         <compiler.plugin.version>3.8.0</compiler.plugin.version>
         <fcrepo-build-tools.version>6.0.0-SNAPSHOT</fcrepo-build-tools.version>
         <fcrepo-migration-utils.version>6.0.0-SNAPSHOT</fcrepo-migration-utils.version>
+        <fcrepo.storage.ocfl.version>6.0.0-SNAPSHOT</fcrepo.storage.ocfl.version>
+        <ocfl-java.version>0.1.0</ocfl-java.version>
         <gpg.plugin.version>1.6</gpg.plugin.version>
         <jackson.version>2.11.1</jackson.version>
         <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
@@ -159,6 +161,35 @@
             <groupId>org.fcrepo.migration</groupId>
             <artifactId>migration-utils</artifactId>
             <version>${fcrepo-migration-utils.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fcrepo</groupId>
+            <artifactId>fcrepo-storage-ocfl</artifactId>
+            <version>${fcrepo.storage.ocfl.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>edu.wisc.library.ocfl</groupId>
+            <artifactId>ocfl-java-aws</artifactId>
+            <version>${ocfl-java.version}</version>
+            <!--
+            These are convergence issues stemming from within the AWS SDK. These deps must be manually kept up-to-date
+            -->
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-handler</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-http</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.reactivestreams</groupId>
+                    <artifactId>reactive-streams</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
