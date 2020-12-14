@@ -1,4 +1,5 @@
-package org.fcrepo.migration.validator;/*
+package org.fcrepo.migration.validator;
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -16,26 +17,21 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
-import edu.wisc.library.ocfl.core.db.OcflObjectDetails;
+import org.apache.commons.lang3.NotImplementedException;
 import org.fcrepo.migration.FedoraObjectProcessor;
 
 import java.util.List;
 
 /**
  * Validators perform the specific validation work on a Fedora 3 object and its corresponding OCFL object.
+ *
  * @author dbernstein
  */
-public interface ObjectValidator extends Validator {
+public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> {
 
-    /**
-     * Performs the validation on a single Fedora 3 object against its related OCFL object.
-     * It produces one or more results.
-     *
-     * @param f3ObjectProcessor The source object
-     * @param ocflObjectDetails The destination object
-     * @return A list of one or more validation result objects.
-     */
-    public List<ValidationResult> validate(FedoraObjectProcessor f3ObjectProcessor,
-                                           OcflObjectDetails ocflObjectDetails);
+    @Override
+    public List<ValidationResult> validate(final FedoraObjectProcessor object) {
+        throw new NotImplementedException();
+    }
 
 }
