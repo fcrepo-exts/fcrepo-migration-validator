@@ -16,10 +16,19 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
+import java.util.List;
+
 /**
- * A marker interface for all validators.
+ * The validation interface for all concrete validation logic.
  *
  * @author dbernstein
  */
-public interface Validator {
+public interface Validator<T> {
+    /**
+     * Performs the validation which, in turn, produces one or more results.
+     *
+     * @param object The object to perform the validation on.
+     * @return A list of one or more validation result objects.
+     */
+    public List<ValidationResult> validate(T object);
 }

@@ -16,20 +16,11 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
-import java.util.List;
-
 /**
- * An interface for performing validations involving more than one object (or possibly involving the entire
- * repository).
+ * An interface for performing validations across the repository.
  *
  * @author dbernstein
  */
 public interface RepositoryValidator extends Validator {
-    /**
-     * Performs a validation and produces one or more results.
-     * @return A list of one or more validation result objects.
-     */
-    public List<ValidationResult> validate();
-
 
 }
