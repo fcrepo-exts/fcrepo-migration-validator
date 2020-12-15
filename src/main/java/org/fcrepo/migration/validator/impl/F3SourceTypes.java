@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,19 +15,17 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
 
 /**
- * This class is responsible for writing validation results to disk.
+ * Fedora 3 source types
  *
  * @author dbernstein
  */
-public class ValidationResultWriter {
-    /**
-     * Write the result to disk
-     * @param result The result to write
-     */
-    public void write(final ValidationResult result) {
-        //TODO implement this method
-        throw new UnsupportedOperationException();
+public enum F3SourceTypes {
+    AKUBRA, LEGACY, EXPORTED;
+
+    public static F3SourceTypes toType(final String v) {
+        return valueOf(v.toUpperCase());
     }
 }

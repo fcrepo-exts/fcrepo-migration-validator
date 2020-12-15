@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,11 +15,21 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.api;
+
+import java.util.List;
 
 /**
- * This class is responsible for coordinating and managing the lifecycle of the classes involved in a validation run.
+ * The validation interface for all concrete validation logic.
  *
  * @author dbernstein
  */
-public class ValidationExecutionManager {
+public interface Validator<T> {
+    /**
+     * Performs the validation which, in turn, produces one or more results.
+     *
+     * @param object The object to perform the validation on.
+     * @return A list of one or more validation result objects.
+     */
+    public List<ValidationResult> validate(T object);
 }

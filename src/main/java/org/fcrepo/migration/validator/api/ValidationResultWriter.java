@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,11 +15,20 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.api;
+
+import java.util.List;
 
 /**
- * A runnable responsible for executing validations and processing the results.
+ * This class is responsible for writing validation results to disk.
  *
  * @author dbernstein
  */
-public abstract class ValidationTask<Validator> implements Runnable {
+public interface ValidationResultWriter {
+    /**
+     * Write the result to disk
+     *
+     * @param results The results to write
+     */
+    void write(final List<ValidationResult> results);
 }

@@ -1,4 +1,3 @@
-package org.fcrepo.migration.validator;
 /*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
@@ -16,22 +15,30 @@ package org.fcrepo.migration.validator;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.fcrepo.migration.FedoraObjectProcessor;
-
-import java.util.List;
+import org.fcrepo.migration.validator.api.AbstractValidationTaskBuilder;
 
 /**
- * Validators perform the specific validation work on a Fedora 3 object and its corresponding OCFL object.
+ * A builder for F3ObjectValidationTask instances.
  *
  * @author dbernstein
  */
-public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> {
+public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder<F3ObjectValidationTask> {
+
+    private FedoraObjectProcessor processor;
 
     @Override
-    public List<ValidationResult> validate(final FedoraObjectProcessor object) {
-        throw new NotImplementedException();
+    public F3ObjectValidationTask build() {
+        return new F3ObjectValidationTask(this.processor, this.writer);
     }
 
+    /**
+     * @param processor
+     */
+    public F3ObjectValidationTaskBuilder processor(final FedoraObjectProcessor processor) {
+        this.processor = processor;
+        return this;
+    }
 }

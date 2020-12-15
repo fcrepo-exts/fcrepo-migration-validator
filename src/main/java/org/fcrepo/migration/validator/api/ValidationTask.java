@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,13 +15,12 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.api;
 
 /**
- * The result of a validation operation. A validation result corresponds to the most granular level of information
- * communicated in the validation report.
+ * A runnable responsible for executing validations and processing the results.
  *
  * @author dbernstein
  */
-public interface ValidationResult {
-
+public abstract class ValidationTask implements Runnable {
 }

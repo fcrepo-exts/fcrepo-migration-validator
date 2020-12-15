@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,10 +15,26 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
+
+import org.fcrepo.migration.validator.api.ValidationResult;
+import org.fcrepo.migration.validator.api.ValidationResultWriter;
+import org.slf4j.Logger;
+
+import java.util.List;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * This concrete implementation generates an HTML-based report.
+ * A file-system based result writer
  * @author dbernstein
  */
-public class HtmlReportGenerator implements ReportGenerator {
+public class FileSystemValidationResultWriter implements ValidationResultWriter {
+
+    private static final Logger LOGGER = getLogger(FileSystemValidationResultWriter.class);
+
+    @Override
+    public void write(final List<ValidationResult> result) {
+        LOGGER.info("Implement writing of results here: {}", result);
+    }
 }

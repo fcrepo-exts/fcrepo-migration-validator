@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,10 +15,18 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.api;
 
 /**
- * A data class for holding configuration information for a validation run
+ * An interface for building validation tasks
+ *
  * @author dbernstein
  */
-public class ValidationConfig {
+public interface ValidationTaskBuilder<T extends ValidationTask> {
+     /**
+      * Build a new task instance
+      *
+      * @return
+      */
+     T build();
 }
