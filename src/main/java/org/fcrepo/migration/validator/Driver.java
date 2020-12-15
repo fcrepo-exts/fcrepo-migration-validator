@@ -17,6 +17,9 @@
  */
 package org.fcrepo.migration.validator;
 
+import org.fcrepo.migration.validator.impl.F3SourceTypes;
+import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
+import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import picocli.CommandLine;

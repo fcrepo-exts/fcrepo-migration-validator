@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,11 +15,19 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.api;
 
 /**
- * This interface is responsible for transforming the on disk results of a validation into a
- * a human readable report.
+ * An abstract base builder for validation tasks  .
+ *
  * @author dbernstein
  */
-public interface ReportGenerator {
+public abstract class AbstractValidationTaskBuilder<T extends ValidationTask> implements ValidationTaskBuilder {
+
+    protected ValidationResultWriter writer;
+
+    public ValidationTaskBuilder<T> writer(final ValidationResultWriter writer) {
+        this.writer = writer;
+        return this;
+    }
 }

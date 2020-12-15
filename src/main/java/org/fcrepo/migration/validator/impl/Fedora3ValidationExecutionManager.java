@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,8 +15,12 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.ObjectSource;
+import org.fcrepo.migration.validator.api.ValidationExecutionManager;
+import org.fcrepo.migration.validator.api.ValidationResultWriter;
+import org.fcrepo.migration.validator.api.ValidationTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

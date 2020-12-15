@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,12 +15,17 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.api;
 
 /**
- * An interface for performing validations across the repository.
+ * This class is responsible for coordinating and managing the lifecycle of the classes involved in a validation run.
  *
  * @author dbernstein
  */
-public interface RepositoryValidator extends Validator {
+public interface ValidationExecutionManager {
 
+    /**
+     * Perform a validation run.
+     */
+    void doValidation();
 }

@@ -1,4 +1,3 @@
-package org.fcrepo.migration.validator;
 /*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
@@ -16,12 +15,15 @@ package org.fcrepo.migration.validator;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
 import org.fcrepo.migration.StreamingFedoraObjectHandler;
+import org.fcrepo.migration.validator.api.ValidationResult;
+import org.fcrepo.migration.validator.api.Validator;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;

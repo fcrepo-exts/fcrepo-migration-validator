@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,36 +15,13 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
+package org.fcrepo.migration.validator.api;
 
 /**
- * A data class for holding configuration information for a validation run
+ * An interface for performing validations across the repository.
  *
  * @author dbernstein
  */
-public abstract class ValidationConfig {
+public interface RepositoryValidator extends Validator {
 
-    private int threadCount = 1;
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-    }
-
-    /**
-     * @return
-     */
-    public int getThreadCount() {
-        return this.threadCount;
-    }
-
-    /**
-     * @param threadCount
-     */
-    public void setThreadCount(final int threadCount) {
-        this.threadCount = threadCount;
-    }
 }

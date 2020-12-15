@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,18 +15,12 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.apache.commons.lang3.builder.ToStringBuilder;
+package org.fcrepo.migration.validator.api;
 
 /**
- * An implementation of validation result.
+ * A runnable responsible for executing validations and processing the results.
  *
  * @author dbernstein
  */
-public class ValidationResultImpl implements ValidationResult {
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
-    }
+public abstract class ValidationTask implements Runnable {
 }

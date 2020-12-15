@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,28 +15,13 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
 
-import org.fcrepo.migration.FedoraObjectProcessor;
+import org.fcrepo.migration.validator.api.ReportGenerator;
 
 /**
- * A builder for F3ObjectValidationTask instances.
- *
+ * This concrete implementation generates an HTML-based report.
  * @author dbernstein
  */
-public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder<F3ObjectValidationTask> {
-
-    private FedoraObjectProcessor processor;
-
-    @Override
-    public F3ObjectValidationTask build() {
-        return new F3ObjectValidationTask(this.processor, this.writer);
-    }
-
-    /**
-     * @param processor
-     */
-    public F3ObjectValidationTaskBuilder processor(final FedoraObjectProcessor processor) {
-        this.processor = processor;
-        return this;
-    }
+public class HtmlReportGenerator implements ReportGenerator {
 }

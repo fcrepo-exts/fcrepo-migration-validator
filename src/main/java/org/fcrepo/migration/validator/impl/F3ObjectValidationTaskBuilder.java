@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,18 +15,30 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
+
+import org.fcrepo.migration.FedoraObjectProcessor;
+import org.fcrepo.migration.validator.api.AbstractValidationTaskBuilder;
 
 /**
- * An abstract base builder for validation tasks  .
+ * A builder for F3ObjectValidationTask instances.
  *
  * @author dbernstein
  */
-public abstract class AbstractValidationTaskBuilder<T extends ValidationTask> implements ValidationTaskBuilder {
+public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder<F3ObjectValidationTask> {
 
-    protected ValidationResultWriter writer;
+    private FedoraObjectProcessor processor;
 
-    public ValidationTaskBuilder<T> writer(final ValidationResultWriter writer) {
-        this.writer = writer;
+    @Override
+    public F3ObjectValidationTask build() {
+        return new F3ObjectValidationTask(this.processor, this.writer);
+    }
+
+    /**
+     * @param processor
+     */
+    public F3ObjectValidationTaskBuilder processor(final FedoraObjectProcessor processor) {
+        this.processor = processor;
         return this;
     }
 }

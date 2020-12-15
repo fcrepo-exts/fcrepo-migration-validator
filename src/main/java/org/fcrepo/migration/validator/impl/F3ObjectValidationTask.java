@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;
+package org.fcrepo.migration.validator.impl;
 /*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
@@ -18,6 +18,8 @@ package org.fcrepo.migration.validator;
  */
 
 import org.fcrepo.migration.FedoraObjectProcessor;
+import org.fcrepo.migration.validator.api.ValidationResultWriter;
+import org.fcrepo.migration.validator.api.ValidationTask;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;

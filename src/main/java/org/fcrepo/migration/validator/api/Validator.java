@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,23 +15,21 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.slf4j.Logger;
+package org.fcrepo.migration.validator.api;
 
 import java.util.List;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 /**
- * A file-system based result writer
+ * The validation interface for all concrete validation logic.
+ *
  * @author dbernstein
  */
-public class FileSystemValidationResultWriter implements ValidationResultWriter {
-
-    private static final Logger LOGGER = getLogger(FileSystemValidationResultWriter.class);
-
-    @Override
-    public void write(final List<ValidationResult> result) {
-        LOGGER.info("Implement writing of results here: {}", result);
-    }
+public interface Validator<T> {
+    /**
+     * Performs the validation which, in turn, produces one or more results.
+     *
+     * @param object The object to perform the validation on.
+     * @return A list of one or more validation result objects.
+     */
+    public List<ValidationResult> validate(T object);
 }

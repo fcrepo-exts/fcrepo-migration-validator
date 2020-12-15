@@ -1,4 +1,4 @@
-package org.fcrepo.migration.validator;/*
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -15,6 +15,7 @@ package org.fcrepo.migration.validator;/*
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.foxml.AkubraFSIDResolver;
@@ -22,6 +23,7 @@ import org.fcrepo.migration.foxml.ArchiveExportedFoxmlDirectoryObjectSource;
 import org.fcrepo.migration.foxml.InternalIDResolver;
 import org.fcrepo.migration.foxml.LegacyFSIDResolver;
 import org.fcrepo.migration.foxml.NativeFoxmlDirectoryObjectSource;
+import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
