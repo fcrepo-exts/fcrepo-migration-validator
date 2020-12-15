@@ -16,35 +16,27 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
+import org.fcrepo.migration.FedoraObjectProcessor;
 
 /**
- * A data class for holding configuration information for a validation run
+ * A builder for F3ObjectValidationTask instances.
  *
  * @author dbernstein
  */
-public abstract class ValidationConfig {
+public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder<F3ObjectValidationTask> {
 
-    private int threadCount = 1;
+    private FedoraObjectProcessor processor;
 
     @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
+    public F3ObjectValidationTask build() {
+        return new F3ObjectValidationTask(this.processor, this.writer);
     }
 
     /**
-     * @return
+     * @param processor
      */
-    public int getThreadCount() {
-        return this.threadCount;
-    }
-
-    /**
-     * @param threadCount
-     */
-    public void setThreadCount(final int threadCount) {
-        this.threadCount = threadCount;
+    public F3ObjectValidationTaskBuilder processor(final FedoraObjectProcessor processor) {
+        this.processor = processor;
+        return this;
     }
 }

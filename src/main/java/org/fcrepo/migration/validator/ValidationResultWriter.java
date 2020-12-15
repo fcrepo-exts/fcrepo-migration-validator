@@ -16,18 +16,18 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
+import java.util.List;
+
 /**
  * This class is responsible for writing validation results to disk.
  *
  * @author dbernstein
  */
-public class ValidationResultWriter {
+public interface ValidationResultWriter {
     /**
      * Write the result to disk
-     * @param result The result to write
+     *
+     * @param results The results to write
      */
-    public void write(final ValidationResult result) {
-        //TODO implement this method
-        throw new UnsupportedOperationException();
-    }
+    void write(final List<ValidationResult> results);
 }

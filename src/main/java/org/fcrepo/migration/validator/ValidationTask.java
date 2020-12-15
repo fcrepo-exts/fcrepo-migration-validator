@@ -21,5 +21,5 @@ package org.fcrepo.migration.validator;/*
  *
  * @author dbernstein
  */
-public abstract class ValidationTask<Validator> implements Runnable {
+public abstract class ValidationTask implements Runnable {
 }

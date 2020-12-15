@@ -1,4 +1,5 @@
-package org.fcrepo.migration.validator;/*
+package org.fcrepo.migration.validator;
+/*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
  * regarding copyright ownership.
@@ -16,35 +17,15 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
-
 /**
- * A data class for holding configuration information for a validation run
+ * Fedora 3 source types
  *
  * @author dbernstein
  */
-public abstract class ValidationConfig {
+public enum F3SourceTypes {
+    AKUBRA, LEGACY, EXPORTED;
 
-    private int threadCount = 1;
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-    }
-
-    /**
-     * @return
-     */
-    public int getThreadCount() {
-        return this.threadCount;
-    }
-
-    /**
-     * @param threadCount
-     */
-    public void setThreadCount(final int threadCount) {
-        this.threadCount = threadCount;
+    static F3SourceTypes toType(final String v) {
+        return valueOf(v.toUpperCase());
     }
 }

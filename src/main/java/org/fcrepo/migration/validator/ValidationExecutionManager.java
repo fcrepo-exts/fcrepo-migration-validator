@@ -21,5 +21,10 @@ package org.fcrepo.migration.validator;/*
  *
  * @author dbernstein
  */
-public class ValidationExecutionManager {
+public interface ValidationExecutionManager {
+
+    /**
+     * Perform a validation run.
+     */
+    void doValidation();
 }

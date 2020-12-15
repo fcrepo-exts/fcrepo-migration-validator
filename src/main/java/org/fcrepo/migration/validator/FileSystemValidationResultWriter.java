@@ -16,35 +16,22 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.slf4j.Logger;
 
-import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
+import java.util.List;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
- * A data class for holding configuration information for a validation run
- *
+ * A file-system based result writer
  * @author dbernstein
  */
-public abstract class ValidationConfig {
+public class FileSystemValidationResultWriter implements ValidationResultWriter {
 
-    private int threadCount = 1;
+    private static final Logger LOGGER = getLogger(FileSystemValidationResultWriter.class);
 
     @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-    }
-
-    /**
-     * @return
-     */
-    public int getThreadCount() {
-        return this.threadCount;
-    }
-
-    /**
-     * @param threadCount
-     */
-    public void setThreadCount(final int threadCount) {
-        this.threadCount = threadCount;
+    public void write(final List<ValidationResult> result) {
+        LOGGER.info("Implement writing of results here: {}", result);
     }
 }

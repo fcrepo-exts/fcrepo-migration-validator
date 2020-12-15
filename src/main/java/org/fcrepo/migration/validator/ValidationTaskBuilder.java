@@ -21,7 +21,11 @@ package org.fcrepo.migration.validator;/*
  *
  * @author dbernstein
  */
-public interface ValidationTaskBuilder {
-
-    RepositoryValidator build();
+public interface ValidationTaskBuilder<T extends ValidationTask> {
+     /**
+      * Build a new task instance
+      *
+      * @return
+      */
+     T build();
 }

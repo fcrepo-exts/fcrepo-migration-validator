@@ -18,12 +18,14 @@
 package org.fcrepo.migration.validator;
 
 import org.slf4j.Logger;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.util.concurrent.Callable;
 
 import static org.slf4j.LoggerFactory.getLogger;
+import static picocli.CommandLine.Help.Visibility.ALWAYS;
 
 //TODO pull in version and git revision from generated property file
 
@@ -37,33 +39,63 @@ public class Driver implements Callable<Integer> {
 
     private static final Logger LOGGER = getLogger(Driver.class);
 
-    private enum F3SourceTypes {
-        AKUBRA, LEGACY, EXPORTED;
-
-        static F3SourceTypes toType(final String v) {
-            return valueOf(v.toUpperCase());
-        }
-    }
-
-    @CommandLine.Option(names = {"--source-type", "-t"}, required = true, order = 1,
+    @CommandLine.Option(names = {"--source-type", "-s"}, required = true, order = 1,
             description = "Fedora 3 source type. Choices: akubra | legacy | exported")
     private F3SourceTypes f3SourceType;
 
     @CommandLine.Option(names = {"--datastreams-dir", "-d"}, order = 2,
-            description = "Directory containing Fedora 3 datastreams (used with --source-type 'akubra' or 'legacy')")
+            description = "Directory containing Fedora 3 datastreams " +
+                    "(used with --source-type 'akubra' or 'legacy')")
     private File f3DatastreamsDir;
 
     @CommandLine.Option(names = {"--objects-dir", "-o"}, order = 3,
             description = "Directory containing Fedora 3 objects (used with --source-type 'akubra' or 'legacy')")
     private File f3ObjectsDir;
 
+    @CommandLine.Option(names = {"--exported-dir", "-e"}, order = 4,
+            description = "Directory containing Fedora 3 export (used with --source-type 'exported')")
+    private File f3ExportedDir;
+
+    @CommandLine.Option(names = {"--f3hostname", "-f"},
+            defaultValue = "fedora.info", showDefaultValue = ALWAYS, order = 5,
+            description = "Hostname of Fedora 3, used for replacing placeholder in 'E' and 'R' datastream URLs")
+    private String f3hostname;
+
+    @CommandLine.Option(names = {"--index-dir", "-i"}, order = 6,
+            description = "Directory where cached index of datastreams (will reuse index if already exists)")
+    private File indexDir;
+
+    @CommandLine.Option(names = {"--threads", "-t"}, order = 7,
+            description = "The number of threads for parallel processing. Default 5", defaultValue = "5")
+    private int threadCount;
+
+
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
 
     @Override
     public Integer call() throws Exception {
+        final var context = new AnnotationConfigApplicationContext("org.fcrepo.migration.validator");
+        try {
+            final var config = context.getBean(Fedora3ValidationConfig.class);
+            config.setSourceType(f3SourceType);
+            config.setDatastreamsDirectory(f3DatastreamsDir);
+            config.setObjectsDirectory(f3ObjectsDir);
+            config.setExportedDirectory(f3ExportedDir);
+            config.setFedora3Hostname(f3hostname);
+            config.setThreadCount(threadCount);
+            LOGGER.info("Configuration created: {}", config);
 
-        return 0;
+            LOGGER.info("Preparing to execute validation run...");
+            final var executionManager = context.getBean(Fedora3ValidationExecutionManager.class);
+            executionManager.doValidation();
+            return 0;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return 1;
+        } finally {
+            context.close();
+        }
     }
 
     /**

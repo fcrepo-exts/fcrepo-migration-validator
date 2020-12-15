@@ -18,33 +18,15 @@ package org.fcrepo.migration.validator;/*
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
-
 /**
- * A data class for holding configuration information for a validation run
+ * An implementation of validation result.
  *
  * @author dbernstein
  */
-public abstract class ValidationConfig {
-
-    private int threadCount = 1;
+public class ValidationResultImpl implements ValidationResult {
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-    }
-
-    /**
-     * @return
-     */
-    public int getThreadCount() {
-        return this.threadCount;
-    }
-
-    /**
-     * @param threadCount
-     */
-    public void setThreadCount(final int threadCount) {
-        this.threadCount = threadCount;
+        return ToStringBuilder.reflectionToString(this);
     }
 }

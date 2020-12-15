@@ -16,35 +16,17 @@ package org.fcrepo.migration.validator;/*
  * limitations under the License.
  */
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
-import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
-
 /**
- * A data class for holding configuration information for a validation run
+ * An abstract base builder for validation tasks  .
  *
  * @author dbernstein
  */
-public abstract class ValidationConfig {
+public abstract class AbstractValidationTaskBuilder<T extends ValidationTask> implements ValidationTaskBuilder {
 
-    private int threadCount = 1;
+    protected ValidationResultWriter writer;
 
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, MULTI_LINE_STYLE);
-    }
-
-    /**
-     * @return
-     */
-    public int getThreadCount() {
-        return this.threadCount;
-    }
-
-    /**
-     * @param threadCount
-     */
-    public void setThreadCount(final int threadCount) {
-        this.threadCount = threadCount;
+    public ValidationTaskBuilder<T> writer(final ValidationResultWriter writer) {
+        this.writer = writer;
+        return this;
     }
 }
