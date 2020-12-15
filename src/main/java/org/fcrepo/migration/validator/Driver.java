@@ -78,8 +78,7 @@ public class Driver implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        final var context = new AnnotationConfigApplicationContext("org.fcrepo.migration.validator");
-        try {
+        try (final var context = new AnnotationConfigApplicationContext("org.fcrepo.migration.validator")) {
             final var config = context.getBean(Fedora3ValidationConfig.class);
             config.setSourceType(f3SourceType);
             config.setDatastreamsDirectory(f3DatastreamsDir);
@@ -96,8 +95,6 @@ public class Driver implements Callable<Integer> {
         } catch (Exception ex) {
             ex.printStackTrace();
             return 1;
-        } finally {
-            context.close();
         }
     }
 
