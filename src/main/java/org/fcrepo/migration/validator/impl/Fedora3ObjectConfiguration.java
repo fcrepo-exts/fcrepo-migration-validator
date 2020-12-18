@@ -48,8 +48,9 @@ public class Fedora3ObjectConfiguration {
     }
 
     @Bean
-    public ValidationResultWriter validationResultWriter() {
-        return new FileSystemValidationResultWriter();
+    @Lazy
+    public ValidationResultWriter validationResultWriter(final Fedora3ValidationConfig config) {
+        return new FileSystemValidationResultWriter(config.getResultsDirectory());
     }
 
     @Bean

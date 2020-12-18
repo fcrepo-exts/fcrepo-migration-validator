@@ -19,6 +19,8 @@ package org.fcrepo.migration.validator.api;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.nio.file.Path;
+
 import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
 
 /**
@@ -29,6 +31,7 @@ import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
 public abstract class ValidationConfig {
 
     private int threadCount = 1;
+    private Path resultsDirectory;
 
     @Override
     public String toString() {
@@ -48,4 +51,29 @@ public abstract class ValidationConfig {
     public void setThreadCount(final int threadCount) {
         this.threadCount = threadCount;
     }
+
+    /**
+     * Set the results directory
+     * @param resultsDirectory The results directory
+     */
+    public void setResultsDirectory(final Path resultsDirectory) {
+        this.resultsDirectory = resultsDirectory;
+    }
+
+    /**
+     * The directory containing json results
+     * @return
+     */
+    public Path getResultsDirectory() {
+        return resultsDirectory;
+    }
+
+    public Path getHtmlReportDirectory() {
+        return getResultsDirectory().resolve("html");
+    }
+
+    public Path getJsonOuputDirectory() {
+        return getResultsDirectory().resolve("json");
+    }
+
 }
