@@ -22,7 +22,7 @@ package org.fcrepo.migration.validator.api;
  *
  * @author dbernstein
  */
-public abstract class AbstractValidationTaskBuilder<T extends ValidationTask> implements ValidationTaskBuilder {
+public abstract class AbstractValidationTaskBuilder<T extends ValidationTask> implements ValidationTaskBuilder<T> {
 
     protected ValidationResultWriter writer;
 
