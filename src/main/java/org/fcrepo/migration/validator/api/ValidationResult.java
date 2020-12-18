@@ -80,6 +80,7 @@ public class ValidationResult {
                             final String sourceId,
                             final String targetId,
                             final String details) {
+        this.index = index;
         this.status = status;
         this.validationLevel = validationLevel;
         this.validationType = validationType;
