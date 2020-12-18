@@ -74,7 +74,7 @@ public class Driver implements Callable<Integer> {
             description = "Directory where validation results are placed")
     private File resultsDirectory;
 
-    @CommandLine.Option(names = {"--ocfl-root-dir", "-r"}, order = 8,
+    @CommandLine.Option(names = {"--ocfl-root-dir", "-c"}, order = 8,
             description = "The root directory of the Fedora OCFL.")
     private File ocflRootDirectory;
 
