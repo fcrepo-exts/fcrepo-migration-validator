@@ -29,6 +29,11 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT_RESOURCE;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_CHECKSUM;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -36,16 +41,18 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author dbernstein
  */
-public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor>, StreamingFedoraObjectHandler {
+public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> {
 
     private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
 
     private final List<ValidationResult> validationResults = new ArrayList<>();
 
+    private int indexCounter;
+
     @Override
     public List<ValidationResult> validate(final FedoraObjectProcessor object) {
         try {
-            object.processObject(this);
+            object.processObject(new InternalStreamingObjectHandler());
         } catch (Exception ex) {
 
         }
@@ -53,33 +60,39 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor>,
         return validationResults;
     }
 
-    @Override
-    public void beginObject(final ObjectInfo objectInfo) {
+    private class InternalStreamingObjectHandler implements StreamingFedoraObjectHandler {
+        private ObjectInfo objectInfo;
 
-    }
+        @Override
+        public void beginObject(final ObjectInfo objectInfo) {
+            this.objectInfo = objectInfo;
+        }
 
-    @Override
-    public void processObjectProperties(final ObjectProperties objectProperties) {
-        validationResults.add(new ValidationResultImpl());
-    }
+        @Override
+        public void processObjectProperties(final ObjectProperties objectProperties) {
+            validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT, METADATA,
+                    this.objectInfo.getPid(), null, null));
+        }
 
-    @Override
-    public void processDatastreamVersion(final DatastreamVersion datastreamVersion) {
-        validationResults.add(new ValidationResultImpl());
-    }
+        @Override
+        public void processDatastreamVersion(final DatastreamVersion datastreamVersion) {
+            validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT_RESOURCE,
+                    BINARY_CHECKSUM, this.objectInfo.getPid(), null, null));
+        }
 
-    @Override
-    public void processDisseminator() {
+        @Override
+        public void processDisseminator() {
 
-    }
+        }
 
-    @Override
-    public void completeObject(final ObjectInfo objectInfo) {
-        validationResults.add(new ValidationResultImpl());
-    }
+        @Override
+        public void completeObject(final ObjectInfo objectInfo) {
+        }
 
-    @Override
-    public void abortObject(final ObjectInfo objectInfo) {
+        @Override
+        public void abortObject(final ObjectInfo objectInfo) {
+
+        }
 
     }
 }

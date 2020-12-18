@@ -68,6 +68,10 @@ public class Driver implements Callable<Integer> {
             description = "Directory where cached index of datastreams (will reuse index if already exists)")
     private File indexDir;
 
+    @CommandLine.Option(names = {"--results-dir", "-r"}, order = 6,
+            description = "Directory where validation results are placed")
+    private File resultsDirectory;
+
     @CommandLine.Option(names = {"--threads", "-t"}, order = 7,
             description = "The number of threads for parallel processing. Default 5", defaultValue = "5")
     private int threadCount;
@@ -86,6 +90,7 @@ public class Driver implements Callable<Integer> {
             config.setExportedDirectory(f3ExportedDir);
             config.setFedora3Hostname(f3hostname);
             config.setThreadCount(threadCount);
+            config.setResultsDirectory(resultsDirectory.toPath());
             LOGGER.info("Configuration created: {}", config);
 
             LOGGER.info("Preparing to execute validation run...");
