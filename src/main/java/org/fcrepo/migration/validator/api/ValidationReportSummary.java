@@ -17,10 +17,33 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import java.util.Collection;
+import java.util.HashSet;
+
 /**
  * A data class defining all report wide summary information
  *
  * @author dbernstein
+ * @author awoods
+ * @since 2020-12-17
  */
 public class ValidationReportSummary {
+
+    private Collection<String> objectReportFilenames = new HashSet<>();
+
+    /**
+     * Setter for collecting ObjectReport filenames
+     * @param objectReportFilename of generated HTML report
+     */
+    public void addObjectReport(final String objectReportFilename) {
+        objectReportFilenames.add(objectReportFilename);
+    }
+
+    /**
+     * Getter for collection of ObjectReport filenames
+     * @return collection of ObjectReport filenames
+     */
+    public Collection<String> getObjectReportFilenames() {
+        return objectReportFilenames;
+    }
 }
