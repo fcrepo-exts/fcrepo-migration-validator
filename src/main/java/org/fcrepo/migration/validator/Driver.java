@@ -20,6 +20,8 @@ package org.fcrepo.migration.validator;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
+import org.fcrepo.migration.validator.report.HtmlReportHandler;
+import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import picocli.CommandLine;
@@ -68,11 +70,15 @@ public class Driver implements Callable<Integer> {
             description = "Directory where cached index of datastreams (will reuse index if already exists)")
     private File indexDir;
 
-    @CommandLine.Option(names = {"--results-dir", "-r"}, order = 6,
+    @CommandLine.Option(names = {"--results-dir", "-r"}, defaultValue = "output", order = 7,
             description = "Directory where validation results are placed")
     private File resultsDirectory;
 
-    @CommandLine.Option(names = {"--threads", "-t"}, order = 7,
+    @CommandLine.Option(names = {"--ocfl-root-dir", "-r"}, order = 8,
+            description = "The root directory of the Fedora OCFL.")
+    private File ocflRootDirectory;
+
+    @CommandLine.Option(names = {"--threads", "-t"}, order = 9,
             description = "The number of threads for parallel processing. Default 5", defaultValue = "5")
     private int threadCount;
 
@@ -96,6 +102,13 @@ public class Driver implements Callable<Integer> {
             LOGGER.info("Preparing to execute validation run...");
             final var executionManager = context.getBean(Fedora3ValidationExecutionManager.class);
             executionManager.doValidation();
+
+            final var reportHandler = new HtmlReportHandler(config.getHtmlReportDirectory());
+            final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
+            generator.generate();
+            LOGGER.info("Validation report written to: " + config.getHtmlReportDirectory() + File.separator +
+                    "index.html");
+
             return 0;
         } catch (Exception ex) {
             ex.printStackTrace();
