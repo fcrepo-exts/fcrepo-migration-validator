@@ -15,6 +15,8 @@
     <url>http://fedorarepository.org</url>
 
     <properties>
+        <project.copyrightYear>2020</project.copyrightYear>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compiler.plugin.version>3.8.0</compiler.plugin.version>
         <fcrepo-build-tools.version>6.0.0-SNAPSHOT</fcrepo-build-tools.version>
         <fcrepo-migration-utils.version>6.0.0-SNAPSHOT</fcrepo-migration-utils.version>
@@ -29,6 +31,8 @@
         <release.plugin.version>2.5.2</release.plugin.version>
         <scm-provider-gitexe.plugin.version>1.9.4</scm-provider-gitexe.plugin.version>
         <spring.version>5.2.11.RELEASE</spring.version>
+        <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
+        <source.plugin.version>3.2.0</source.plugin.version>
     </properties>
 
     <scm>
@@ -81,10 +85,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${javadoc.plugin.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>${source.plugin.version}</version>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
