@@ -21,6 +21,26 @@ package org.fcrepo.migration.validator.api;
  * A data class that defines all object level validation details available to report generators.
  *
  * @author dbernstein
+ * @author awoods
+ * @since 2020-12-17
  */
 public class ObjectValidationReport {
+
+    private String objectId;
+
+    /**
+     * Constructor
+     * @param objectId of the object which is the subject of this report
+     */
+    public ObjectValidationReport(final String objectId) {
+        this.objectId = objectId;
+    }
+
+    /**
+     * This method returns the ID of the object about which the report applies
+     * @return the object-id
+     */
+    public String getObjectId() {
+        return objectId;
+    }
 }
