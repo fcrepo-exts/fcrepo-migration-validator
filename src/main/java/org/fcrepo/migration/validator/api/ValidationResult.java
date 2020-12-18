@@ -44,6 +44,7 @@ public class ValidationResult {
         BINARY_SIZE,
         BINARY_CHECKSUM,
         BINARY_VERSION_COUNT,
+        BINARY_HEAD_COUNT,
         BINARY_METADATA,
         REPOSITORY_RESOURCE_COUNT;
     }

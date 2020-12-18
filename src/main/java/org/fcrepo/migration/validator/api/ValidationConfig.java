@@ -19,6 +19,7 @@ package org.fcrepo.migration.validator.api;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.io.File;
 import java.nio.file.Path;
 
 import static org.apache.commons.lang3.builder.ToStringStyle.MULTI_LINE_STYLE;
@@ -32,6 +33,7 @@ public abstract class ValidationConfig {
 
     private int threadCount = 1;
     private Path resultsDirectory;
+    private File ocflRepositoryRootDirectory;
 
     @Override
     public String toString() {
@@ -68,12 +70,35 @@ public abstract class ValidationConfig {
         return resultsDirectory;
     }
 
+    /**
+     *
+     * @return
+     */
     public Path getHtmlReportDirectory() {
         return getResultsDirectory().resolve("html");
     }
 
+    /**
+     *
+     * @return
+     */
     public Path getJsonOuputDirectory() {
         return getResultsDirectory().resolve("json");
     }
 
+    /**
+     *
+     * @return
+     */
+    public File getOcflRepositoryRootDirectory() {
+        return ocflRepositoryRootDirectory;
+    }
+
+    /**
+     *
+     * @param ocflRepositoryRootDirectory
+     */
+    public void setOcflRepositoryRootDirectory(final File ocflRepositoryRootDirectory) {
+        this.ocflRepositoryRootDirectory = ocflRepositoryRootDirectory;
+    }
 }

@@ -34,6 +34,7 @@ public class Fedora3ValidationConfig extends ValidationConfig {
     private File indexDirectory;
     private String fedora3Hostname;
 
+
     /**
      * @return
      */
@@ -117,4 +118,6 @@ public class Fedora3ValidationConfig extends ValidationConfig {
     public void setIndexDirectory(final File indexDirectory) {
         this.indexDirectory = indexDirectory;
     }
+
+
 }

@@ -17,14 +17,13 @@
  */
 package org.fcrepo.migration.validator;
 
+import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
-import org.fcrepo.migration.validator.impl.Fedora3ObjectConfiguration;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -42,18 +41,19 @@ public class ObjectValidationIT extends AbstractValidationIT {
     public void test() {
         final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
         final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
-        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir);
+        final File f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
         Assert.assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
     }
 
     @Test
-    @Ignore("currently not passing")
     public void testNumberOfObjectsFailMoreOcfl() {
         final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-ocfl/f3/datastreams");
         final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-ocfl/f3/objects");
-        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir);
+        final File f6OcflRootDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-ocfl/f6/data/ocfl-root");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results (1 object in f3, 2 objects in OCFL)
         Assert.assertEquals("Should be one error!", 1, reportHandler.getErrors().size());
@@ -62,11 +62,11 @@ public class ObjectValidationIT extends AbstractValidationIT {
     }
 
     @Test
-    @Ignore("currently not passing")
     public void testNumberOfObjectsFailMoreF3() {
         final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-f3/f3/datastreams");
         final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-f3/f3/objects");
-        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir);
+        final File f6OcflRootDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-f3/f6/data/ocfl-root");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results (2 objects in f3, 1 object in OCFL)
         Assert.assertEquals("Should be one error!", 1, reportHandler.getErrors().size());
@@ -74,9 +74,10 @@ public class ObjectValidationIT extends AbstractValidationIT {
         // TODO: check for the specific ValidationResult.ValidationType
     }
 
-    private ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir) {
-        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir);
-        final var configuration = new Fedora3ObjectConfiguration(config);
+    private ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir,
+                                              final File f6OcflRootDir) {
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final var configuration = new ApplicationConfigurationHelper(config);
         final var executionManager = new Fedora3ValidationExecutionManager(configuration);
         executionManager.doValidation();
 
@@ -87,7 +88,8 @@ public class ObjectValidationIT extends AbstractValidationIT {
         return reportHandler;
     }
 
-    private Fedora3ValidationConfig getConfig(final File f3DatastreamsDir, final File f3ObjectsDir) {
+    private Fedora3ValidationConfig getConfig(final File f3DatastreamsDir, final File f3ObjectsDir,
+                                              final File f6OcflRootDir) {
         final var config = new Fedora3ValidationConfig();
 
         final F3SourceTypes f3SourceType = F3SourceTypes.AKUBRA;
@@ -97,6 +99,7 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         config.setSourceType(f3SourceType);
         config.setDatastreamsDirectory(f3DatastreamsDir);
+        config.setOcflRepositoryRootDirectory(f6OcflRootDir);
         config.setObjectsDirectory(f3ObjectsDir);
         config.setExportedDirectory(f3ExportedDir);
         config.setFedora3Hostname(f3hostname);

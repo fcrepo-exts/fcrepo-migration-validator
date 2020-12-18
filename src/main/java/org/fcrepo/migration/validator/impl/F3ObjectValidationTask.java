@@ -20,6 +20,7 @@ package org.fcrepo.migration.validator.impl;
 import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
+import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
 import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -34,25 +35,29 @@ public class F3ObjectValidationTask extends ValidationTask {
     private static final Logger LOGGER = getLogger(F3ObjectValidationTask.class);
 
     private FedoraObjectProcessor processor;
+    private OcflObjectSessionFactory ocflObjectSessionFactory;
     private ValidationResultWriter writer;
 
     /**
      * Constructor
      *
      * @param processor The processor
+     * @param ocflObjectSessionFactory The object session factory
      * @param writer    The shared validation state
      */
     public F3ObjectValidationTask(final FedoraObjectProcessor processor,
+                                  final OcflObjectSessionFactory ocflObjectSessionFactory,
                                   final ValidationResultWriter writer) {
         super();
         this.processor = processor;
+        this.ocflObjectSessionFactory = ocflObjectSessionFactory;
         this.writer = writer;
     }
 
     @Override
     public void run() {
         LOGGER.info("starting to process {} ", processor.getObjectInfo().getPid());
-        final var validator = new Fedora3ObjectValidator();
+        final var validator = new Fedora3ObjectValidator(this.ocflObjectSessionFactory);
         final var results = validator.validate(processor);
         this.writer.write(results);
     }

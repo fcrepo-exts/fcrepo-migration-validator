@@ -21,6 +21,7 @@ import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.validator.api.ValidationExecutionManager;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
+import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
 
     private ExecutorService executorService;
+    private OcflObjectSessionFactory ocflObjectSessionFactory;
     private ValidationResultWriter writer;
     private ObjectSource source;
     private AtomicLong count;
@@ -48,9 +50,10 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
      * Constructor
      * @param config The config
      */
-    public Fedora3ValidationExecutionManager(final Fedora3ObjectConfiguration config) {
+    public Fedora3ValidationExecutionManager(final ApplicationConfigurationHelper config) {
         this.source = config.objectSource();
         this.writer = config.validationResultWriter();
+        this.ocflObjectSessionFactory = config.ocflObjectSessionFactory();
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
         this.count = new AtomicLong(0);
         this.lock = new Object();
@@ -62,11 +65,13 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
         try {
             for (final var iterator = source.iterator(); iterator.hasNext(); ) {
-                try (final var o = iterator.next()) {
-                    final var task = new F3ObjectValidationTaskBuilder().processor(o).writer(writer).build();
+                final var o = iterator.next();
+                final var task = new F3ObjectValidationTaskBuilder().processor(o)
+                        .writer(writer)
+                        .objectSessionFactory(ocflObjectSessionFactory)
+                        .build();
                     submit(task);
                 }
-            }
 
             awaitCompletion();
         } catch (Exception ex) {
@@ -83,6 +88,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         executorService.submit(() -> {
             try {
                 task.run();
+            } catch (Exception ex) {
+                LOGGER.error("validation task failed {}", ex.getMessage(), ex);
             } finally {
                 count.decrementAndGet();
                 synchronized (lock) {

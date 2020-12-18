@@ -17,6 +17,8 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
+
 /**
  * An interface for building validation tasks
  *
@@ -29,4 +31,18 @@ public interface ValidationTaskBuilder<T extends ValidationTask> {
       * @return
       */
      T build();
+
+     /**
+      * @param writer
+      * @return
+      */
+     public ValidationTaskBuilder<T> writer(final ValidationResultWriter writer);
+
+     /**
+      * Sets the OcflObjectSessionFactory objectSessionFactory
+      *
+      * @param objectSessionFactory
+      * @return
+      */
+     public ValidationTaskBuilder<T> objectSessionFactory(final OcflObjectSessionFactory objectSessionFactory);
 }
