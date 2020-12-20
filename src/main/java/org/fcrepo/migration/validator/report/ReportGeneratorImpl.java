@@ -17,9 +17,12 @@
  */
 package org.fcrepo.migration.validator.report;
 
+import org.apache.commons.io.FilenameUtils;
 import org.fcrepo.migration.validator.api.ObjectValidationReport;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.api.ValidationReportSummary;
+import org.fcrepo.migration.validator.api.ValidationResult;
+import org.fcrepo.migration.validator.impl.FileSystemValidationResultReader;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -27,9 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-
-import static java.lang.String.valueOf;
-import static org.apache.commons.io.FilenameUtils.removeExtension;
 
 /**
  * This concrete implementation orchestrates the generation of the validation report
@@ -76,17 +76,23 @@ public class ReportGeneratorImpl {
     }
 
     private String doProcessResults() throws IOException {
-        // iterate through the results.json files
+        final FileSystemValidationResultReader reader = new FileSystemValidationResultReader();
+
+        // iterate through the validation result (JSON) files
         Files.walkFileTree(resultDir, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
-                // if is object:
-                final String reportFilename = reportHandler.objectLevelReport(
-                        new ObjectValidationReport(removeExtension(valueOf(file.getFileName()))));
 
-                // Update summary with newly created object reports
-                summary.addObjectReport(reportFilename);
+                // If file is a validation result (i.e. *.json)
+                final String extension = FilenameUtils.getExtension(file.toFile().getName());
+                if (extension.equalsIgnoreCase("json")) {
+                    final ValidationResult validationResult = reader.read(file.toFile());
+                    final String reportFilename =
+                            reportHandler.objectLevelReport(new ObjectValidationReport(validationResult));
 
+                    // Update summary with newly created object reports
+                    summary.addObjectReport(reportFilename);
+                }
                 return FileVisitResult.CONTINUE;
             }
         });
