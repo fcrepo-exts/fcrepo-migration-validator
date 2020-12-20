@@ -26,14 +26,17 @@ package org.fcrepo.migration.validator.api;
  */
 public class ObjectValidationReport {
 
-    private String objectId;
+    /*
+     * Validation result which is the subject of this report
+     */
+    private ValidationResult result;
 
     /**
      * Constructor
-     * @param objectId of the object which is the subject of this report
+     * @param result of the object which is the subject of this report
      */
-    public ObjectValidationReport(final String objectId) {
-        this.objectId = objectId;
+    public ObjectValidationReport(final ValidationResult result) {
+        this.result = result;
     }
 
     /**
@@ -41,6 +44,30 @@ public class ObjectValidationReport {
      * @return the object-id
      */
     public String getObjectId() {
-        return objectId;
+        return result.sourceId();
+    }
+
+    /**
+     * This method indicates if the result has any errors
+     * @return true if there are validation errors
+     */
+    public boolean hasErrors() {
+        return !result.getStatus().equals(ValidationResult.Status.OK);
+    }
+
+    /**
+     * This method returns the type of validation related to this report
+     * @return validation type
+     */
+    public String getValidationType() {
+        return result.getValidationType().name();
+    }
+
+    /**
+     * This method returns any details related to the validation
+     * @return validation details
+     */
+    public String getDetails() {
+        return result.getDetails();
     }
 }

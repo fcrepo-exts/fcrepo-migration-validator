@@ -90,6 +90,13 @@ public class ValidationResult {
     }
 
     /**
+     * Default constructor
+     */
+    public ValidationResult() {
+        // Default constructor need for Jackson to deserialize json
+    }
+
+    /**
      * An index number
      *
      * @return
