@@ -18,9 +18,9 @@
 package org.fcrepo.migration.validator.report;
 
 import org.apache.commons.io.FilenameUtils;
-import org.fcrepo.migration.validator.api.ObjectValidationReport;
+import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
-import org.fcrepo.migration.validator.api.ValidationReportSummary;
+import org.fcrepo.migration.validator.api.ValidationResultsSummary;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.impl.FileSystemValidationResultReader;
 import org.slf4j.Logger;
@@ -52,7 +52,7 @@ public class ReportGeneratorImpl {
 
     private Path resultDir;
     private ReportHandler reportHandler;
-    private ValidationReportSummary summary;
+    private ValidationResultsSummary summary;
 
     /**
      * Constructor
@@ -63,7 +63,7 @@ public class ReportGeneratorImpl {
     public ReportGeneratorImpl(final Path resultDir, final ReportHandler reportHandler) {
         this.resultDir = resultDir;
         this.reportHandler = reportHandler;
-        this.summary = new ValidationReportSummary();
+        this.summary = new ValidationResultsSummary();
     }
 
     /**
@@ -133,6 +133,6 @@ public class ReportGeneratorImpl {
             resultsList.add(reader.read(f));
         }
 
-        return reportHandler.objectLevelReport(new ObjectValidationReport(resultsList));
+        return reportHandler.objectLevelReport(new ObjectValidationResults(resultsList));
     }
 }

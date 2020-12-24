@@ -20,9 +20,9 @@ package org.fcrepo.migration.validator.report;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
-import org.fcrepo.migration.validator.api.ObjectValidationReport;
+import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
-import org.fcrepo.migration.validator.api.ValidationReportSummary;
+import org.fcrepo.migration.validator.api.ValidationResultsSummary;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -47,7 +47,7 @@ public class HtmlReportHandler implements ReportHandler {
 
     private final File outputDir;
     private final Configuration config;
-    private ValidationReportSummary validationSummary;
+    private ValidationResultsSummary validationSummary;
 
     /**
      * Constructor
@@ -82,12 +82,12 @@ public class HtmlReportHandler implements ReportHandler {
     /**
      * This method write the HTML report for a single object
      *
-     * @param objectValidationReport An individual object validation report
+     * @param objectValidationResults An individual object validation report
      * @return filename of HTML object report
      */
     @Override
-    public String objectLevelReport(final ObjectValidationReport objectValidationReport) {
-        final String id = objectValidationReport.getObjectId();
+    public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
+        final String id = objectValidationResults.getObjectId();
         final String filename = id + ".html";
 
         // Organize data for template
@@ -112,7 +112,7 @@ public class HtmlReportHandler implements ReportHandler {
      * @return filename of full report
      */
     @Override
-    public String validationSummary(final ValidationReportSummary validationSummary) {
+    public String validationSummary(final ValidationResultsSummary validationSummary) {
         final String reportFilename = "index.html";
 
         // Ensure we have a 'validationSummary'

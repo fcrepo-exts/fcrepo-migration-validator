@@ -17,9 +17,9 @@
  */
 package org.fcrepo.migration.validator.report;
 
-import org.fcrepo.migration.validator.api.ObjectValidationReport;
+import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
-import org.fcrepo.migration.validator.api.ValidationReportSummary;
+import org.fcrepo.migration.validator.api.ValidationResultsSummary;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,13 +46,13 @@ public class ResultsReportHandler implements ReportHandler {
     /**
      * A hook hook for processing an object level validation report
      *
-     * @param objectValidationReport An individual object validation report
+     * @param objectValidationResults An individual object validation report
      * @return filename of object report
      */
     @Override
-    public String objectLevelReport(final ObjectValidationReport objectValidationReport) {
-        if (objectValidationReport.hasErrors()) {
-            errors.addAll(objectValidationReport.getErrorDetails());
+    public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
+        if (objectValidationResults.hasErrors()) {
+            errors.addAll(objectValidationResults.getErrorDetails());
         }
 
         // No HTML report filename
@@ -66,7 +66,7 @@ public class ResultsReportHandler implements ReportHandler {
      * @return filename of full report
      */
     @Override
-    public String validationSummary(final ValidationReportSummary validationSummary) {
+    public String validationSummary(final ValidationResultsSummary validationSummary) {
         return null;
     }
 
