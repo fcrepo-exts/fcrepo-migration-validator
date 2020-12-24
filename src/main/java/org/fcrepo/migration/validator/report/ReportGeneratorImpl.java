@@ -23,13 +23,21 @@ import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.api.ValidationReportSummary;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.impl.FileSystemValidationResultReader;
+import org.slf4j.Logger;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * This concrete implementation orchestrates the generation of the validation report
@@ -39,6 +47,8 @@ import java.nio.file.attribute.BasicFileAttributes;
  * @since 2020-12-16
  */
 public class ReportGeneratorImpl {
+
+    private static final Logger LOGGER = getLogger(ReportGeneratorImpl.class);
 
     private Path resultDir;
     private ReportHandler reportHandler;
@@ -76,27 +86,53 @@ public class ReportGeneratorImpl {
     }
 
     private String doProcessResults() throws IOException {
-        final FileSystemValidationResultReader reader = new FileSystemValidationResultReader();
-
         // iterate through the validation result (JSON) files
         Files.walkFileTree(resultDir, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
 
-                // If file is a validation result (i.e. *.json)
-                final String extension = FilenameUtils.getExtension(file.toFile().getName());
-                if (extension.equalsIgnoreCase("json")) {
-                    final ValidationResult validationResult = reader.read(file.toFile());
-                    final String reportFilename =
-                            reportHandler.objectLevelReport(new ObjectValidationReport(validationResult));
+                // If file is a validation result (i.e. result-*.json, ValidationResultUtils.resolvePathToJsonResult)
+                // ..and the containing object has not already been loaded
+                // ..then, load all result files as a set.
+                final String objectId = file.getParent().toFile().getName();
+                if (!summary.containsReport(objectId) && isValidationResultFile(file.toFile().getName())) {
+                    final String reportFilename = loadValidationResults(file.getParent().toFile());
 
                     // Update summary with newly created object reports
-                    summary.addObjectReport(reportFilename);
+                    summary.addObjectReport(objectId, reportFilename);
+
+                } else {
+                    LOGGER.debug("Not a validation result file: {}", file);
                 }
+
                 return FileVisitResult.CONTINUE;
             }
         });
 
         return reportHandler.validationSummary(summary);
+    }
+
+    /**
+     * Validation result files have the following naming convention:
+     *   result-*.json, ValidationResultUtils.resolvePathToJsonResult
+     *
+     * @param filename to be inspected
+     * @return true if matches above naming convention
+     */
+    private boolean isValidationResultFile(final String filename) {
+        return FilenameUtils.getExtension(filename).equalsIgnoreCase("json") && filename.startsWith("result-");
+    }
+
+    private String loadValidationResults(final File objectDir) {
+        LOGGER.debug("Loading validation results from: {}", objectDir);
+        final FilenameFilter filter = (dir, name) -> isValidationResultFile(name);
+
+        final FileSystemValidationResultReader reader = new FileSystemValidationResultReader();
+        final List<ValidationResult> resultsList = new ArrayList<>();
+        for (final File f : Objects.requireNonNull(objectDir.listFiles(filter))) {
+            resultsList.add(reader.read(f));
+        }
+
+        return reportHandler.objectLevelReport(new ObjectValidationReport(resultsList));
     }
 }

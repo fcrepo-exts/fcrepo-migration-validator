@@ -17,6 +17,10 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * A data class that defines all object level validation details available to report generators.
  *
@@ -29,14 +33,14 @@ public class ObjectValidationReport {
     /*
      * Validation result which is the subject of this report
      */
-    private ValidationResult result;
+    private List<ValidationResult> results;
 
     /**
      * Constructor
-     * @param result of the object which is the subject of this report
+     * @param results for the object which is the subject of this report
      */
-    public ObjectValidationReport(final ValidationResult result) {
-        this.result = result;
+    public ObjectValidationReport(final List<ValidationResult> results) {
+        this.results = results;
     }
 
     /**
@@ -44,30 +48,44 @@ public class ObjectValidationReport {
      * @return the object-id
      */
     public String getObjectId() {
-        return result.sourceId();
+        if (results == null || results.isEmpty()) {
+            return "unknown";
+        }
+        return results.stream().findFirst().get().sourceId();
     }
 
     /**
-     * This method indicates if the result has any errors
+     * This method indicates if the result set has any errors
      * @return true if there are validation errors
      */
     public boolean hasErrors() {
-        return !result.getStatus().equals(ValidationResult.Status.OK);
+        // No error is no results
+        if (results == null || results.isEmpty()) {
+            return false;
+        }
+
+        // Return 'true' if any result has an error.
+        for (final ValidationResult vr : results) {
+            if (!vr.getStatus().equals(ValidationResult.Status.OK)) {
+                return true;
+            }
+        }
+
+        // All good.
+        return false;
     }
 
     /**
-     * This method returns the type of validation related to this report
-     * @return validation type
+     * This method returns any details related to the validation errors
+     * @return list of validation error details, or empty list if no errors
      */
-    public String getValidationType() {
-        return result.getValidationType().name();
-    }
+    public List<String> getErrorDetails() {
+        if (!hasErrors()) {
+            return Collections.emptyList();
+        }
 
-    /**
-     * This method returns any details related to the validation
-     * @return validation details
-     */
-    public String getDetails() {
-        return result.getDetails();
+        return results.stream().filter(
+                r -> !r.getStatus().equals(ValidationResult.Status.OK)).map(
+                        ValidationResult::getDetails).collect(Collectors.toList());
     }
 }

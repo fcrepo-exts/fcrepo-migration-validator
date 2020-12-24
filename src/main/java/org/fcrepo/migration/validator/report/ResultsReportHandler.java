@@ -52,7 +52,7 @@ public class ResultsReportHandler implements ReportHandler {
     @Override
     public String objectLevelReport(final ObjectValidationReport objectValidationReport) {
         if (objectValidationReport.hasErrors()) {
-            errors.add(objectValidationReport.getDetails());
+            errors.addAll(objectValidationReport.getErrorDetails());
         }
 
         // No HTML report filename
