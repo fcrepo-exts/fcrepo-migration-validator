@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * @author awoods
  * @since 2020-12-17
  */
-public class ObjectValidationReport {
+public class ObjectValidationResults {
 
     /*
      * Validation result which is the subject of this report
@@ -39,7 +39,7 @@ public class ObjectValidationReport {
      * Constructor
      * @param results for the object which is the subject of this report
      */
-    public ObjectValidationReport(final List<ValidationResult> results) {
+    public ObjectValidationResults(final List<ValidationResult> results) {
         this.results = results;
     }
 

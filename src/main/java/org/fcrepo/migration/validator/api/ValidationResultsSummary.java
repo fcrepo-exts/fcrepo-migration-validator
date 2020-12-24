@@ -32,9 +32,9 @@ import static org.slf4j.LoggerFactory.getLogger;
  * @author awoods
  * @since 2020-12-17
  */
-public class ValidationReportSummary {
+public class ValidationResultsSummary {
 
-    private static final Logger LOGGER = getLogger(ValidationReportSummary.class);
+    private static final Logger LOGGER = getLogger(ValidationResultsSummary.class);
 
     // Object-id to report filename map
     private Map<String, String> objectReportFilenames = new HashMap<>();
