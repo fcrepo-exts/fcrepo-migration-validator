@@ -17,8 +17,13 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import org.slf4j.Logger;
+
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A data class defining all report wide summary information
@@ -29,14 +34,27 @@ import java.util.HashSet;
  */
 public class ValidationReportSummary {
 
-    private Collection<String> objectReportFilenames = new HashSet<>();
+    private static final Logger LOGGER = getLogger(ValidationReportSummary.class);
+
+    // Object-id to report filename map
+    private Map<String, String> objectReportFilenames = new HashMap<>();
 
     /**
      * Setter for collecting ObjectReport filenames
+     * @param objectId of the provided report
      * @param objectReportFilename of generated HTML report
      */
-    public void addObjectReport(final String objectReportFilename) {
-        objectReportFilenames.add(objectReportFilename);
+    public void addObjectReport(final String objectId, final String objectReportFilename) {
+        if (containsReport(objectId)) {
+            throw new IllegalArgumentException("Should not be overwriting existing report: " + objectId);
+        }
+
+        LOGGER.debug("Adding report for object: {}, {}", objectId,  objectReportFilename);
+        objectReportFilenames.put(objectId, objectReportFilename);
+    }
+
+    public boolean containsReport(final String objectId) {
+        return objectReportFilenames.containsKey(objectId);
     }
 
     /**
@@ -44,6 +62,6 @@ public class ValidationReportSummary {
      * @return collection of ObjectReport filenames
      */
     public Collection<String> getObjectReportFilenames() {
-        return objectReportFilenames;
+        return objectReportFilenames.values();
     }
 }
