@@ -24,9 +24,6 @@ import org.fcrepo.migration.foxml.InternalIDResolver;
 import org.fcrepo.migration.foxml.LegacyFSIDResolver;
 import org.fcrepo.migration.foxml.NativeFoxmlDirectoryObjectSource;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 
 import java.io.IOException;
 
@@ -38,24 +35,27 @@ import static edu.wisc.library.ocfl.api.util.Enforce.notNull;
  *
  * @author dbernstein
  */
-@Configuration
-@Lazy
 public class Fedora3ObjectConfiguration {
 
-    @Bean
-    public Fedora3ValidationConfig config() {
-        return new Fedora3ValidationConfig();
+    private Fedora3ValidationConfig config;
+
+    public Fedora3ObjectConfiguration(final Fedora3ValidationConfig config) {
+        this.config = config;
     }
 
-    @Bean
-    @Lazy
-    public ValidationResultWriter validationResultWriter(final Fedora3ValidationConfig config) {
+    public ValidationResultWriter validationResultWriter() {
         return new FileSystemValidationResultWriter(config.getJsonOuputDirectory());
     }
 
-    @Bean
-    @Lazy
-    public ObjectSource objectSource(final Fedora3ValidationConfig config) throws IOException {
+    public ObjectSource objectSource() {
+        try {
+            return doObjectSource();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private ObjectSource doObjectSource () throws IOException {
         final ObjectSource objectSource;
         final var f3ExportedDir = config.getExportedDirectory();
         final var f3DatastreamsDir = config.getDatastreamsDirectory();
@@ -95,4 +95,7 @@ public class Fedora3ObjectConfiguration {
         return objectSource;
     }
 
+    public int getThreadCount() {
+        return config.getThreadCount();
+    }
 }

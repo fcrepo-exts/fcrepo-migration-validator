@@ -30,7 +30,6 @@
         <project_name>${project.artifactId}</project_name>
         <release.plugin.version>2.5.2</release.plugin.version>
         <scm-provider-gitexe.plugin.version>1.9.4</scm-provider-gitexe.plugin.version>
-        <spring.version>5.2.11.RELEASE</spring.version>
         <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
         <source.plugin.version>3.2.0</source.plugin.version>
     </properties>
@@ -242,12 +241,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>${jackson.version}</version>
@@ -320,14 +313,6 @@
             <version>2.22.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>5.2.7.RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-
-
     </dependencies>
 
     <distributionManagement>
