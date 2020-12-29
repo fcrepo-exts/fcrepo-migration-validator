@@ -18,12 +18,12 @@
 package org.fcrepo.migration.validator;
 
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
+import org.fcrepo.migration.validator.impl.Fedora3ObjectConfiguration;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.HtmlReportHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.slf4j.Logger;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -87,9 +87,8 @@ public class Driver implements Callable<Integer> {
     private boolean debug;
 
     @Override
-    public Integer call() throws Exception {
-        try (final var context = new AnnotationConfigApplicationContext("org.fcrepo.migration.validator")) {
-            final var config = context.getBean(Fedora3ValidationConfig.class);
+    public Integer call() {
+            final var config = new Fedora3ValidationConfig();
             config.setSourceType(f3SourceType);
             config.setDatastreamsDirectory(f3DatastreamsDir);
             config.setObjectsDirectory(f3ObjectsDir);
@@ -100,7 +99,7 @@ public class Driver implements Callable<Integer> {
             LOGGER.info("Configuration created: {}", config);
 
             LOGGER.info("Preparing to execute validation run...");
-            final var executionManager = context.getBean(Fedora3ValidationExecutionManager.class);
+            final var executionManager = new Fedora3ValidationExecutionManager(new Fedora3ObjectConfiguration(config));
             executionManager.doValidation();
 
             final var reportHandler = new HtmlReportHandler(config.getHtmlReportDirectory());
@@ -110,10 +109,6 @@ public class Driver implements Callable<Integer> {
                     "index.html");
 
             return 0;
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return 1;
-        }
     }
 
     /**

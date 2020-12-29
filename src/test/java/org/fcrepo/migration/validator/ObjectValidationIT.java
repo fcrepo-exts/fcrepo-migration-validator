@@ -18,18 +18,13 @@
 package org.fcrepo.migration.validator;
 
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
+import org.fcrepo.migration.validator.impl.Fedora3ObjectConfiguration;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.io.File;
 
@@ -37,40 +32,26 @@ import java.io.File;
  * @author awoods
  * @since 2020-12-14
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("/spring-test/test-context.xml")
 public class ObjectValidationIT extends AbstractValidationIT {
-
-    private AnnotationConfigApplicationContext context;
-    private Fedora3ValidationExecutionManager executionManager;
-
-    @Before
-    public void setup() {
-        context = new AnnotationConfigApplicationContext("org.fcrepo.migration.validator");
-        getConfig(context);
-        executionManager = context.getBean(Fedora3ValidationExecutionManager.class);
-    }
-
-    @After
-    public void teardown() {
-        context.close();
-    }
 
     @Test
     public void test() {
+        final var config = getConfig();
+        final var configuration = new Fedora3ObjectConfiguration(config);
+        final var executionManager = new Fedora3ValidationExecutionManager(configuration);
         executionManager.doValidation();
 
         // run report generator with 'ResultsReportHandler'
         final ResultsReportHandler reportHandler = new ResultsReportHandler();
-        final var generator = new ReportGeneratorImpl(getConfig(context).getJsonOuputDirectory(), reportHandler);
+        final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
         generator.generate();
 
         // verify expected results
         Assert.assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
     }
 
-    private Fedora3ValidationConfig getConfig(final AnnotationConfigApplicationContext context) {
-        final var config = context.getBean(Fedora3ValidationConfig.class);
+    private Fedora3ValidationConfig getConfig() {
+        final var config = new Fedora3ValidationConfig();
 
         final F3SourceTypes f3SourceType = F3SourceTypes.AKUBRA;
         final File f3DatastreamsDir = new File("src/test/resources/test-object-validation/f3/datastreams");

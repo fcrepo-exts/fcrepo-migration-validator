@@ -23,9 +23,6 @@ import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,8 +34,6 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * @author dbernstein
  */
-@Component
-@Lazy
 public class Fedora3ValidationExecutionManager implements ValidationExecutionManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
@@ -52,14 +47,10 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     /**
      * Constructor
      * @param config The config
-     * @param writer The writer
-     * @param source The source
      */
-    public Fedora3ValidationExecutionManager(@Autowired final Fedora3ValidationConfig config,
-                                             @Autowired final ValidationResultWriter writer,
-                                             @Autowired final ObjectSource source) {
-        this.source = source;
-        this.writer = writer;
+    public Fedora3ValidationExecutionManager(final Fedora3ObjectConfiguration config) {
+        this.source = config.objectSource();
+        this.writer = config.validationResultWriter();
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
         this.count = new AtomicLong(0);
         this.lock = new Object();
