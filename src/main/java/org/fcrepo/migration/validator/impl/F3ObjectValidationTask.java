@@ -31,7 +31,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class F3ObjectValidationTask extends ValidationTask {
 
-    private static final Logger LOGGER = getLogger(Fedora3ValidationExecutionManager.class);
+    private static final Logger LOGGER = getLogger(F3ObjectValidationTask.class);
 
     private FedoraObjectProcessor processor;
     private ValidationResultWriter writer;
