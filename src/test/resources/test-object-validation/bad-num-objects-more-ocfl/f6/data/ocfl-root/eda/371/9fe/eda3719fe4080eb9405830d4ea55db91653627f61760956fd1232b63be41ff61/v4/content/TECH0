@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mix xmlns="http://www.loc.gov/mix/v20">
+  <!--** MIX file created 2019-05-30 17:13:56 -0500 **-->
+  <BasicDigitalObjectInformation>
+    <ObjectIdentifier>
+      <objectIdentifierType>CNRI handle</objectIdentifierType>
+      <objectIdentifierValue>1711.dl/6DWVZXV4RKIIA9E</objectIdentifierValue>
+    </ObjectIdentifier>
+    <ObjectIdentifier>
+      <objectIdentifierType>Source file base name</objectIdentifierType>
+      <objectIdentifierValue>6DWVZXV4RKIIA9E_ms0</objectIdentifierValue>
+    </ObjectIdentifier>
+    <fileSize>22373368</fileSize>
+    <FormatDesignation>
+      <formatName>TIFF</formatName>
+      <formatVersion>6.0</formatVersion>
+    </FormatDesignation>
+    <byteOrder use="system">little endian</byteOrder>
+    <Compression>
+      <compressionScheme>Uncompressed</compressionScheme>
+      <!--http://jhove.sourceforge.net/tiff-tags.html#compression -->
+    </Compression>
+    <Fixity>
+      <messageDigestAlgorithm>CRC32</messageDigestAlgorithm>
+      <messageDigest>178fb05d</messageDigest>
+      <messageDigestOriginator>Jhove 1.21.0-SNAPSHOT</messageDigestOriginator>
+    </Fixity>
+    <Fixity>
+      <messageDigestAlgorithm>MD5</messageDigestAlgorithm>
+      <messageDigest>d76d6c6066af60d456daadc9581efd0e</messageDigest>
+      <messageDigestOriginator>Jhove 1.21.0-SNAPSHOT</messageDigestOriginator>
+    </Fixity>
+    <Fixity>
+      <messageDigestAlgorithm>SHA-1</messageDigestAlgorithm>
+      <messageDigest>04226b06118c1ae03efc2f2d57a7d2d0fbbf4cd3</messageDigest>
+      <messageDigestOriginator>Jhove 1.21.0-SNAPSHOT</messageDigestOriginator>
+    </Fixity>
+  </BasicDigitalObjectInformation>
+  <BasicImageInformation>
+    <BasicImageCharacteristics>
+      <imageWidth>3828</imageWidth>
+      <imageHeight>5838</imageHeight>
+      <PhotometricInterpretation>
+        <colorSpace>BlackIsZero</colorSpace>
+        <ColorProfile>
+          <!--Derived from Exiftool output: -->
+          <IccProfile>
+            <iccProfileName>Dot Gain 20%</iccProfileName>
+          </IccProfile>
+        </ColorProfile>
+      </PhotometricInterpretation>
+    </BasicImageCharacteristics>
+  </BasicImageInformation>
+  <ImageAssessmentMetadata>
+         <SpatialMetrics>
+          <samplingFrequencyUnit>in.</samplingFrequencyUnit>
+          <xSamplingFrequency>
+           <numerator>6000000</numerator>
+           <denominator>10000</denominator>
+          </xSamplingFrequency>
+          <ySamplingFrequency>
+           <numerator>6000000</numerator>
+           <denominator>10000</denominator>
+          </ySamplingFrequency>
+         </SpatialMetrics>
+         <ImageColorEncoding><BitsPerSample><bitsPerSampleValue>8</bitsPerSampleValue><bitsPerSampleUnit>integer</bitsPerSampleUnit></BitsPerSample><samplesPerPixel>1</samplesPerPixel></ImageColorEncoding>
+        </ImageAssessmentMetadata>
+</mix>

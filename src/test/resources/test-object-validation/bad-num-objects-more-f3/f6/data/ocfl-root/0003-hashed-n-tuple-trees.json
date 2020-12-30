@@ -1,0 +1,6 @@
+{
+  "digestAlgorithm" : "sha256",
+  "tupleSize" : 3,
+  "numberOfTuples" : 3,
+  "shortObjectRoot" : false
+}

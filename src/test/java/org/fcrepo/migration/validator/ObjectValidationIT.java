@@ -24,6 +24,7 @@ import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -34,9 +35,47 @@ import java.io.File;
  */
 public class ObjectValidationIT extends AbstractValidationIT {
 
+    final static File FIXTURES_BASE_DIR = new File("src/test/resources/test-object-validation");
+    final static File RESULTS_DIR = new File("target/test/results-object-validation");
+
     @Test
     public void test() {
-        final var config = getConfig();
+        final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
+        final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir);
+
+        // verify expected results
+        Assert.assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+    }
+
+    @Test
+    @Ignore("currently not passing")
+    public void testNumberOfObjectsFailMoreOcfl() {
+        final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-ocfl/f3/datastreams");
+        final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-ocfl/f3/objects");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir);
+
+        // verify expected results (1 object in f3, 2 objects in OCFL)
+        Assert.assertEquals("Should be one error!", 1, reportHandler.getErrors().size());
+        // TODO: check for the specific ValidationResult.ValidationLevel
+        // TODO: check for the specific ValidationResult.ValidationType
+    }
+
+    @Test
+    @Ignore("currently not passing")
+    public void testNumberOfObjectsFailMoreF3() {
+        final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-f3/f3/datastreams");
+        final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-f3/f3/objects");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir);
+
+        // verify expected results (2 objects in f3, 1 object in OCFL)
+        Assert.assertEquals("Should be one error!", 1, reportHandler.getErrors().size());
+        // TODO: check for the specific ValidationResult.ValidationLevel
+        // TODO: check for the specific ValidationResult.ValidationType
+    }
+
+    private ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir) {
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir);
         final var configuration = new Fedora3ObjectConfiguration(config);
         final var executionManager = new Fedora3ValidationExecutionManager(configuration);
         executionManager.doValidation();
@@ -45,21 +84,16 @@ public class ObjectValidationIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = new ResultsReportHandler();
         final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
         generator.generate();
-
-        // verify expected results
-        Assert.assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        return reportHandler;
     }
 
-    private Fedora3ValidationConfig getConfig() {
+    private Fedora3ValidationConfig getConfig(final File f3DatastreamsDir, final File f3ObjectsDir) {
         final var config = new Fedora3ValidationConfig();
 
         final F3SourceTypes f3SourceType = F3SourceTypes.AKUBRA;
-        final File f3DatastreamsDir = new File("src/test/resources/test-object-validation/f3/datastreams");
-        final File f3ObjectsDir = new File("src/test/resources/test-object-validation/f3/objects");
         final File f3ExportedDir = null;
         final String f3hostname = null;
         final int threadCount = 1;
-        final File resultsDirectory = new File("target/test/results-object-validation");
 
         config.setSourceType(f3SourceType);
         config.setDatastreamsDirectory(f3DatastreamsDir);
@@ -67,7 +101,7 @@ public class ObjectValidationIT extends AbstractValidationIT {
         config.setExportedDirectory(f3ExportedDir);
         config.setFedora3Hostname(f3hostname);
         config.setThreadCount(threadCount);
-        config.setResultsDirectory(resultsDirectory.toPath());
+        config.setResultsDirectory(RESULTS_DIR.toPath());
 
         return config;
     }

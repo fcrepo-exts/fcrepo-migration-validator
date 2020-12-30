@@ -1,0 +1,11 @@
+
+<rdf:RDF xmlns="info:fedora/fedora-system:def/model#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:fedora="info:fedora/fedora-system:def/relations-external#" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:uwdc="https://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#" xmlns:uwdcr="https://digital.library.wisc.edu/1711.dl/vocabulary/resourcetype#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ID="RELS-EXT" xsi:schemaLocation="http://www.w3.org/1999/02/22-rdf-syntax-ns# http://www.w3.org/2000/07/rdf.xsd">
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X">
+            <hasModel rdf:resource="info:fedora/1711.dl:CModelUWDCObject"></hasModel>
+            <hasModel rdf:resource="info:fedora/1711.dl:CModelMaster"></hasModel>
+            <hasModel rdf:resource="info:fedora/1711.dl:CModelSimpleText"></hasModel>
+            <fedora:isMemberOf rdf:resource="info:fedora/1711.dl:RXORJPDWM7CJM8Z"></fedora:isMemberOf>
+            <uwdc:isMemberOfProject rdf:resource="https://digital.library.wisc.edu/1711.dl/ParPressDoubt"></uwdc:isMemberOfProject>
+            <uwdc:hasAccessPolicy rdf:resource="https://digital.library.wisc.edu/1711.dl/Access-policy-open-access-all"></uwdc:hasAccessPolicy>
+          </rdf:Description>
+        </rdf:RDF>
