@@ -1,5 +1,0 @@
-<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/view#lastModifiedDate> "2019-07-25T17:43:56.259Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#createdDate> "2019-07-01T17:12:45.311Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
-<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#ownerId> "" .
-<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#label> "History of UW–Platteville" .
-<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#state> "Active" .

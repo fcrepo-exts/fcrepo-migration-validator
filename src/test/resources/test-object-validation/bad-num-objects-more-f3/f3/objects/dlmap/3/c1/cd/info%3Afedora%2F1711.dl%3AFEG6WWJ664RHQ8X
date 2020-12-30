@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject VERSION="1.1" PID="1711.dl:FEG6WWJ664RHQ8X"
+xmlns:foxml="info:fedora/fedora-system:def/foxml#"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+<foxml:objectProperties>
+<foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE=""/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE=""/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2019-07-08T18:48:38.370Z"/>
+<foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2019-07-25T16:09:42.640Z"/>
+</foxml:objectProperties>
+<foxml:datastream ID="AUDIT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
+<foxml:datastreamVersion ID="AUDIT.0" LABEL="Audit Trail for this object" CREATED="2019-07-08T18:48:38.370Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:format/xml.fedora.audit">
+<foxml:xmlContent>
+<audit:auditTrail xmlns:audit="info:fedora/fedora-system:def/audit#">
+<audit:record ID="AUDREC1">
+<audit:process type="Fedora API-M"/>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>RELS-EXT</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:48:39.260Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC2">
+<audit:process type="Fedora API-M"/>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>MASTER0</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:48:40.078Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC3">
+<audit:process type="Fedora API-M"/>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>TECH0</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:48:43.493Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC4">
+<audit:process type="Fedora API-M"/>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>TEXT0</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:48:45.739Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC5">
+<audit:process type="Fedora API-M"/>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>TECH1</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:48:46.438Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC6">
+<audit:process type="Fedora API-M"/>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>RELS-INT</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:48:47.030Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC7">
+<audit:process type="Fedora API-M"/>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>ADMINMD</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:48:48.266Z</audit:date>
+<audit:justification>Created ADMINMD, prompted by initial ingest</audit:justification>
+</audit:record>
+<audit:record ID="AUDREC8">
+<audit:process type="Fedora API-M"/>
+<audit:action>ingest</audit:action>
+<audit:componentID></audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-25T16:09:42.640Z</audit:date>
+<audit:justification>Ingested from source repository with pid info:fedora/1711.dl:FEG6WWJ664RHQ8X</audit:justification>
+</audit:record>
+</audit:auditTrail>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="DC1.0" LABEL="Dublin Core Record for this object" CREATED="2019-07-08T18:48:38.370Z" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/" SIZE="351">
+<foxml:contentDigest TYPE="MD5" DIGEST="fe1785a35ef9d3992bcb90ffecde85f8"/>
+<foxml:xmlContent>
+<oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
+xmlns:dc="http://purl.org/dc/elements/1.1/"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.openarchives.org/OAI/2.0/oai_dc.xsd">
+  <dc:identifier>1711.dl:FEG6WWJ664RHQ8X</dc:identifier>
+</oai_dc:dc>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" CREATED="2019-07-08T18:48:39.260Z" MIMETYPE="application/rdf+xml" SIZE="1473">
+<foxml:contentDigest TYPE="MD5" DIGEST="ea2aa368858141b964ed5c1a54620fb6"/>
+<foxml:xmlContent>
+<rdf:RDF xmlns="info:fedora/fedora-system:def/model#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:fedora="info:fedora/fedora-system:def/relations-external#" xmlns:foxml="info:fedora/fedora-system:def/foxml#" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:uwdc="https://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#" xmlns:uwdcr="https://digital.library.wisc.edu/1711.dl/vocabulary/resourcetype#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ID="RELS-EXT" xsi:schemaLocation="http://www.w3.org/1999/02/22-rdf-syntax-ns# http://www.w3.org/2000/07/rdf.xsd">
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X">
+            <hasModel rdf:resource="info:fedora/1711.dl:CModelUWDCObject"></hasModel>
+            <hasModel rdf:resource="info:fedora/1711.dl:CModelMaster"></hasModel>
+            <hasModel rdf:resource="info:fedora/1711.dl:CModelSimpleText"></hasModel>
+            <fedora:isMemberOf rdf:resource="info:fedora/1711.dl:RXORJPDWM7CJM8Z"></fedora:isMemberOf>
+            <uwdc:isMemberOfProject rdf:resource="https://digital.library.wisc.edu/1711.dl/ParPressDoubt"></uwdc:isMemberOfProject>
+            <uwdc:hasAccessPolicy rdf:resource="https://digital.library.wisc.edu/1711.dl/Access-policy-open-access-all"></uwdc:hasAccessPolicy>
+          </rdf:Description>
+        </rdf:RDF>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="MASTER0" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
+<foxml:datastreamVersion ID="MASTER0.0" LABEL="File master" CREATED="2019-07-08T18:48:40.078Z" MIMETYPE="image/tiff" SIZE="22373368">
+<foxml:contentDigest TYPE="MD5" DIGEST="67941c749a6139aab3cd3be18bb620f9"/>
+<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+MASTER0+MASTER0.0"/>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="TECH0" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
+<foxml:datastreamVersion ID="TECH0.0" LABEL="Technical metadata for MASTER0" CREATED="2019-07-08T18:48:43.493Z" MIMETYPE="text/xml" SIZE="2853">
+<foxml:contentDigest TYPE="MD5" DIGEST="2b10bed717d7ae7679f4bfe5331f6ab0"/>
+<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+TECH0+TECH0.0"/>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="TEXT0" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
+<foxml:datastreamVersion ID="TEXT0.0" LABEL="OCR for this object" CREATED="2019-07-08T18:48:45.739Z" MIMETYPE="text/plain;charset=UTF-8" SIZE="3806">
+<foxml:contentDigest TYPE="MD5" DIGEST="a5a9683882fa4b3ddc90bd2fb2f55872"/>
+<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+TEXT0+TEXT0.0"/>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="TECH1" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
+<foxml:datastreamVersion ID="TECH1.0" LABEL="Technical metadata for TEXT0" CREATED="2019-07-08T18:48:46.438Z" MIMETYPE="text/xml" SIZE="594">
+<foxml:contentDigest TYPE="MD5" DIGEST="98f756aeea3c815864525df2b6930dd7"/>
+<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+TECH1+TECH1.0"/>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="RELS-INT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="RELS-INT.0" LABEL="RDF Statements about this object" CREATED="2019-07-08T18:48:47.030Z" MIMETYPE="application/rdf+xml" SIZE="1617">
+<foxml:contentDigest TYPE="MD5" DIGEST="f0a403b43e20beb102eef1918489a46b"/>
+<foxml:xmlContent>
+<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:uwdc="https://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/1999/02/22-rdf-syntax-ns# http://www.w3.org/2000/07/rdf.xsd">
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/MASTER0">
+            <uwdc:hasTechnicalMetadata rdf:resource="info:fedora/1711.dl:FEG6WWJ664RHQ8X/TECH0"></uwdc:hasTechnicalMetadata>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/MASTER0">
+            <fedora-model:downloadFilename>FEG6WWJ664RHQ8X_ms0.tif</fedora-model:downloadFilename>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/MASTER0">
+            <uwdc:isConsumable>true</uwdc:isConsumable>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/TEXT0">
+            <uwdc:hasTechnicalMetadata rdf:resource="info:fedora/1711.dl:FEG6WWJ664RHQ8X/TECH1"></uwdc:hasTechnicalMetadata>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/TEXT0">
+            <fedora-model:downloadFilename>FEG6WWJ664RHQ8X_txt0.txt</fedora-model:downloadFilename>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/TEXT0">
+            <uwdc:isConsumable>true</uwdc:isConsumable>
+          </rdf:Description>
+        </rdf:RDF>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="ADMINMD" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
+<foxml:datastreamVersion ID="ADMINMD.0" LABEL="Administrative metadata about this object" CREATED="2019-07-08T18:48:48.266Z" MIMETYPE="text/xml" SIZE="7591">
+<foxml:contentDigest TYPE="MD5" DIGEST="439596a95c17963d662e47e8d97386d2"/>
+<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+ADMINMD+ADMINMD.0"/>
+</foxml:datastreamVersion>
+</foxml:datastream>
+</foxml:digitalObject>

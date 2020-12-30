@@ -1,9 +1,0 @@
-
-<rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:fedora="info:fedora/fedora-system:def/relations-external#" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:uwdc="http://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#">
-          <rdf:Description rdf:about="info:fedora/1711.dl:UWPAbout">
-            <hasModel xmlns="info:fedora/fedora-system:def/model#" rdf:resource="info:fedora/1711.dl:CModelUWDCObject"></hasModel>
-            <hasModel xmlns="info:fedora/fedora-system:def/model#" rdf:resource="info:fedora/1711.dl:CModelFirstClassObject"></hasModel>
-            <hasModel xmlns="info:fedora/fedora-system:def/model#" rdf:resource="info:fedora/1711.dl:CModelCollection"></hasModel>
-            <uwdc:hasAccessPolicy rdf:resource="http://digital.library.wisc.edu/1711.dl/Access-policy-open-access-all"></uwdc:hasAccessPolicy>
-          </rdf:Description>
-        </rdf:RDF>

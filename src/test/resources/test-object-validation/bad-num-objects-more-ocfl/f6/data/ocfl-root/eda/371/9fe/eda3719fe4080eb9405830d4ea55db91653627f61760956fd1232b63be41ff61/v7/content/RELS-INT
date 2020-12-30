@@ -1,0 +1,21 @@
+
+<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:uwdc="https://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/1999/02/22-rdf-syntax-ns# http://www.w3.org/2000/07/rdf.xsd">
+          <rdf:Description rdf:about="info:fedora/1711.dl:6DWVZXV4RKIIA9E/MASTER0">
+            <uwdc:hasTechnicalMetadata rdf:resource="info:fedora/1711.dl:6DWVZXV4RKIIA9E/TECH0"></uwdc:hasTechnicalMetadata>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:6DWVZXV4RKIIA9E/MASTER0">
+            <fedora-model:downloadFilename>6DWVZXV4RKIIA9E_ms0.tif</fedora-model:downloadFilename>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:6DWVZXV4RKIIA9E/MASTER0">
+            <uwdc:isConsumable>true</uwdc:isConsumable>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:6DWVZXV4RKIIA9E/TEXT0">
+            <uwdc:hasTechnicalMetadata rdf:resource="info:fedora/1711.dl:6DWVZXV4RKIIA9E/TECH1"></uwdc:hasTechnicalMetadata>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:6DWVZXV4RKIIA9E/TEXT0">
+            <fedora-model:downloadFilename>6DWVZXV4RKIIA9E_txt0.txt</fedora-model:downloadFilename>
+          </rdf:Description>
+          <rdf:Description rdf:about="info:fedora/1711.dl:6DWVZXV4RKIIA9E/TEXT0">
+            <uwdc:isConsumable>true</uwdc:isConsumable>
+          </rdf:Description>
+        </rdf:RDF>

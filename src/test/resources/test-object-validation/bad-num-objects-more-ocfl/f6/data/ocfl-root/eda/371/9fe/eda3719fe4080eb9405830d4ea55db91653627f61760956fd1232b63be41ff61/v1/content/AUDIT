@@ -1,0 +1,67 @@
+
+<audit:auditTrail xmlns:audit="info:fedora/fedora-system:def/audit#">
+<audit:record ID="AUDREC1">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>RELS-EXT</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:49:07.187Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC2">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>MASTER0</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:49:07.827Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC3">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>TECH0</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:49:09.952Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC4">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>TEXT0</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:49:10.648Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC5">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>TECH1</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:49:11.999Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC6">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>RELS-INT</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:49:14.566Z</audit:date>
+<audit:justification></audit:justification>
+</audit:record>
+<audit:record ID="AUDREC7">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>addDatastream</audit:action>
+<audit:componentID>ADMINMD</audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-08T18:49:15.559Z</audit:date>
+<audit:justification>Created ADMINMD, prompted by initial ingest</audit:justification>
+</audit:record>
+<audit:record ID="AUDREC8">
+<audit:process type="Fedora API-M"></audit:process>
+<audit:action>ingest</audit:action>
+<audit:componentID></audit:componentID>
+<audit:responsibility>fedoraAdmin</audit:responsibility>
+<audit:date>2019-07-25T15:49:53.615Z</audit:date>
+<audit:justification>Ingested from source repository with pid info:fedora/1711.dl:6DWVZXV4RKIIA9E</audit:justification>
+</audit:record>
+</audit:auditTrail>

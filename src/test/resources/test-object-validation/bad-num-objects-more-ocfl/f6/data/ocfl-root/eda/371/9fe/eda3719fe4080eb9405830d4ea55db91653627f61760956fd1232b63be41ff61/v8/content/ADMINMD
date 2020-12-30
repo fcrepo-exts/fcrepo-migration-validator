@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<premis xmlns="http://www.loc.gov/premis/v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/premis/v3 https://digital.library.wisc.edu/1711.dl/XMLSchema-PREMIS-3.0" version="3.0">
+  <object xsi:type="intellectualEntity">
+    <objectIdentifier>
+      <objectIdentifierType>URI</objectIdentifierType>
+      <objectIdentifierValue>https://digital.library.wisc.edu/1711.dl/6DWVZXV4RKIIA9E</objectIdentifierValue>
+    </objectIdentifier>
+    <objectIdentifier>
+      <objectIdentifierType authorityURI="http://id.loc.gov/vocabulary/identifiers/hdl">hdl</objectIdentifierType>
+      <objectIdentifierValue>1711.dl/6DWVZXV4RKIIA9E</objectIdentifierValue>
+    </objectIdentifier>
+    <objectIdentifier>
+      <objectIdentifierType>local</objectIdentifierType>
+      <objectIdentifierValue>ParPressDoubt.PowerofDoubtV001.p0192</objectIdentifierValue>
+    </objectIdentifier>
+    <linkingEventIdentifier>
+      <linkingEventIdentifierType>UUID</linkingEventIdentifierType>
+      <linkingEventIdentifierValue>e0a6738b-4c3f-4ec2-b754-cd7bf8bb8f45</linkingEventIdentifierValue>
+    </linkingEventIdentifier>
+    <linkingRightsStatementIdentifier>
+      <linkingRightsStatementIdentifierType>UUID</linkingRightsStatementIdentifierType>
+      <linkingRightsStatementIdentifierValue>5e721492-b6a6-4f37-91b6-883e4755fb14</linkingRightsStatementIdentifierValue>
+    </linkingRightsStatementIdentifier>
+  </object>
+  <object xsi:type="file">
+  <objectIdentifier>
+    <objectIdentifierType>URI</objectIdentifierType>
+    <objectIdentifierValue>https://digital.library.wisc.edu/1711.dl/6DWVZXV4RKIIA9E#MASTER0.0</objectIdentifierValue>
+  </objectIdentifier>
+  <objectCharacteristics>
+    <compositionLevel>0</compositionLevel>
+    <format>
+      <formatDesignation>
+        <formatName>image/tiff</formatName>
+      </formatDesignation>
+    </format>
+  </objectCharacteristics>
+  <linkingEventIdentifier>
+    <linkingEventIdentifierType>UUID</linkingEventIdentifierType>
+    <linkingEventIdentifierValue/>
+  </linkingEventIdentifier>
+</object>
+  <object xsi:type="file">
+  <objectIdentifier>
+    <objectIdentifierType>URI</objectIdentifierType>
+    <objectIdentifierValue>https://digital.library.wisc.edu/1711.dl/6DWVZXV4RKIIA9E#TEXT0.0</objectIdentifierValue>
+  </objectIdentifier>
+  <objectCharacteristics>
+    <compositionLevel>0</compositionLevel>
+    <format>
+      <formatDesignation>
+        <formatName>text/plain;charset=UTF-8</formatName>
+      </formatDesignation>
+    </format>
+  </objectCharacteristics>
+  <linkingEventIdentifier>
+    <linkingEventIdentifierType>UUID</linkingEventIdentifierType>
+    <linkingEventIdentifierValue/>
+  </linkingEventIdentifier>
+</object><event>
+    <eventIdentifier>
+      <eventIdentifierType>UUID</eventIdentifierType>
+      <eventIdentifierValue>e0a6738b-4c3f-4ec2-b754-cd7bf8bb8f45</eventIdentifierValue>
+    </eventIdentifier>
+    <eventType valueURI="https://id.loc.gov/vocabulary/preservation/eventType/cre">creation</eventType>
+    <eventDateTime>2019-07-08T18:49:14.566Z</eventDateTime>
+    <eventDetailInformation>
+      <eventDetail>Fedora object: Initial object creation</eventDetail>
+    </eventDetailInformation>
+    <linkingAgentIdentifier>
+      <linkingAgentIdentifierType>URI</linkingAgentIdentifierType>
+      <linkingAgentIdentifierValue>https://digital.library.wisc.edu/1711/uwdc-admin-agent</linkingAgentIdentifierValue>
+      <linkingAgentRole valueURI="https://id.loc.gov/vocabulary/preservation/eventRelatedAgentRole/imp">implementer</linkingAgentRole>
+    </linkingAgentIdentifier>
+    <linkingAgentIdentifier>
+      <linkingAgentIdentifierType>URI</linkingAgentIdentifierType>
+      <linkingAgentIdentifierValue>https://digital.library.wisc.edu/1711/fedora-commons-3.8.1</linkingAgentIdentifierValue>
+      <linkingAgentRole valueURI="https://id.loc.gov/vocabulary/preservation/eventRelatedAgentRole/exe">executing program</linkingAgentRole>
+    </linkingAgentIdentifier>
+  </event><event>
+    <eventIdentifier>
+      <eventIdentifierType>UUID</eventIdentifierType>
+      <eventIdentifierValue>b04d3570-f59c-4c8e-86e5-6febb3777944</eventIdentifierValue>
+    </eventIdentifier>
+    <eventType valueURI="https://id.loc.gov/vocabulary/preservation/eventType/cre">creation</eventType>
+    <eventDateTime>2019-07-08T18:49:14.566Z</eventDateTime>
+    <eventDetailInformation>
+      <eventDetail>MASTER0: Initial datastream creation</eventDetail>
+    </eventDetailInformation>
+    <linkingAgentIdentifier>
+      <linkingAgentIdentifierType>URI</linkingAgentIdentifierType>
+      <linkingAgentIdentifierValue>https://digital.library.wisc.edu/1711/uwdc-admin-agent</linkingAgentIdentifierValue>
+      <linkingAgentRole valueURI="https://id.loc.gov/vocabulary/preservation/eventRelatedAgentRole/imp">implementer</linkingAgentRole>
+    </linkingAgentIdentifier>
+    <linkingAgentIdentifier>
+      <linkingAgentIdentifierType>URI</linkingAgentIdentifierType>
+      <linkingAgentIdentifierValue>https://digital.library.wisc.edu/1711/fedora-commons-3.8.1</linkingAgentIdentifierValue>
+      <linkingAgentRole valueURI="https://id.loc.gov/vocabulary/preservation/eventRelatedAgentRole/exe">executing program</linkingAgentRole>
+    </linkingAgentIdentifier>
+  </event><event>
+    <eventIdentifier>
+      <eventIdentifierType>UUID</eventIdentifierType>
+      <eventIdentifierValue>bb2a2408-a84e-4245-a999-46e177d596e6</eventIdentifierValue>
+    </eventIdentifier>
+    <eventType valueURI="https://id.loc.gov/vocabulary/preservation/eventType/cre">creation</eventType>
+    <eventDateTime>2019-07-08T18:49:14.566Z</eventDateTime>
+    <eventDetailInformation>
+      <eventDetail>TEXT0: Initial datastream creation</eventDetail>
+    </eventDetailInformation>
+    <linkingAgentIdentifier>
+      <linkingAgentIdentifierType>URI</linkingAgentIdentifierType>
+      <linkingAgentIdentifierValue>https://digital.library.wisc.edu/1711/uwdc-admin-agent</linkingAgentIdentifierValue>
+      <linkingAgentRole valueURI="https://id.loc.gov/vocabulary/preservation/eventRelatedAgentRole/imp">implementer</linkingAgentRole>
+    </linkingAgentIdentifier>
+    <linkingAgentIdentifier>
+      <linkingAgentIdentifierType>URI</linkingAgentIdentifierType>
+      <linkingAgentIdentifierValue>https://digital.library.wisc.edu/1711/fedora-commons-3.8.1</linkingAgentIdentifierValue>
+      <linkingAgentRole valueURI="https://id.loc.gov/vocabulary/preservation/eventRelatedAgentRole/exe">executing program</linkingAgentRole>
+    </linkingAgentIdentifier>
+  </event>
+  <rights>
+    <rightsStatement>
+      <rightsStatementIdentifier>
+        <rightsStatementIdentifierType>UUID</rightsStatementIdentifierType>
+        <rightsStatementIdentifierValue>5e721492-b6a6-4f37-91b6-883e4755fb14</rightsStatementIdentifierValue>
+      </rightsStatementIdentifier>
+      <rightsBasis valueURI="https://id.loc.gov/vocabulary/preservation/rightsBasis/cop">copyright</rightsBasis>
+      <copyrightInformation>
+        <copyrightStatus valueURI="https://id.loc.gov/vocabulary/preservation/copyrightStatus/cpr">copyrighted</copyrightStatus>
+        <copyrightJurisdiction>us</copyrightJurisdiction>
+      </copyrightInformation>
+      <linkingAgentIdentifier>
+        <linkingAgentIdentifierType>UWDC Agent ID</linkingAgentIdentifierType>
+        <linkingAgentIdentifierValue>https://digital.library.wisc.edu/1711/36d21306-a03d-4dfe-bab4-09184b5ba71c</linkingAgentIdentifierValue>
+        <linkingAgentRole>rightsholder</linkingAgentRole>
+      </linkingAgentIdentifier>
+    </rightsStatement>
+  </rights>
+</premis>

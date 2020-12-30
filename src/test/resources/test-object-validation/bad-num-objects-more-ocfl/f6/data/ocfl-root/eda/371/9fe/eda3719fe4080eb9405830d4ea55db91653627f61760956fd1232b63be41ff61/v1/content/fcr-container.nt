@@ -1,0 +1,5 @@
+<info:fedora/1711.dl:6DWVZXV4RKIIA9E> <info:fedora/fedora-system:def/view#lastModifiedDate> "2019-07-25T15:49:53.615Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<info:fedora/1711.dl:6DWVZXV4RKIIA9E> <info:fedora/fedora-system:def/model#createdDate> "2019-07-08T18:49:06.770Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<info:fedora/1711.dl:6DWVZXV4RKIIA9E> <info:fedora/fedora-system:def/model#ownerId> "" .
+<info:fedora/1711.dl:6DWVZXV4RKIIA9E> <info:fedora/fedora-system:def/model#label> "" .
+<info:fedora/1711.dl:6DWVZXV4RKIIA9E> <info:fedora/fedora-system:def/model#state> "Active" .
