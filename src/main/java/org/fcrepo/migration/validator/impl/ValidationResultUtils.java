@@ -43,7 +43,7 @@ public class ValidationResultUtils {
      */
     public static Path resolvePathToJsonResult(final ValidationResult result) {
         final var pathSegments = new ArrayList<String>();
-        final var sourceId = result.sourceId();
+        final var sourceId = result.getSourceObjectId();
         if (sourceId != null) {
             final var segments = Splitter.fixedLength(4).splitToList(DigestUtils.sha1Hex(sourceId)).subList(0, 4);
             pathSegments.addAll(segments);

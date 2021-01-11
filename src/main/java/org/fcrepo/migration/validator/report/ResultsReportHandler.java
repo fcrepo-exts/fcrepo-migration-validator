@@ -19,6 +19,7 @@ package org.fcrepo.migration.validator.report;
 
 import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
+import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.ValidationResultsSummary;
 
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ import java.util.List;
  */
 public class ResultsReportHandler implements ReportHandler {
 
-    private List<String> errors = new ArrayList<>();
+    private List<ValidationResult> errors = new ArrayList<>();
 
     /**
      * A hook indicating the start of a result processing run
@@ -52,7 +53,7 @@ public class ResultsReportHandler implements ReportHandler {
     @Override
     public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
         if (objectValidationResults.hasErrors()) {
-            errors.addAll(objectValidationResults.getErrorDetails());
+            errors.addAll(objectValidationResults.getErrors());
         }
 
         // No HTML report filename
@@ -78,7 +79,7 @@ public class ResultsReportHandler implements ReportHandler {
 
     }
 
-    public List<String> getErrors() {
+    public List<ValidationResult> getErrors() {
         return errors;
     }
 }
