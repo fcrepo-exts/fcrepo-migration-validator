@@ -22,9 +22,9 @@ import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
 import org.fcrepo.migration.ObjectReference;
 import org.fcrepo.migration.validator.api.ValidationResult;
-import org.fcrepo.storage.ocfl.NotFoundException;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
 import org.fcrepo.storage.ocfl.ResourceHeaders;
+import org.fcrepo.storage.ocfl.exception.NotFoundException;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
