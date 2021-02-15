@@ -77,14 +77,13 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
         T resolve(ResourceHeaders headers);
     }
 
-
     @Override
     public void processObject(final ObjectReference objectReference) {
         this.objectInfo = objectReference.getObjectInfo();
         LOGGER.debug("beginning processing on object: pid={}", this.objectInfo);
         if (initialObjectValidation(objectReference.getObjectProperties())) {
             objectReference.listDatastreamIds().forEach(dsId -> validateDatastream(dsId, objectReference));
-            completeObjectValidation(objectReference.getObjectInfo());
+            completeObjectValidation();
         }
     }
 
@@ -125,7 +124,7 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
         }
 
         //check that last updated date:
-        objectProperties.listProperties().stream().forEach(op -> {
+        objectProperties.listProperties().forEach(op -> {
             final var resolver = OCFL_PROPERTY_RESOLVERS.get(op.getName());
             String details = null;
             if (resolver != null) {
@@ -211,7 +210,7 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
     }
 
 
-    private void completeObjectValidation(final ObjectInfo objectInfo) {
+    private void completeObjectValidation() {
         final var pid = this.objectInfo.getPid();
         final var ocflId = this.ocflSession.ocflObjectId();
         final var ocflResourceCount = ocflSession.streamResourceHeaders().filter(r -> r.getInteractionModel()

@@ -89,6 +89,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
             try {
                 task.run();
             } catch (Exception ex) {
+                //TODO Handle this in such a away that it is captured in the final report
+                //https://jira.lyrasis.org/browse/FCREPO-3633
                 LOGGER.error("validation task failed {}", ex.getMessage(), ex);
             } finally {
                 count.decrementAndGet();
