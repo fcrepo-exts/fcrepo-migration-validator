@@ -17,6 +17,15 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import edu.wisc.library.ocfl.api.MutableOcflRepository;
+import edu.wisc.library.ocfl.core.OcflRepositoryBuilder;
+import edu.wisc.library.ocfl.core.extension.storage.layout.config.HashedNTupleLayoutConfig;
+import edu.wisc.library.ocfl.core.path.mapper.LogicalPathMappers;
+import edu.wisc.library.ocfl.core.storage.filesystem.FileSystemOcflStorage;
+import org.apache.commons.lang3.SystemUtils;
 import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.foxml.AkubraFSIDResolver;
 import org.fcrepo.migration.foxml.ArchiveExportedFoxmlDirectoryObjectSource;
@@ -24,22 +33,29 @@ import org.fcrepo.migration.foxml.InternalIDResolver;
 import org.fcrepo.migration.foxml.LegacyFSIDResolver;
 import org.fcrepo.migration.foxml.NativeFoxmlDirectoryObjectSource;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
+import org.fcrepo.storage.ocfl.CommitType;
+import org.fcrepo.storage.ocfl.DefaultOcflObjectSessionFactory;
+import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
+import org.fcrepo.storage.ocfl.cache.NoOpCache;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 import static edu.wisc.library.ocfl.api.util.Enforce.expressionTrue;
 import static edu.wisc.library.ocfl.api.util.Enforce.notNull;
 
 /**
- * A spring configuration for Fedora 3 related beans
+ * A helper class for configuring and creating application components.
  *
  * @author dbernstein
  */
-public class Fedora3ObjectConfiguration {
+public class ApplicationConfigurationHelper {
 
     private Fedora3ValidationConfig config;
 
-    public Fedora3ObjectConfiguration(final Fedora3ValidationConfig config) {
+    public ApplicationConfigurationHelper(final Fedora3ValidationConfig config) {
         this.config = config;
     }
 
@@ -94,6 +110,48 @@ public class Fedora3ObjectConfiguration {
 
         return objectSource;
     }
+
+
+    private MutableOcflRepository repository(final Fedora3ValidationConfig config, final Path workDir) {
+        final var storage = FileSystemOcflStorage.builder()
+                .repositoryRoot(config.getOcflRepositoryRootDirectory().toPath())
+                .build();
+        final var logicalPathMapper = SystemUtils.IS_OS_WINDOWS ?
+                LogicalPathMappers.percentEncodingWindowsMapper() : LogicalPathMappers.percentEncodingLinuxMapper();
+
+        return new OcflRepositoryBuilder().storage(storage)
+                .defaultLayoutConfig(new HashedNTupleLayoutConfig())
+                .logicalPathMapper(logicalPathMapper)
+                .workDir(workDir)
+                .buildMutable();
+    }
+
+    /**
+     * Creates and return an OcflObjectSessionFactory.
+     *
+     * @return a session factory
+     */
+    public OcflObjectSessionFactory ocflObjectSessionFactory() {
+
+        try {
+            final var workDir = Files.createTempDirectory("ocfl-work");
+            final var objectMapper = new ObjectMapper().configure(WRITE_DATES_AS_TIMESTAMPS, false)
+                    .registerModule(new JavaTimeModule())
+                    .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            // https://jira.lyrasis.org/browse/FCREPO-3632: 
+            return new DefaultOcflObjectSessionFactory(repository(config, workDir),
+                    workDir,
+                    objectMapper,
+                    new NoOpCache<>(),
+                    CommitType.UNVERSIONED,
+                    "Authored by Fedora 6",
+                    "fedoraAdmin",
+                    "info:fedora/fedoraAdmin");
+        } catch (final IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 
     public int getThreadCount() {
         return config.getThreadCount();

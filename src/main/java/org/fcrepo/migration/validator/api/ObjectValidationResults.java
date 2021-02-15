@@ -51,7 +51,7 @@ public class ObjectValidationResults {
         if (results == null || results.isEmpty()) {
             return "unknown";
         }
-        return results.stream().findFirst().get().sourceId();
+        return results.stream().findFirst().get().getSourceObjectId();
     }
 
     /**
@@ -76,16 +76,16 @@ public class ObjectValidationResults {
     }
 
     /**
-     * This method returns any details related to the validation errors
-     * @return list of validation error details, or empty list if no errors
+     * This method returns all results with a FAIL validation status.
+     * @return list of validation errors or empty list if no errors
      */
-    public List<String> getErrorDetails() {
+    public List<ValidationResult> getErrors() {
         if (!hasErrors()) {
             return Collections.emptyList();
         }
 
         return results.stream().filter(
-                r -> !r.getStatus().equals(ValidationResult.Status.OK)).map(
-                        ValidationResult::getDetails).collect(Collectors.toList());
+                r -> r.getStatus().equals(ValidationResult.Status.FAIL)).collect(Collectors.toList());
+
     }
 }

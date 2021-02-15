@@ -18,7 +18,7 @@
 package org.fcrepo.migration.validator;
 
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
-import org.fcrepo.migration.validator.impl.Fedora3ObjectConfiguration;
+import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.HtmlReportHandler;
@@ -96,10 +96,12 @@ public class Driver implements Callable<Integer> {
             config.setFedora3Hostname(f3hostname);
             config.setThreadCount(threadCount);
             config.setResultsDirectory(resultsDirectory.toPath());
+            config.setOcflRepositoryRootDirectory(ocflRootDirectory);
             LOGGER.info("Configuration created: {}", config);
 
             LOGGER.info("Preparing to execute validation run...");
-            final var executionManager = new Fedora3ValidationExecutionManager(new Fedora3ObjectConfiguration(config));
+            final var executionManager =
+                    new Fedora3ValidationExecutionManager(new ApplicationConfigurationHelper(config));
             executionManager.doValidation();
 
             final var reportHandler = new HtmlReportHandler(config.getHtmlReportDirectory());

@@ -31,7 +31,7 @@ public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder
 
     @Override
     public F3ObjectValidationTask build() {
-        return new F3ObjectValidationTask(this.processor, this.writer);
+        return new F3ObjectValidationTask(this.processor, this.objectSessionFactory, this.writer);
     }
 
     /**
