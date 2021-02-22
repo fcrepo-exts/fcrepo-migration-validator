@@ -32,6 +32,7 @@ import org.junit.Test;
 import java.io.File;
 
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 
 /**
@@ -61,8 +62,6 @@ public class ObjectValidationIT extends AbstractValidationIT {
     }
 
     @Test
-    //FIXME : this test is currently broken due to the fact that the source foxml cannot be successfully read.
-    @Ignore("This tests is currently broken")
     public void testNumberOfObjectsFailMoreOcfl() {
         final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-ocfl/f3/datastreams");
         final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-ocfl/f3/objects");
@@ -70,9 +69,13 @@ public class ObjectValidationIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results (1 object in f3, 2 objects in OCFL)
-        Assert.assertEquals("Should be one error!", 1, reportHandler.getErrors().size());
-        // TODO: check for the specific ValidationResult.ValidationLevel
-        // TODO: check for the specific ValidationResult.ValidationType
+        final var errors = reportHandler.getErrors();
+        Assert.assertEquals("Should be one error!", 1, errors.size());
+
+        final var validationResult = errors.get(0);
+        Assert.assertNotNull(validationResult);
+        Assert.assertEquals("Should be HEAD count error", BINARY_HEAD_COUNT, validationResult.getValidationType());
+        Assert.assertEquals("Should be OBJECT validation level", OBJECT, validationResult.getValidationLevel());
     }
 
     @Test
