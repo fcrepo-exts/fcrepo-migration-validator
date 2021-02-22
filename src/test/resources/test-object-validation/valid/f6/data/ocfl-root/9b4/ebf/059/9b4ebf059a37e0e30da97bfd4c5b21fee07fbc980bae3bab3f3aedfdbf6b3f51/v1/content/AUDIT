@@ -1,7 +1,7 @@
 
 <audit:auditTrail xmlns:audit="info:fedora/fedora-system:def/audit#">
 <audit:record ID="AUDREC1">
-<audit:process type="Fedora API-M"></audit:process>
+<audit:process type="Fedora API-M"/>
 <audit:action>ingest</audit:action>
 <audit:componentID></audit:componentID>
 <audit:responsibility>fedoraAdmin</audit:responsibility>
@@ -9,7 +9,7 @@
 <audit:justification>Ingested from local file ./../DefaultIngestObjects/CollectionObjects/FOXML/UWPAbout.xml</audit:justification>
 </audit:record>
 <audit:record ID="AUDREC2">
-<audit:process type="Fedora API-M"></audit:process>
+<audit:process type="Fedora API-M"/>
 <audit:action>ingest</audit:action>
 <audit:componentID></audit:componentID>
 <audit:responsibility>fedoraAdmin</audit:responsibility>
