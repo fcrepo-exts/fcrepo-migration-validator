@@ -160,9 +160,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
         final var dsVersions = objectReference.getDatastreamVersions(dsId);
-        final var sourceOjbectId = objectInfo.getPid();
+        final var sourceObjectId = objectInfo.getPid();
         final var targetObjectId = this.ocflSession.ocflObjectId();
-        final var sourceResource = sourceOjbectId + "/" + dsId;
+        final var sourceResource = sourceObjectId + "/" + dsId;
         final var targetResource = targetObjectId + "/" + dsId;
         var sourceVersionCount = 0;
         for (final var dsVersion : dsVersions) {
@@ -185,13 +185,13 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                                 sourceValue, targetValue);
                     }
                     validationResults.add(new ValidationResult(indexCounter++, result, OBJECT_RESOURCE,
-                            BINARY_METADATA, sourceOjbectId, targetObjectId, sourceResource, targetResource, details));
+                            BINARY_METADATA, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
                     validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT_RESOURCE,
-                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceOjbectId, targetObjectId, sourceResource,
+                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId, targetObjectId, sourceResource,
                             targetResource, "Source object resource exists in target."));
                 } catch (NotFoundException ex) {
                     validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
-                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceOjbectId, targetObjectId, sourceResource,
+                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId, targetObjectId, sourceResource,
                             targetResource, "Source object resource does not exist in target."));
 
                 }
@@ -209,7 +209,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                         targetVersionCount);
             }
             validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
-                    BINARY_VERSION_COUNT, sourceOjbectId, targetObjectId, sourceResource, targetResource, details));
+                    BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
         } catch (NotFoundException ex) {
             // intentionally left blank: we check for existence above
         }
