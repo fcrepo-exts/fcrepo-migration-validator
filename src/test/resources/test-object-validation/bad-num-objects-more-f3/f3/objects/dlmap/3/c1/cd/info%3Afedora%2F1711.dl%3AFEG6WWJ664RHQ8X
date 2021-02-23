@@ -22,36 +22,12 @@ xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/
 <audit:date>2019-07-08T18:48:39.260Z</audit:date>
 <audit:justification></audit:justification>
 </audit:record>
-<audit:record ID="AUDREC2">
-<audit:process type="Fedora API-M"/>
-<audit:action>addDatastream</audit:action>
-<audit:componentID>MASTER0</audit:componentID>
-<audit:responsibility>fedoraAdmin</audit:responsibility>
-<audit:date>2019-07-08T18:48:40.078Z</audit:date>
-<audit:justification></audit:justification>
-</audit:record>
 <audit:record ID="AUDREC3">
 <audit:process type="Fedora API-M"/>
 <audit:action>addDatastream</audit:action>
 <audit:componentID>TECH0</audit:componentID>
 <audit:responsibility>fedoraAdmin</audit:responsibility>
 <audit:date>2019-07-08T18:48:43.493Z</audit:date>
-<audit:justification></audit:justification>
-</audit:record>
-<audit:record ID="AUDREC4">
-<audit:process type="Fedora API-M"/>
-<audit:action>addDatastream</audit:action>
-<audit:componentID>TEXT0</audit:componentID>
-<audit:responsibility>fedoraAdmin</audit:responsibility>
-<audit:date>2019-07-08T18:48:45.739Z</audit:date>
-<audit:justification></audit:justification>
-</audit:record>
-<audit:record ID="AUDREC5">
-<audit:process type="Fedora API-M"/>
-<audit:action>addDatastream</audit:action>
-<audit:componentID>TECH1</audit:componentID>
-<audit:responsibility>fedoraAdmin</audit:responsibility>
-<audit:date>2019-07-08T18:48:46.438Z</audit:date>
 <audit:justification></audit:justification>
 </audit:record>
 <audit:record ID="AUDREC6">
@@ -112,28 +88,10 @@ xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.opena
 </foxml:xmlContent>
 </foxml:datastreamVersion>
 </foxml:datastream>
-<foxml:datastream ID="MASTER0" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
-<foxml:datastreamVersion ID="MASTER0.0" LABEL="File master" CREATED="2019-07-08T18:48:40.078Z" MIMETYPE="image/tiff" SIZE="22373368">
-<foxml:contentDigest TYPE="MD5" DIGEST="67941c749a6139aab3cd3be18bb620f9"/>
-<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+MASTER0+MASTER0.0"/>
-</foxml:datastreamVersion>
-</foxml:datastream>
 <foxml:datastream ID="TECH0" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
 <foxml:datastreamVersion ID="TECH0.0" LABEL="Technical metadata for MASTER0" CREATED="2019-07-08T18:48:43.493Z" MIMETYPE="text/xml" SIZE="2853">
 <foxml:contentDigest TYPE="MD5" DIGEST="2b10bed717d7ae7679f4bfe5331f6ab0"/>
 <foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+TECH0+TECH0.0"/>
-</foxml:datastreamVersion>
-</foxml:datastream>
-<foxml:datastream ID="TEXT0" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
-<foxml:datastreamVersion ID="TEXT0.0" LABEL="OCR for this object" CREATED="2019-07-08T18:48:45.739Z" MIMETYPE="text/plain;charset=UTF-8" SIZE="3806">
-<foxml:contentDigest TYPE="MD5" DIGEST="a5a9683882fa4b3ddc90bd2fb2f55872"/>
-<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+TEXT0+TEXT0.0"/>
-</foxml:datastreamVersion>
-</foxml:datastream>
-<foxml:datastream ID="TECH1" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
-<foxml:datastreamVersion ID="TECH1.0" LABEL="Technical metadata for TEXT0" CREATED="2019-07-08T18:48:46.438Z" MIMETYPE="text/xml" SIZE="594">
-<foxml:contentDigest TYPE="MD5" DIGEST="98f756aeea3c815864525df2b6930dd7"/>
-<foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:FEG6WWJ664RHQ8X+TECH1+TECH1.0"/>
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="RELS-INT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
