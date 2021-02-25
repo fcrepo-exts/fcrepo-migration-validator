@@ -34,6 +34,9 @@ import java.io.File;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * @author awoods
@@ -79,10 +82,6 @@ public class ObjectValidationIT extends AbstractValidationIT {
     }
 
     @Test
-    //FIXME : this test is currently broken due to the fact that the source foxml for
-    // bad-num-objects-more-f3/f3/objects/dlmap/3/c1/cd/info%3Afedora%2F1711.dl%3AFEG6WWJ664RHQ8X
-    // cannot be successfully read by the StreamingFedoraObjectHander.
-    @Ignore("This tests is currently broken")
     public void testNumberOfObjectsFailMoreF3() {
         final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-f3/f3/datastreams");
         final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "bad-num-objects-more-f3/f3/objects");
@@ -91,19 +90,25 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results (2 objects in f3, 1 object in OCFL)
         final var errors = reportHandler.getErrors();
-
-        Assert.assertEquals("Should be one error!", 1, errors.size());
-        final var sourceNotExistsInTargetError =
-                errors.stream().filter(x->x.getValidationType().equals(SOURCE_OBJECT_EXISTS_IN_TARGET))
-                    .findFirst().get();
-
-        Assert.assertEquals("Should be validation level OBJECT", OBJECT,
-                sourceNotExistsInTargetError.getValidationLevel());
-        Assert.assertEquals("Should be validation type SOURCE_OBJECT_EXISTS_IN_TARGET",
-                SOURCE_OBJECT_EXISTS_IN_TARGET, sourceNotExistsInTargetError.getValidationType());
         final var sourceObject = "1711.dl:UWPAbout";
-        Assert.assertEquals("Source object should be " + sourceObject, sourceObject,
-                sourceNotExistsInTargetError.getSourceObjectId());
+
+        assertEquals("Should be two errors!", 2, errors.size());
+        errors.stream()
+              .filter(x -> x.getValidationType().equals(SOURCE_OBJECT_EXISTS_IN_TARGET))
+              .findFirst().ifPresentOrElse(result -> {
+            assertEquals("Should be validation level OBJECT", OBJECT, result.getValidationLevel());
+            assertEquals("Source object should be " + sourceObject, sourceObject, result.getSourceObjectId());
+            assertEquals("Should be validation type SOURCE_OBJECT_EXISTS_IN_TARGET",
+                         SOURCE_OBJECT_EXISTS_IN_TARGET,
+                         result.getValidationType());
+        }, () -> fail("Unable to find error for SOURCE_OBJECT_EXISTS_IN_TARGET"));
+
+        errors.stream()
+              .filter(x -> x.getValidationType().equals(BINARY_HEAD_COUNT))
+              .findFirst().ifPresentOrElse(result -> {
+            assertEquals("Should be validation level OBJECT", OBJECT, result.getValidationLevel());
+            assertEquals("Should be validation type BINARY_HEAD_COUNT", BINARY_HEAD_COUNT, result.getValidationType());
+        }, () -> fail("Unable to find error for BINARY_HEAD_COUNT"));
     }
 
     private ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir,
