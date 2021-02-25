@@ -17,10 +17,11 @@ package org.fcrepo.migration.validator.impl;
  * limitations under the License.
  */
 
-import org.fcrepo.migration.FedoraObjectHandler;
+import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
 import org.fcrepo.migration.ObjectReference;
+import org.fcrepo.migration.ObjectVersionReference;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
 import org.fcrepo.storage.ocfl.ResourceHeaders;
@@ -30,6 +31,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,7 +54,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  *
  * @author dbernstein
  */
-public class ValidatingObjectHandler implements FedoraObjectHandler {
+public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
 
     private ObjectInfo objectInfo;
@@ -61,7 +63,7 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
     private int indexCounter;
     private Set<String> headDatastreamIds = new HashSet<>();
 
-    private static final Map<String, PropertyResolver> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
+    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
 
     static {
         OCFL_PROPERTY_RESOLVERS.put("info:fedora/fedora-system:def/model#createdDate",
@@ -78,12 +80,17 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
     }
 
     @Override
-    public void processObject(final ObjectReference objectReference) {
-        this.objectInfo = objectReference.getObjectInfo();
-        LOGGER.debug("beginning processing on object: pid={}", this.objectInfo);
-        if (initialObjectValidation(objectReference.getObjectProperties())) {
-            objectReference.listDatastreamIds().forEach(dsId -> validateDatastream(dsId, objectReference));
-            completeObjectValidation();
+    public void processObjectVersions(final Iterable<ObjectVersionReference> iterable, final ObjectInfo objectInfo) {
+        this.objectInfo = objectInfo;
+
+        final Iterator<ObjectVersionReference> referenceIterator = iterable.iterator();
+        if (referenceIterator.hasNext()) {
+            final ObjectReference objectReference = referenceIterator.next().getObject();
+            LOGGER.debug("beginning processing on object: pid={}", objectInfo);
+            if (initialObjectValidation(objectReference.getObjectProperties())) {
+                objectReference.listDatastreamIds().forEach(dsId -> validateDatastream(dsId, objectReference));
+                completeObjectValidation();
+            }
         }
     }
 
@@ -153,9 +160,9 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
         final var dsVersions = objectReference.getDatastreamVersions(dsId);
-        final var sourceOjbectId = objectInfo.getPid();
+        final var sourceObjectId = objectInfo.getPid();
         final var targetObjectId = this.ocflSession.ocflObjectId();
-        final var sourceResource = sourceOjbectId + "/" + dsId;
+        final var sourceResource = sourceObjectId + "/" + dsId;
         final var targetResource = targetObjectId + "/" + dsId;
         var sourceVersionCount = 0;
         for (final var dsVersion : dsVersions) {
@@ -178,13 +185,13 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
                                 sourceValue, targetValue);
                     }
                     validationResults.add(new ValidationResult(indexCounter++, result, OBJECT_RESOURCE,
-                            BINARY_METADATA, sourceOjbectId, targetObjectId, sourceResource, targetResource, details));
+                            BINARY_METADATA, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
                     validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT_RESOURCE,
-                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceOjbectId, targetObjectId, sourceResource,
+                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId, targetObjectId, sourceResource,
                             targetResource, "Source object resource exists in target."));
                 } catch (NotFoundException ex) {
                     validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
-                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceOjbectId, targetObjectId, sourceResource,
+                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId, targetObjectId, sourceResource,
                             targetResource, "Source object resource does not exist in target."));
 
                 }
@@ -202,7 +209,7 @@ public class ValidatingObjectHandler implements FedoraObjectHandler {
                         targetVersionCount);
             }
             validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
-                    BINARY_VERSION_COUNT, sourceOjbectId, targetObjectId, sourceResource, targetResource, details));
+                    BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
         } catch (NotFoundException ex) {
             // intentionally left blank: we check for existence above
         }

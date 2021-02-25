@@ -138,7 +138,7 @@ public class ApplicationConfigurationHelper {
             final var objectMapper = new ObjectMapper().configure(WRITE_DATES_AS_TIMESTAMPS, false)
                     .registerModule(new JavaTimeModule())
                     .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            // https://jira.lyrasis.org/browse/FCREPO-3632: 
+            // https://jira.lyrasis.org/browse/FCREPO-3632:
             return new DefaultOcflObjectSessionFactory(repository(config, workDir),
                     workDir,
                     objectMapper,
