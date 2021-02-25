@@ -25,8 +25,6 @@ import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.After;
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -61,7 +59,7 @@ public class ObjectValidationIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
-        Assert.assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
     }
 
     @Test
@@ -73,12 +71,12 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results (1 object in f3, 2 objects in OCFL)
         final var errors = reportHandler.getErrors();
-        Assert.assertEquals("Should be one error!", 1, errors.size());
+        assertEquals("Should be one error!", 1, errors.size());
 
         final var validationResult = errors.get(0);
-        Assert.assertNotNull(validationResult);
-        Assert.assertEquals("Should be HEAD count error", BINARY_HEAD_COUNT, validationResult.getValidationType());
-        Assert.assertEquals("Should be OBJECT validation level", OBJECT, validationResult.getValidationLevel());
+        assertNotNull(validationResult);
+        assertEquals("Should be HEAD count error", BINARY_HEAD_COUNT, validationResult.getValidationType());
+        assertEquals("Should be OBJECT validation level", OBJECT, validationResult.getValidationLevel());
     }
 
     @Test
