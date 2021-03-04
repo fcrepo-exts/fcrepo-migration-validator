@@ -37,31 +37,31 @@ public class ValidationResultsSummary {
     private static final Logger LOGGER = getLogger(ValidationResultsSummary.class);
 
     // Object-id to report filename map
-    private Map<String, String> objectReportFilenames = new HashMap<>();
+    private final Map<String, ObjectReportSummary> objectReports = new HashMap<>();
 
     /**
      * Setter for collecting ObjectReport filenames
      * @param objectId of the provided report
-     * @param objectReportFilename of generated HTML report
+     * @param objectReportSummary of generated HTML report
      */
-    public void addObjectReport(final String objectId, final String objectReportFilename) {
+    public void addObjectReport(final String objectId, final ObjectReportSummary objectReportSummary) {
         if (containsReport(objectId)) {
             throw new IllegalArgumentException("Should not be overwriting existing report: " + objectId);
         }
 
-        LOGGER.debug("Adding report for object: {}, {}", objectId,  objectReportFilename);
-        objectReportFilenames.put(objectId, objectReportFilename);
+        LOGGER.debug("Adding report for object: {}, {}", objectId,  objectReportSummary.getReportFilename());
+        objectReports.put(objectId, objectReportSummary);
     }
 
     public boolean containsReport(final String objectId) {
-        return objectReportFilenames.containsKey(objectId);
+        return objectReports.containsKey(objectId);
     }
 
     /**
-     * Getter for collection of ObjectReport filenames
-     * @return collection of ObjectReport filenames
+     * Getter for collection of ObjectReportSummary
+     * @return collection of ObjectReportSummary
      */
-    public Collection<String> getObjectReportFilenames() {
-        return objectReportFilenames.values();
+    public Collection<ObjectReportSummary> getObjectReports() {
+        return objectReports.values();
     }
 }
