@@ -62,7 +62,7 @@
   .summary {
     display: inline-block;
     padding: .35em .65em;
-    font-size: .75em;
+    font-size: .75rem;
     font-weight: 700;
     line-height: 1;
     text-align: center;
@@ -100,13 +100,14 @@
     <h1>Validation Results For ${id}</h1>
   </header>
 
-  <span class="summary">Total Validations Run: ${successCount + errorCount}</span>
+  <p class="summary"> Validation Status:
   <#if successCount gt 0>
   <span class="summary pass">Passed: ${successCount}</span>
   </#if>
   <#if errorCount gt 0>
   <span class="summary fail">Failed: ${errorCount}</span>
   </#if>
+  </p>
 
   <div class="container">
     <h2>Failed Validations</h2>
