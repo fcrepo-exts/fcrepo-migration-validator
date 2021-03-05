@@ -59,6 +59,7 @@
     </table>
   </div>
 
+  <#if errorCount gt 0>
   <div class="container">
     <h2>Objects with errors</h2>
     <ol>
@@ -67,6 +68,7 @@
       </#list>
     </ol>
   </div>
+  </#if>
 
   <div class="container">
     <h2>Object result details</h2>
