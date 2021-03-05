@@ -72,7 +72,7 @@
     <h2>Object result details</h2>
     <ol>
       <#list objects as x>
-      <li><a href='${x}'>${x}</a></li>
+      <li><a href='${x.reportFilename}'>${x.reportFilename}</a></li>
       </#list>
     </ol>
   </div>
