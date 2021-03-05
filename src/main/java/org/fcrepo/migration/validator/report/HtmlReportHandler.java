@@ -20,6 +20,7 @@ package org.fcrepo.migration.validator.report;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import org.fcrepo.migration.validator.api.ObjectReportSummary;
 import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.api.ValidationResultsSummary;
@@ -33,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static freemarker.template.Configuration.VERSION_2_3_30;
 import static freemarker.template.TemplateExceptionHandler.RETHROW_HANDLER;
@@ -87,12 +89,18 @@ public class HtmlReportHandler implements ReportHandler {
      */
     @Override
     public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
-        final String id = objectValidationResults.getObjectId();
-        final String filename = id + ".html";
+        final var id = objectValidationResults.getObjectId();
+        final var filename = id + ".html";
+        final var success = objectValidationResults.getPassed();
+        final var errors = objectValidationResults.getErrors();
 
         // Organize data for template
-        final Map<String, String> data = new HashMap<>();
+        final Map<String, Object> data = new HashMap<>();
         data.put("id", id);
+        data.put("success", success);
+        data.put("successCount", success.size());
+        data.put("errors", errors);
+        data.put("errorCount", errors.size());
 
         try {
             final Template template = config.getTemplate("object.ftl");
@@ -125,10 +133,15 @@ public class HtmlReportHandler implements ReportHandler {
         // Organize data for template
         final Map<String, Object> data = new HashMap<>();
         final SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd, HH:mm:ss z");
+        final var errors = validationSummary.getObjectReports().stream()
+                                            .filter(ObjectReportSummary::hasErrors)
+                                            .collect(Collectors.toList());
 
         data.put("date", format.format(new Date()));
-        data.put("objectCount", validationSummary.getObjectReportFilenames().size());
-        data.put("objects", validationSummary.getObjectReportFilenames());
+        data.put("objectCount", validationSummary.getObjectReports().size());
+        data.put("objects", validationSummary.getObjectReports());
+        data.put("errors", errors);
+        data.put("errorCount", errors.size());
 
         try {
             final Template template = config.getTemplate("summary.ftl");

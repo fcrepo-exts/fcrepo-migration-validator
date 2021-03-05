@@ -17,7 +17,6 @@
  */
 package org.fcrepo.migration.validator.api;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +32,7 @@ public class ObjectValidationResults {
     /*
      * Validation result which is the subject of this report
      */
-    private List<ValidationResult> results;
+    private final List<ValidationResult> results;
 
     /**
      * Constructor
@@ -51,7 +50,8 @@ public class ObjectValidationResults {
         if (results == null || results.isEmpty()) {
             return "unknown";
         }
-        return results.stream().findFirst().get().getSourceObjectId();
+
+        return results.stream().findFirst().map(ValidationResult::getSourceObjectId).orElse("unknown");
     }
 
     /**
@@ -66,7 +66,7 @@ public class ObjectValidationResults {
 
         // Return 'true' if any result has an error.
         for (final ValidationResult vr : results) {
-            if (!vr.getStatus().equals(ValidationResult.Status.OK)) {
+            if (vr.getStatus().equals(ValidationResult.Status.FAIL)) {
                 return true;
             }
         }
@@ -76,16 +76,22 @@ public class ObjectValidationResults {
     }
 
     /**
+     * Return all results with an OK validation status
+     * @return list of all passed validations
+     */
+    public List<ValidationResult> getPassed() {
+        return results.stream()
+                      .filter(result -> result.getStatus().equals(ValidationResult.Status.OK))
+                      .collect(Collectors.toList());
+    }
+
+    /**
      * This method returns all results with a FAIL validation status.
      * @return list of validation errors or empty list if no errors
      */
     public List<ValidationResult> getErrors() {
-        if (!hasErrors()) {
-            return Collections.emptyList();
-        }
-
-        return results.stream().filter(
-                r -> r.getStatus().equals(ValidationResult.Status.FAIL)).collect(Collectors.toList());
-
+        return results.stream()
+                      .filter(result -> result.getStatus().equals(ValidationResult.Status.FAIL))
+                      .collect(Collectors.toList());
     }
 }

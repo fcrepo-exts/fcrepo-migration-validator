@@ -19,6 +19,7 @@ package org.fcrepo.migration.validator.report;
 
 import org.apache.commons.io.FilenameUtils;
 import org.fcrepo.migration.validator.api.ObjectValidationResults;
+import org.fcrepo.migration.validator.api.ObjectReportSummary;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.api.ValidationResultsSummary;
 import org.fcrepo.migration.validator.api.ValidationResult;
@@ -34,6 +35,7 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -96,11 +98,10 @@ public class ReportGeneratorImpl {
                 // ..then, load all result files as a set.
                 final String objectId = file.getParent().toFile().getName();
                 if (!summary.containsReport(objectId) && isValidationResultFile(file.toFile().getName())) {
-                    final String reportFilename = loadValidationResults(file.getParent().toFile());
+                    final var reportSummary = loadValidationResults(file.getParent().toFile());
 
                     // Update summary with newly created object reports
-                    summary.addObjectReport(objectId, reportFilename);
-
+                    summary.addObjectReport(objectId, reportSummary);
                 } else {
                     LOGGER.debug("Not a validation result file: {}", file);
                 }
@@ -123,7 +124,7 @@ public class ReportGeneratorImpl {
         return FilenameUtils.getExtension(filename).equalsIgnoreCase("json") && filename.startsWith("result-");
     }
 
-    private String loadValidationResults(final File objectDir) {
+    private ObjectReportSummary loadValidationResults(final File objectDir) {
         LOGGER.debug("Loading validation results from: {}", objectDir);
         final FilenameFilter filter = (dir, name) -> isValidationResultFile(name);
 
@@ -133,6 +134,9 @@ public class ReportGeneratorImpl {
             resultsList.add(reader.read(f));
         }
 
-        return reportHandler.objectLevelReport(new ObjectValidationResults(resultsList));
+        resultsList.sort(Comparator.comparingInt(ValidationResult::getIndex));
+        final var validationResults = new ObjectValidationResults(resultsList);
+        final var reportFilename = reportHandler.objectLevelReport(validationResults);
+        return new ObjectReportSummary(validationResults.hasErrors(), reportFilename);
     }
 }
