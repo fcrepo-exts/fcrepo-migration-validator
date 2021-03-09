@@ -1,4 +1,3 @@
-package org.fcrepo.migration.validator.impl;
 /*
  * Licensed to DuraSpace under one or more contributor license agreements.
  * See the NOTICE file distributed with this work for additional information
@@ -16,6 +15,7 @@ package org.fcrepo.migration.validator.impl;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
@@ -57,22 +57,20 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
 
+    public static final String F3_CREATED_DATE = "info:fedora/fedora-system:def/model#createdDate";
+    public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
+
     private ObjectInfo objectInfo;
-    private OcflObjectSession ocflSession;
+    private final OcflObjectSession ocflSession;
     private final List<ValidationResult> validationResults = new ArrayList<>();
     private int indexCounter;
-    private Set<String> headDatastreamIds = new HashSet<>();
+    private final Set<String> headDatastreamIds = new HashSet<>();
 
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
 
     static {
-        OCFL_PROPERTY_RESOLVERS.put("info:fedora/fedora-system:def/model#createdDate",
-                new PropertyResolver<String>() {
-                    @Override
-                    public String resolve(final ResourceHeaders headers) {
-                        return headers.getCreatedDate().toString();
-                    }
-                });
+        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> headers.getCreatedDate().toString());
+        OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE, headers -> headers.getLastModifiedDate().toString());
     }
 
     private interface PropertyResolver<T> {
@@ -124,6 +122,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
         try {
             headers = ocflSession.readHeaders(ocflId);
+            validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT, SOURCE_OBJECT_EXISTS_IN_TARGET,
+                                                       pid, ocflId, "Source object is present in target repository."));
         } catch (NotFoundException ex) {
             validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT, SOURCE_OBJECT_EXISTS_IN_TARGET,
                     pid, ocflId, "Source object not present in target repository."));
@@ -148,10 +148,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, op.getName(), op.getValue());
                 validationResults.add(new ValidationResult(indexCounter++, result, OBJECT, METADATA,
                         pid, ocflId, details));
-
-                validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT, SOURCE_OBJECT_EXISTS_IN_TARGET,
-                        pid, ocflId, "Source object not present in target repository."));
-
             }
         });
 
@@ -215,7 +211,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
     }
-
 
     private void completeObjectValidation() {
         final var pid = this.objectInfo.getPid();
