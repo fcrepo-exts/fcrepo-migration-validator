@@ -35,6 +35,7 @@ import java.util.List;
 public class ResultsReportHandler implements ReportHandler {
 
     private List<ValidationResult> errors = new ArrayList<>();
+    private List<ValidationResult> passed = new ArrayList<>();
 
     /**
      * A hook indicating the start of a result processing run
@@ -52,9 +53,8 @@ public class ResultsReportHandler implements ReportHandler {
      */
     @Override
     public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
-        if (objectValidationResults.hasErrors()) {
-            errors.addAll(objectValidationResults.getErrors());
-        }
+        errors.addAll(objectValidationResults.getErrors());
+        passed.addAll(objectValidationResults.getPassed());
 
         // No HTML report filename
         return null;
@@ -81,5 +81,9 @@ public class ResultsReportHandler implements ReportHandler {
 
     public List<ValidationResult> getErrors() {
         return errors;
+    }
+
+    public List<ValidationResult> getPassed() {
+        return passed;
     }
 }
