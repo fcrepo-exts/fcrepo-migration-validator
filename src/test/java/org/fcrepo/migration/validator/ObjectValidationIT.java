@@ -18,11 +18,6 @@
 package org.fcrepo.migration.validator;
 
 import org.apache.commons.io.FileUtils;
-import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
-import org.fcrepo.migration.validator.impl.F3SourceTypes;
-import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
-import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
-import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.After;
 import org.junit.Test;
@@ -46,9 +41,6 @@ import static org.junit.Assert.fail;
  * @since 2020-12-14
  */
 public class ObjectValidationIT extends AbstractValidationIT {
-
-    final static File FIXTURES_BASE_DIR = new File("src/test/resources/test-object-validation");
-    final static File RESULTS_DIR = new File("target/test/results-object-validation");
 
     @After
     public void teardown() {
@@ -130,41 +122,5 @@ public class ObjectValidationIT extends AbstractValidationIT {
             assertEquals("Should be validation type BINARY_HEAD_COUNT", BINARY_HEAD_COUNT, result.getValidationType());
         }, () -> fail("Unable to find error for BINARY_HEAD_COUNT"));
     }
-
-    private ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir,
-                                              final File f6OcflRootDir) {
-        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
-        final var configuration = new ApplicationConfigurationHelper(config);
-        final var executionManager = new Fedora3ValidationExecutionManager(configuration);
-        executionManager.doValidation();
-
-        // run report generator with 'ResultsReportHandler'
-        final ResultsReportHandler reportHandler = new ResultsReportHandler();
-        final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
-        generator.generate();
-        return reportHandler;
-    }
-
-    private Fedora3ValidationConfig getConfig(final File f3DatastreamsDir, final File f3ObjectsDir,
-                                              final File f6OcflRootDir) {
-        final var config = new Fedora3ValidationConfig();
-
-        final F3SourceTypes f3SourceType = F3SourceTypes.AKUBRA;
-        final File f3ExportedDir = null;
-        final String f3hostname = null;
-        final int threadCount = 1;
-
-        config.setSourceType(f3SourceType);
-        config.setDatastreamsDirectory(f3DatastreamsDir);
-        config.setOcflRepositoryRootDirectory(f6OcflRootDir);
-        config.setObjectsDirectory(f3ObjectsDir);
-        config.setExportedDirectory(f3ExportedDir);
-        config.setFedora3Hostname(f3hostname);
-        config.setThreadCount(threadCount);
-        config.setResultsDirectory(RESULTS_DIR.toPath());
-
-        return config;
-    }
-
 
 }
