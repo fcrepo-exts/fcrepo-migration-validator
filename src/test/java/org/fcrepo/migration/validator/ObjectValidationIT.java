@@ -29,9 +29,13 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
+import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_CREATED_DATE;
+import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_LAST_MODIFIED_DATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -60,6 +64,24 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+    }
+
+    @Test
+    public void testBadMetadata() {
+        final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
+        final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "bad-metadata/f3/objects");
+        final File f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+
+        // verify expected results
+        final var errors = reportHandler.getErrors();
+        assertThat(errors).hasSize(2)
+                          .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
+                          .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE))
+                          .allSatisfy(result -> {
+                              assertThat(result.getValidationLevel()).isEqualTo(OBJECT);
+                              assertThat(result.getValidationType()).isEqualTo(METADATA);
+                          });
     }
 
     @Test
