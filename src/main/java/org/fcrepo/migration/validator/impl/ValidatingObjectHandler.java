@@ -23,6 +23,9 @@ import org.fcrepo.migration.ObjectProperties;
 import org.fcrepo.migration.ObjectReference;
 import org.fcrepo.migration.ObjectVersionReference;
 import org.fcrepo.migration.validator.api.ValidationResult;
+import org.fcrepo.migration.validator.api.ValidationResult.Status;
+import org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel;
+import org.fcrepo.migration.validator.api.ValidationResult.ValidationType;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
 import org.fcrepo.storage.ocfl.ResourceHeaders;
 import org.fcrepo.storage.ocfl.exception.NotFoundException;
@@ -41,6 +44,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT_RESOURCE;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
@@ -157,47 +161,50 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
         final var dsVersions = objectReference.getDatastreamVersions(dsId);
         final var sourceObjectId = objectInfo.getPid();
-        final var targetObjectId = this.ocflSession.ocflObjectId();
+        final var targetObjectId = ocflSession.ocflObjectId();
         final var sourceResource = sourceObjectId + "/" + dsId;
         final var targetResource = targetObjectId + "/" + dsId;
+        final var targetVersions = ocflSession.listVersions(targetResource);
+
         var sourceVersionCount = 0;
+        String sourceCreated = null;
         for (final var dsVersion : dsVersions) {
-            if (dsVersion.isLastVersionIn(objectReference)) {
-                final var dsInfo = dsVersion.getDatastreamInfo();
-                if (!dsInfo.getState().equals("D")) {
-                    headDatastreamIds.add(dsId);
-                }
+            // in f3 the created entry on the first version is what we want to check against for all ocfl versions
+            if (sourceCreated == null) {
+                sourceCreated = dsVersion.getCreated();
+            }
 
-                try {
-                    final var headers = this.ocflSession.readHeaders(targetResource);
-                    final String details;
-                    final var sourceValue = dsVersion.getCreated();
-                    final var targetValue = headers.getCreatedDate().toString();
-                    final var result = sourceValue.equals(targetValue) ? OK : FAIL;
-                    if (result.equals(OK)) {
-                        details = format("HEAD binary creation dates match: %s", sourceValue);
-                    } else {
-                        details = format("HEAD binary creation dates do no match: sourceValue=%s, target value=%s",
-                                sourceValue, targetValue);
+            try {
+                final var isHead = dsVersion.isLastVersionIn(objectReference);
+                final var ocflVersionInfo = targetVersions.get(sourceVersionCount);
+                final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
+
+                String version = "version " + sourceVersionCount;
+                if (isHead) {
+                    version = "HEAD";
+                    final var dsInfo = dsVersion.getDatastreamInfo();
+                    if (!dsInfo.getState().equals("D")) {
+                        headDatastreamIds.add(dsId);
                     }
-                    validationResults.add(new ValidationResult(indexCounter++, result, OBJECT_RESOURCE,
-                            BINARY_METADATA, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
-                    validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT_RESOURCE,
-                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId, targetObjectId, sourceResource,
-                            targetResource, "Source object resource exists in target."));
-                } catch (NotFoundException ex) {
-                    validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
-                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId, targetObjectId, sourceResource,
-                            targetResource, "Source object resource does not exist in target."));
-
                 }
+
+                final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
+                                                                targetResource, OBJECT_RESOURCE);
+                final var createdResult = validateCreatedDate(sourceCreated, headers, version, builder);
+                validationResults.add(createdResult);
+            } catch (NotFoundException ex) {
+                validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
+                                                           SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
+                                                           targetObjectId, sourceResource, targetResource,
+                                                           "Source object resource does not exist in target for " +
+                                                           "version=" + sourceVersionCount + "."));
             }
 
             sourceVersionCount++;
         }
 
         try {
-            final var targetVersionCount = this.ocflSession.listVersions(targetResource).size();
+            final var targetVersionCount = targetVersions.size();
             final var ok = sourceVersionCount == targetVersionCount;
             var details = format("binary version counts match for resource: %s", sourceVersionCount);
             if (!ok) {
@@ -210,6 +217,19 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // intentionally left blank: we check for existence above
         }
 
+    }
+
+    private ValidationResult validateCreatedDate(final String sourceCreated, final ResourceHeaders headers,
+                                                 final String version, final ValidationResultBuilder builder) {
+        final var error = "%s binary creation dates do no match: sourceValue=%s, targetValue=%s";
+        final var success = "%s binary creation dates match: %s";
+
+        final var targetCreated = headers.getCreatedDate().toString();
+        if (sourceCreated.equals(targetCreated)) {
+            return builder.build(BINARY_METADATA, OK, format(success, version, sourceCreated));
+        } else {
+            return builder.build(BINARY_METADATA, FAIL, format(error, version, sourceCreated, targetCreated));
+        }
     }
 
     private void completeObjectValidation() {
@@ -226,9 +246,34 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     headDatastreamIds.size(), ocflResourceCount);
         }
 
-        validationResults.add(new ValidationResult(indexCounter++, result, OBJECT,
-                ValidationResult.ValidationType.BINARY_HEAD_COUNT, pid, ocflId,
+        validationResults.add(new ValidationResult(indexCounter++, result, OBJECT, BINARY_HEAD_COUNT, pid, ocflId,
                 details));
 
+    }
+
+    /**
+     * Hold a few values so we can have an easier time creating ValidationResults in various places
+     */
+    private class ValidationResultBuilder {
+        private final String sourceObjectId;
+        private final String targetObjectId;
+        private final String sourceResource;
+        private final String targetResource;
+        private final ValidationLevel validationLevel;
+
+        private ValidationResultBuilder(final String sourceObjectId, final String targetObjectId,
+                                        final String sourceResource, final String targetResource,
+                                        final ValidationLevel validationLevel) {
+            this.sourceObjectId = sourceObjectId;
+            this.targetObjectId = targetObjectId;
+            this.sourceResource = sourceResource;
+            this.targetResource = targetResource;
+            this.validationLevel = validationLevel;
+        }
+
+        public ValidationResult build(final ValidationType type, final Status status, final String details) {
+            return new ValidationResult(indexCounter++, status, validationLevel, type, sourceResource, targetResource,
+                                        sourceObjectId, targetObjectId, details);
+        }
     }
 }
