@@ -192,12 +192,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                                                                 targetResource, OBJECT_RESOURCE);
                 final var createdResult = validateCreatedDate(sourceCreated, headers, version, builder);
                 validationResults.add(createdResult);
-            } catch (NotFoundException ex) {
+            } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
                                                            targetObjectId, sourceResource, targetResource,
                                                            "Source object resource does not exist in target for " +
-                                                           "version=" + sourceVersionCount + "."));
+                                                           "source version=" + sourceVersionCount + "."));
             }
 
             sourceVersionCount++;
