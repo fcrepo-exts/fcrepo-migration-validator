@@ -17,10 +17,55 @@
  */
 package org.fcrepo.migration.validator;
 
+import java.io.File;
+
+import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
+import org.fcrepo.migration.validator.impl.F3SourceTypes;
+import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
+import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
+import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
+import org.fcrepo.migration.validator.report.ResultsReportHandler;
+
 /**
  * @author awoods
  * @since 2020-12-14
  */
 public abstract class AbstractValidationIT {
+
+    final static File FIXTURES_BASE_DIR = new File("src/test/resources/test-object-validation");
+    final static File RESULTS_DIR = new File("target/test/results-object-validation");
+
+    ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir, final File f6OcflRootDir) {
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final var configuration = new ApplicationConfigurationHelper(config);
+        final var executionManager = new Fedora3ValidationExecutionManager(configuration);
+        executionManager.doValidation();
+
+        // run report generator with 'ResultsReportHandler'
+        final ResultsReportHandler reportHandler = new ResultsReportHandler();
+        final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
+        generator.generate();
+        return reportHandler;
+    }
+
+    Fedora3ValidationConfig getConfig(final File f3DatastreamsDir, final File f3ObjectsDir, final File f6OcflRootDir) {
+        final var config = new Fedora3ValidationConfig();
+
+        final F3SourceTypes f3SourceType = F3SourceTypes.AKUBRA;
+        final File f3ExportedDir = null;
+        final String f3hostname = null;
+        final int threadCount = 1;
+
+        config.setSourceType(f3SourceType);
+        config.setDatastreamsDirectory(f3DatastreamsDir);
+        config.setOcflRepositoryRootDirectory(f6OcflRootDir);
+        config.setObjectsDirectory(f3ObjectsDir);
+        config.setExportedDirectory(f3ExportedDir);
+        config.setFedora3Hostname(f3hostname);
+        config.setThreadCount(threadCount);
+        config.setResultsDirectory(RESULTS_DIR.toPath());
+
+        return config;
+    }
 
 }
