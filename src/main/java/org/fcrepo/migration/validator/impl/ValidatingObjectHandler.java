@@ -191,6 +191,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
                 final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
                                                                 targetResource, OBJECT_RESOURCE);
+                final var createdResult = validateCreatedDate(sourceCreated, headers, version, builder);
+                validationResults.add(createdResult);
+                validationResults.add(validateSize(dsVersion, headers, version, builder));
 
                 validationResults.add(validateCreatedDate(sourceCreated, headers, version, builder));
                 validationResults.add(validateLastModified(dsVersion, headers, version, builder));
@@ -248,6 +251,20 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             return builder.build(BINARY_METADATA, OK, format(success, version, sourceCreated));
         } else {
             return builder.build(BINARY_METADATA, FAIL, format(error, version, sourceCreated, targetCreated));
+        }
+    }
+
+    private ValidationResult validateSize(final DatastreamVersion dsVersion, final ResourceHeaders headers,
+                                          final String version, final ValidationResultBuilder builder) {
+        final var error = "%s binary size does not match: sourceValue=%s, targetValue=%s";
+        final var success = "%s binary size matches: %s";
+
+        final var sourceSize = dsVersion.getSize();
+        final var targetSize = headers.getContentSize();
+        if (sourceSize == targetSize) {
+            return builder.build(BINARY_METADATA, OK, format(success, version, sourceSize));
+        } else {
+            return builder.build(BINARY_METADATA, FAIL, format(error, version, sourceSize, targetSize));
         }
     }
 
