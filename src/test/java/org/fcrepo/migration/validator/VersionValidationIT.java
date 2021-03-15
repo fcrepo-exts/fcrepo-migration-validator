@@ -24,12 +24,10 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -39,13 +37,6 @@ import org.junit.Test;
 public class VersionValidationIT extends AbstractValidationIT {
 
     final File VERSIONS_BASE_DIR = new File(FIXTURES_BASE_DIR, "version-validation-it");
-
-    @Before
-    public void setup() throws IOException {
-        // Create empty datastream dirs
-        FileUtils.forceMkdir(new File(VERSIONS_BASE_DIR, "valid/f3/datastreams"));
-        FileUtils.forceMkdir(new File(VERSIONS_BASE_DIR, "invalid-metadata/f3/datastreams"));
-    }
 
     @After
     public void teardown() {
@@ -65,11 +56,11 @@ public class VersionValidationIT extends AbstractValidationIT {
 
         // verify two entries for created date
         final var createdDateMatches = reportHandler.getPassed().stream()
-                     .filter(result -> result.getSourceObjectId().equals(sourceObject))
-                     .filter(result -> result.getDetails().contains("binary creation dates match"))
-                     .count();
+            .filter(result -> sourceObject.equals(result.getSourceResourceId()))
+            .filter(result -> result.getDetails().contains("binary creation dates match"))
+            .count();
         final var lastModifiedMatches = reportHandler.getPassed().stream()
-            .filter(result -> result.getSourceObjectId().equals(sourceObject))
+            .filter(result -> sourceObject.equals(result.getSourceResourceId()))
             .filter(result -> result.getDetails().contains("last modified dates match"))
             .count();
         assertEquals("Should be two created date validations for DS1", 2, createdDateMatches);
