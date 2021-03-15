@@ -291,8 +291,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         public ValidationResult build(final ValidationType type, final Status status, final String details) {
-            return new ValidationResult(indexCounter++, status, validationLevel, type, sourceResource, targetResource,
-                                        sourceObjectId, targetObjectId, details);
+            return new ValidationResult(indexCounter++, status, validationLevel, type, sourceObjectId, targetObjectId,
+                                        sourceResource, targetResource, details);
         }
     }
 }
