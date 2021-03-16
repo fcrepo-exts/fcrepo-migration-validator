@@ -17,6 +17,7 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
@@ -190,8 +191,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
                 final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
                                                                 targetResource, OBJECT_RESOURCE);
-                final var createdResult = validateCreatedDate(sourceCreated, headers, version, builder);
-                validationResults.add(createdResult);
+
+                validationResults.add(validateCreatedDate(sourceCreated, headers, version, builder));
+                validationResults.add(validateLastModified(dsVersion, headers, version, builder));
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
@@ -217,6 +219,23 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // intentionally left blank: we check for existence above
         }
 
+    }
+
+    private ValidationResult validateLastModified(final DatastreamVersion dsVersion, final ResourceHeaders headers,
+                                                  final String version, final ValidationResultBuilder builder) {
+        final var error = "%s binary last modified dates do no match: sourceValue=%s, targetValue=%s";
+        final var success = "%s binary last modified dates match: %s";
+
+        // the last modified date in ocfl is derived from when a datastream was created
+        // so we check equality of the two values
+        final var sourceValue = dsVersion.getCreated();
+        final var targetValue = headers.getLastModifiedDate().toString();
+
+        if (sourceValue.equals(targetValue)) {
+            return builder.build(BINARY_METADATA, OK, format(success, version, sourceValue));
+        } else {
+            return builder.build(BINARY_METADATA, FAIL, format(error, version, sourceValue, targetValue));
+        }
     }
 
     private ValidationResult validateCreatedDate(final String sourceCreated, final ResourceHeaders headers,
@@ -272,8 +291,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         public ValidationResult build(final ValidationType type, final Status status, final String details) {
-            return new ValidationResult(indexCounter++, status, validationLevel, type, sourceResource, targetResource,
-                                        sourceObjectId, targetObjectId, details);
+            return new ValidationResult(indexCounter++, status, validationLevel, type, sourceObjectId, targetObjectId,
+                                        sourceResource, targetResource, details);
         }
     }
 }

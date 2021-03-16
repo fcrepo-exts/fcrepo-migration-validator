@@ -55,11 +55,16 @@ public class VersionValidationIT extends AbstractValidationIT {
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
 
         // verify two entries for created date
-        final var numValidations = reportHandler.getPassed().stream()
-                     .filter(result -> result.getSourceObjectId().equals(sourceObject))
-                     .filter(result -> result.getDetails().contains("binary creation dates match"))
-                     .count();
-        assertEquals("Should be two created date validations for DS1", 2, numValidations);
+        final var createdDateMatches = reportHandler.getPassed().stream()
+            .filter(result -> sourceObject.equals(result.getSourceResourceId()))
+            .filter(result -> result.getDetails().contains("binary creation dates match"))
+            .count();
+        final var lastModifiedMatches = reportHandler.getPassed().stream()
+            .filter(result -> sourceObject.equals(result.getSourceResourceId()))
+            .filter(result -> result.getDetails().contains("last modified dates match"))
+            .count();
+        assertEquals("Should be two created date validations for DS1", 2, createdDateMatches);
+        assertEquals("Should be two last modified date validations for DS1", 2, lastModifiedMatches);
     }
 
     @Test
@@ -89,7 +94,21 @@ public class VersionValidationIT extends AbstractValidationIT {
         assertThat(errors).hasSize(1)
                           .map(ValidationResult::getValidationType)
                           .containsOnly(BINARY_VERSION_COUNT);
+    }
 
+    @Test
+    public void testInvalidMetadata() {
+        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "invalid-metadata/f3/datastreams");
+        final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "invalid-metadata/f3/objects");
+        final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "valid/f6/data/ocfl-root");
+        final var reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+
+        // verify expected results
+        final var errors = reportHandler.getErrors();
+        assertThat(errors).hasSize(4)
+                          .map(ValidationResult::getDetails)
+                          .anyMatch(details -> details.contains("creation dates do no match"))
+                          .anyMatch(details -> details.contains("last modified dates do no match"));
     }
 
 }
