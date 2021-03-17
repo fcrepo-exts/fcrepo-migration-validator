@@ -24,7 +24,6 @@ import org.fcrepo.migration.ObjectProperties;
 import org.fcrepo.migration.ObjectReference;
 import org.fcrepo.migration.ObjectVersionReference;
 import org.fcrepo.migration.validator.api.ValidationResult;
-import org.fcrepo.migration.validator.api.ValidationResult.Status;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationType;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
@@ -191,12 +190,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
                 final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
                                                                 targetResource, OBJECT_RESOURCE);
-                final var createdResult = validateCreatedDate(sourceCreated, headers, version, builder);
-                validationResults.add(createdResult);
-                validationResults.add(validateSize(dsVersion, headers, version, builder));
 
-                validationResults.add(validateCreatedDate(sourceCreated, headers, version, builder));
-                validationResults.add(validateLastModified(dsVersion, headers, version, builder));
+                validateSize(dsVersion, headers, version, builder);
+                validateCreatedDate(sourceCreated, headers, version, builder);
+                validateLastModified(dsVersion, headers, version, builder);
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
@@ -221,11 +218,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         } catch (NotFoundException ex) {
             // intentionally left blank: we check for existence above
         }
-
     }
 
-    private ValidationResult validateLastModified(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                                                  final String version, final ValidationResultBuilder builder) {
+    private void validateLastModified(final DatastreamVersion dsVersion, final ResourceHeaders headers,
+                                      final String version, final ValidationResultBuilder builder) {
         final var error = "%s binary last modified dates do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary last modified dates match: %s";
 
@@ -235,36 +231,40 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var targetValue = headers.getLastModifiedDate().toString();
 
         if (sourceValue.equals(targetValue)) {
-            return builder.build(BINARY_METADATA, OK, format(success, version, sourceValue));
+            validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceValue)));
         } else {
-            return builder.build(BINARY_METADATA, FAIL, format(error, version, sourceValue, targetValue));
+            validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceValue, targetValue)));
         }
     }
 
-    private ValidationResult validateCreatedDate(final String sourceCreated, final ResourceHeaders headers,
-                                                 final String version, final ValidationResultBuilder builder) {
+    private void validateCreatedDate(final String sourceCreated, final ResourceHeaders headers,
+                                     final String version, final ValidationResultBuilder builder) {
         final var error = "%s binary creation dates do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary creation dates match: %s";
 
         final var targetCreated = headers.getCreatedDate().toString();
         if (sourceCreated.equals(targetCreated)) {
-            return builder.build(BINARY_METADATA, OK, format(success, version, sourceCreated));
+            validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceCreated)));
         } else {
-            return builder.build(BINARY_METADATA, FAIL, format(error, version, sourceCreated, targetCreated));
+            validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceCreated, targetCreated)));
         }
     }
 
-    private ValidationResult validateSize(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                                          final String version, final ValidationResultBuilder builder) {
+    private void validateSize(final DatastreamVersion dsVersion, final ResourceHeaders headers,
+                              final String version, final ValidationResultBuilder builder) {
         final var error = "%s binary size does not match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary size matches: %s";
 
-        final var sourceSize = dsVersion.getSize();
-        final var targetSize = headers.getContentSize();
-        if (sourceSize == targetSize) {
-            return builder.build(BINARY_METADATA, OK, format(success, version, sourceSize));
-        } else {
-            return builder.build(BINARY_METADATA, FAIL, format(error, version, sourceSize, targetSize));
+        final var dsInfo = dsVersion.getDatastreamInfo();
+        final var controlGroup = F3ControlGroup.fromString(dsInfo.getControlGroup());
+        if (controlGroup == F3ControlGroup.MANAGED) {
+            final var sourceSize = dsVersion.getSize();
+            final var targetSize = headers.getContentSize();
+            if (sourceSize == targetSize) {
+                validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceSize)));
+            } else {
+                validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceSize, targetSize)));
+            }
         }
     }
 
@@ -307,8 +307,13 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             this.validationLevel = validationLevel;
         }
 
-        public ValidationResult build(final ValidationType type, final Status status, final String details) {
-            return new ValidationResult(indexCounter++, status, validationLevel, type, sourceObjectId, targetObjectId,
+        public ValidationResult ok(final ValidationType type, final String details) {
+            return new ValidationResult(indexCounter++, OK, validationLevel, type, sourceObjectId, targetObjectId,
+                                        sourceResource, targetResource, details);
+        }
+
+        public ValidationResult fail(final ValidationType type, final String details) {
+            return new ValidationResult(indexCounter++, FAIL, validationLevel, type, sourceObjectId, targetObjectId,
                                         sourceResource, targetResource, details);
         }
     }
