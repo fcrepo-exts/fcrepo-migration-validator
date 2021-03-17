@@ -18,12 +18,16 @@
 package org.fcrepo.migration.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.CREATION_DATE;
+import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.LAST_MODIFIED_DATE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.api.ValidationResult;
@@ -45,7 +49,6 @@ public class VersionValidationIT extends AbstractValidationIT {
 
     @Test
     public void test() {
-        final var sourceObject = "1711.dl:FEG6WWJ664RHQ8X/DS1";
         final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "valid/f3/datastreams");
         final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "valid/f3/objects");
         final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "valid/f6/data/ocfl-root");
@@ -54,17 +57,15 @@ public class VersionValidationIT extends AbstractValidationIT {
         // verify expected results
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
 
-        // verify two entries for created date
-        final var createdDateMatches = reportHandler.getPassed().stream()
-            .filter(result -> sourceObject.equals(result.getSourceResourceId()))
-            .filter(result -> result.getDetails().contains("binary creation dates match"))
-            .count();
-        final var lastModifiedMatches = reportHandler.getPassed().stream()
-            .filter(result -> sourceObject.equals(result.getSourceResourceId()))
-            .filter(result -> result.getDetails().contains("last modified dates match"))
-            .count();
-        assertEquals("Should be two created date validations for DS1", 2, createdDateMatches);
-        assertEquals("Should be two last modified date validations for DS1", 2, lastModifiedMatches);
+        // verify datastream metadata
+        // only 1 inline datastream with two versions, so we expect 2 results on all but size which should have none
+        final var validations = reportHandler.getPassed().stream()
+                     .filter(result -> result.getValidationType() == BINARY_METADATA)
+                     .map(BinaryMetadataValidation::fromResult)
+                     .collect(Collectors.toList());
+        assertThat(validations).containsOnly(CREATION_DATE, LAST_MODIFIED_DATE);
+        assertThat(validations).filteredOn(validation -> validation == CREATION_DATE).hasSize(2);
+        assertThat(validations).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(2);
     }
 
     @Test
@@ -104,11 +105,14 @@ public class VersionValidationIT extends AbstractValidationIT {
         final var reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
-        final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(4)
-                          .map(ValidationResult::getDetails)
-                          .anyMatch(details -> details.contains("creation dates do no match"))
-                          .anyMatch(details -> details.contains("last modified dates do no match"));
+        // 2 creation dates match; 2 last modified dates match; 0 size matches
+        final var errors = reportHandler.getErrors().stream()
+                                        .filter(result -> result.getValidationType() == BINARY_METADATA)
+                                        .map(BinaryMetadataValidation::fromResult)
+                                        .collect(Collectors.toList());
+        assertThat(errors).containsOnly(CREATION_DATE, LAST_MODIFIED_DATE);
+        assertThat(errors).filteredOn(validation -> validation == CREATION_DATE).hasSize(2);
+        assertThat(errors).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(2);
     }
 
 }
