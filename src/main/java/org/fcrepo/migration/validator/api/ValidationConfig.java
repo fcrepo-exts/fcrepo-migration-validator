@@ -79,6 +79,13 @@ public abstract class ValidationConfig {
     }
 
     /**
+     * @return the csv output directory
+     */
+    public Path getCsvReportDirectory() {
+        return getResultsDirectory().resolve("csv");
+    }
+
+    /**
      *
      * @return
      */

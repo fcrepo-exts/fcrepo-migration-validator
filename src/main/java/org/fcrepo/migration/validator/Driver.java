@@ -17,10 +17,12 @@
  */
 package org.fcrepo.migration.validator;
 
+import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
 import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
+import org.fcrepo.migration.validator.report.CsvReportHandler;
 import org.fcrepo.migration.validator.report.HtmlReportHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.slf4j.Logger;
@@ -86,6 +88,13 @@ public class Driver implements Callable<Integer> {
                         description = "PID file listing which Fedora 3 objects to validate")
     private File objectsToValidate;
 
+    @CommandLine.Option(names = "--csv", order = 11, description = "Output validation results to csv")
+    private boolean csv;
+
+    @CommandLine.Option(names = "--separator", order = 12, defaultValue = "tab", showDefaultValue = ALWAYS,
+                        description = "Separator for csv output: ${COMPLETION-CANDIDATES}")
+    private CsvReportHandler.ColumnSeparator columnSeparator;
+
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
 
@@ -108,11 +117,15 @@ public class Driver implements Callable<Integer> {
                     new Fedora3ValidationExecutionManager(new ApplicationConfigurationHelper(config));
             executionManager.doValidation();
 
-            final var reportHandler = new HtmlReportHandler(config.getHtmlReportDirectory());
+            final ReportHandler reportHandler;
+            if (csv) {
+                reportHandler = new CsvReportHandler(config.getCsvReportDirectory(), columnSeparator);
+            } else {
+                reportHandler = new HtmlReportHandler(config.getHtmlReportDirectory());
+            }
             final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
-            generator.generate();
-            LOGGER.info("Validation report written to: " + config.getHtmlReportDirectory() + File.separator +
-                    "index.html");
+            final var summaryFile = generator.generate();
+            LOGGER.info("Validation report written to: {}", summaryFile);
 
             return 0;
     }
