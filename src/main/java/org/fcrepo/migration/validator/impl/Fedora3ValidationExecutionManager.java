@@ -25,6 +25,7 @@ import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -39,12 +40,13 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
 
-    private ExecutorService executorService;
-    private OcflObjectSessionFactory ocflObjectSessionFactory;
-    private ValidationResultWriter writer;
-    private ObjectSource source;
-    private AtomicLong count;
-    private Object lock;
+    private final ExecutorService executorService;
+    private final OcflObjectSessionFactory ocflObjectSessionFactory;
+    private final ValidationResultWriter writer;
+    private final ObjectSource source;
+    private final Set<String> objectsToValidate;
+    private final AtomicLong count;
+    private final Object lock;
 
     /**
      * Constructor
@@ -53,6 +55,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     public Fedora3ValidationExecutionManager(final ApplicationConfigurationHelper config) {
         this.source = config.objectSource();
         this.writer = config.validationResultWriter();
+        this.objectsToValidate = config.readObjectsToValidate();
         this.ocflObjectSessionFactory = config.ocflObjectSessionFactory();
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
         this.count = new AtomicLong(0);
@@ -62,18 +65,18 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
     @Override
     public void doValidation() {
-
         try {
-            for (final var iterator = source.iterator(); iterator.hasNext(); ) {
-                final var o = iterator.next();
-                final var task = new F3ObjectValidationTaskBuilder().processor(o)
+            for (final var objectProcessor : source) {
+                final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
+                if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
+                    final var task = new F3ObjectValidationTaskBuilder().processor(objectProcessor)
                         .writer(writer)
                         .objectSessionFactory(ocflObjectSessionFactory)
                         .build();
                     submit(task);
                 }
-
-            awaitCompletion();
+                awaitCompletion();
+            }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
