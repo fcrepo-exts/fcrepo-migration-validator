@@ -64,7 +64,7 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
         } catch (Exception ex) {
             LOGGER.error("Source object {} could not be read due to: {}", objectInfo.getPid(), ex.getMessage(), ex);
             final var results = handler.getValidationResults();
-            final var list = new ArrayList(results);
+            final var list = new ArrayList<>(results);
             list.add(new ValidationResult(results.size(), FAIL, OBJECT,
                     OBJECT_READABLE, fedoraId, ocflSession.ocflObjectId(), "Source object could not be read: " +
                     ex.getMessage()));

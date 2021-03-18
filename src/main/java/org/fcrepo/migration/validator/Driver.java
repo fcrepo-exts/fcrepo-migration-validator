@@ -82,6 +82,8 @@ public class Driver implements Callable<Integer> {
             description = "The number of threads for parallel processing. Default 5", defaultValue = "5")
     private int threadCount;
 
+    @CommandLine.Option(names = {"--from-list", "-l"}, order = 10, description = "A list of F3 object ids to validate")
+    private File objectsToValidate;
 
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
@@ -97,6 +99,7 @@ public class Driver implements Callable<Integer> {
             config.setThreadCount(threadCount);
             config.setResultsDirectory(resultsDirectory.toPath());
             config.setOcflRepositoryRootDirectory(ocflRootDirectory);
+            config.setObjectsToValidate(objectsToValidate);
             LOGGER.info("Configuration created: {}", config);
 
             LOGGER.info("Preparing to execute validation run...");
