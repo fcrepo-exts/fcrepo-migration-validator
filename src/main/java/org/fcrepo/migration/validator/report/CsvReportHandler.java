@@ -3,10 +3,11 @@ package org.fcrepo.migration.validator.report;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import org.fcrepo.migration.validator.api.ObjectReportSummary;
 import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.api.ValidationResult;
@@ -61,10 +62,10 @@ public class CsvReportHandler implements ReportHandler {
                                  .withHeader()
                                  .withColumnSeparator(separator.separator);
 
-        final var csvWriter = mapper.writer(schema);
         final var csvFile = outputDir.resolve(objectValidationResults.getObjectId() + ".csv");
-        try (final var fileWriter = Files.newBufferedWriter(csvFile)) {
-            csvWriter.writeValues(fileWriter).writeAll(objectValidationResults.getResults());
+        try (var fileWriter = Files.newBufferedWriter(csvFile);
+             var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {
+            csvWriter.writeAll(objectValidationResults.getResults());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -74,8 +75,22 @@ public class CsvReportHandler implements ReportHandler {
 
     @Override
     public String validationSummary(final ValidationResultsSummary validationSummary) {
-        final var formatter = DateTimeFormatter.ISO_DATE_TIME;
-        return outputDir.resolve("fedora-validation-summary-" + LocalDateTime.now().format(formatter) + ".csv").toString();
+        final var mapper = new CsvMapper();
+        final var formatter = DateTimeFormatter.ISO_LOCAL_DATE;
+        final var csvFile = outputDir.resolve("migration-validation-summary" +
+                                              LocalDate.now().format(formatter) + ".csv");
+        final var schema = mapper.schemaFor(ObjectReportSummary.class)
+                                 .withHeader()
+                                 .withColumnSeparator(separator.separator);
+
+        try (var fileWriter = Files.newBufferedWriter(csvFile);
+             var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {
+            csvWriter.writeAll(validationSummary.getObjectReports());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        return csvFile.toString();
     }
 
     @Override
