@@ -176,4 +176,8 @@ public class ApplicationConfigurationHelper {
     public int getThreadCount() {
         return config.getThreadCount();
     }
+
+    public Boolean enableChecksums() {
+        return config.enableChecksums();
+    }
 }

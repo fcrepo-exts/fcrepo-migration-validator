@@ -88,6 +88,9 @@ public class Driver implements Callable<Integer> {
     @CommandLine.Option(names = {"--pid-file", "-p"}, order = 10,
                         description = "PID file listing which Fedora 3 objects to validate")
     private File objectsToValidate;
+    @CommandLine.Option(names = {"--checksum", "-m"}, order = 15,
+                        description = "Enable checksum validations of datastreams")
+    private boolean checksum;
 
     @CommandLine.Option(names = {"--report-type", "-R"}, order = 11, defaultValue = "html",
                         description = "Type of report to generate: ${COMPLETION-CANDIDATES}")
@@ -100,6 +103,7 @@ public class Driver implements Callable<Integer> {
     public Integer call() {
             final var config = new Fedora3ValidationConfig();
             config.setSourceType(f3SourceType);
+            config.setEnableChecksums(checksum);
             config.setDatastreamsDirectory(f3DatastreamsDir);
             config.setObjectsDirectory(f3ObjectsDir);
             config.setExportedDirectory(f3ExportedDir);

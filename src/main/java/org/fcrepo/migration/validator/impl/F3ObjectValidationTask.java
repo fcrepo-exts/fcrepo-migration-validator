@@ -34,9 +34,10 @@ public class F3ObjectValidationTask extends ValidationTask {
 
     private static final Logger LOGGER = getLogger(F3ObjectValidationTask.class);
 
-    private FedoraObjectProcessor processor;
-    private OcflObjectSessionFactory ocflObjectSessionFactory;
-    private ValidationResultWriter writer;
+    private final FedoraObjectProcessor processor;
+    private final OcflObjectSessionFactory ocflObjectSessionFactory;
+    private final ValidationResultWriter writer;
+    private final boolean enableChecksums;
 
     /**
      * Constructor
@@ -44,21 +45,24 @@ public class F3ObjectValidationTask extends ValidationTask {
      * @param processor The processor
      * @param ocflObjectSessionFactory The object session factory
      * @param writer    The shared validation state
+     * @param enableChecksums Enable running of checksums on datastreams
      */
     public F3ObjectValidationTask(final FedoraObjectProcessor processor,
                                   final OcflObjectSessionFactory ocflObjectSessionFactory,
-                                  final ValidationResultWriter writer) {
+                                  final ValidationResultWriter writer,
+                                  final boolean enableChecksums) {
         super();
         this.processor = processor;
         this.ocflObjectSessionFactory = ocflObjectSessionFactory;
         this.writer = writer;
+        this.enableChecksums = enableChecksums;
     }
 
     @Override
     public void run() {
         LOGGER.info("starting to process {} ", processor.getObjectInfo().getPid());
-        final var validator = new Fedora3ObjectValidator(this.ocflObjectSessionFactory);
+        final var validator = new Fedora3ObjectValidator(ocflObjectSessionFactory, enableChecksums);
         final var results = validator.validate(processor);
-        this.writer.write(results);
+        writer.write(results);
     }
 }

@@ -42,10 +42,12 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
     private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
 
 
-    private OcflObjectSessionFactory factory;
+    private final OcflObjectSessionFactory factory;
+    private final boolean enableChecksums;
 
-    public Fedora3ObjectValidator(final OcflObjectSessionFactory factory) {
+    public Fedora3ObjectValidator(final OcflObjectSessionFactory factory, final boolean enableChecksums) {
         this.factory = factory;
+        this.enableChecksums = enableChecksums;
     }
 
     @Override
@@ -56,7 +58,7 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
             fedoraId = "info:fedora/" + objectInfo.getPid();
         }
         final var ocflSession = this.factory.newSession(fedoraId);
-        final var handler = new ValidatingObjectHandler(ocflSession);
+        final var handler = new ValidatingObjectHandler(ocflSession, enableChecksums);
 
         try {
             object.processObject(new ObjectAbstractionStreamingFedoraObjectHandler(handler));

@@ -27,11 +27,20 @@ import org.fcrepo.migration.validator.api.AbstractValidationTaskBuilder;
  */
 public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder<F3ObjectValidationTask> {
 
+    private boolean enableChecksums;
     private FedoraObjectProcessor processor;
 
     @Override
     public F3ObjectValidationTask build() {
-        return new F3ObjectValidationTask(this.processor, this.objectSessionFactory, this.writer);
+        return new F3ObjectValidationTask(processor, objectSessionFactory, writer, enableChecksums);
+    }
+
+    /**
+     * @param enableChecksums
+     */
+    public F3ObjectValidationTaskBuilder enableChecksums(final boolean enableChecksums) {
+        this.enableChecksums = enableChecksums;
+        return this;
     }
 
     /**
