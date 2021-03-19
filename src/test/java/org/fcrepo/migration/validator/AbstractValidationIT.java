@@ -44,7 +44,7 @@ public abstract class AbstractValidationIT {
 
         // run report generator with 'ResultsReportHandler'
         final ResultsReportHandler reportHandler = new ResultsReportHandler();
-        final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
+        final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
         generator.generate();
         return reportHandler;
     }

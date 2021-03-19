@@ -121,7 +121,7 @@ public class Driver implements Callable<Integer> {
             } else {
                 reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
             }
-            final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
+            final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
             final var summaryFile = generator.generate();
             LOGGER.info("Validation report written to: {}", summaryFile);
 

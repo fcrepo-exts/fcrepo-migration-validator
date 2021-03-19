@@ -88,7 +88,7 @@ public abstract class ValidationConfig {
      *
      * @return
      */
-    public Path getJsonOuputDirectory() {
+    public Path getJsonOutputDirectory() {
         return getResultsDirectory().resolve("json");
     }
 
