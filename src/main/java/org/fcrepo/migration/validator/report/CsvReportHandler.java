@@ -1,3 +1,20 @@
+/*
+ * Licensed to DuraSpace under one or more contributor license agreements.
+ * See the NOTICE file distributed with this work for additional information
+ * regarding copyright ownership.
+ *
+ * DuraSpace licenses this file to you under the Apache License,
+ * Version 2.0 (the "License"); you may not use this file except in
+ * compliance with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.fcrepo.migration.validator.report;
 
 import java.io.IOException;
@@ -20,29 +37,22 @@ import org.fcrepo.migration.validator.api.ValidationResultsSummary;
  */
 public class CsvReportHandler implements ReportHandler {
 
-    public enum ColumnSeparator {
-        comma(','), tab('\t'), pipe('|');
-
-        private final char separator;
-
-        ColumnSeparator(final char separator) {
-            this.separator = separator;
-        }
-    }
-
     private final Path outputDir;
-    private final ColumnSeparator separator;
+    private final ReportType reportType;
 
     /**
      * Constructor
      *
      * @param outputDir the directory to write csv outputs
-     * @param separator the column separator use
+     * @param reportType the report type to generate, only csv or tsv
      */
-    public CsvReportHandler(final Path outputDir, final ColumnSeparator separator) {
-        this.outputDir = outputDir;
-        this.separator = separator;
+    public CsvReportHandler(final Path outputDir, final ReportType reportType) {
+        if (reportType == ReportType.html) {
+            throw new IllegalArgumentException("Invalid report type given, must be csv or tsv");
+        }
 
+        this.outputDir = outputDir;
+        this.reportType = reportType;
         try {
             Files.createDirectories(outputDir);
         } catch (IOException ex) {
@@ -60,9 +70,9 @@ public class CsvReportHandler implements ReportHandler {
         final var mapper = new CsvMapper();
         final var schema = mapper.schemaFor(ValidationResult.class)
                                  .withHeader()
-                                 .withColumnSeparator(separator.separator);
+                                 .withColumnSeparator(reportType.getSeparator());
 
-        final var csvFile = outputDir.resolve(objectValidationResults.getObjectId() + ".csv");
+        final var csvFile = outputDir.resolve(objectValidationResults.getObjectId() + reportType.getExtension());
         try (var fileWriter = Files.newBufferedWriter(csvFile);
              var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {
             csvWriter.writeAll(objectValidationResults.getResults());
@@ -78,10 +88,10 @@ public class CsvReportHandler implements ReportHandler {
         final var mapper = new CsvMapper();
         final var formatter = DateTimeFormatter.ISO_LOCAL_DATE;
         final var csvFile = outputDir.resolve("migration-validation-summary" +
-                                              LocalDate.now().format(formatter) + ".csv");
+                                              LocalDate.now().format(formatter) + reportType.getExtension());
         final var schema = mapper.schemaFor(ObjectReportSummary.class)
                                  .withHeader()
-                                 .withColumnSeparator(separator.separator);
+                                 .withColumnSeparator(reportType.getSeparator());
 
         try (var fileWriter = Files.newBufferedWriter(csvFile);
              var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {

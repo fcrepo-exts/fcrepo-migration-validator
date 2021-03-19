@@ -25,6 +25,7 @@ import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.CsvReportHandler;
 import org.fcrepo.migration.validator.report.HtmlReportHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
+import org.fcrepo.migration.validator.report.ReportType;
 import org.slf4j.Logger;
 import picocli.CommandLine;
 
@@ -88,12 +89,9 @@ public class Driver implements Callable<Integer> {
                         description = "PID file listing which Fedora 3 objects to validate")
     private File objectsToValidate;
 
-    @CommandLine.Option(names = "--csv", order = 11, description = "Output validation results to csv")
-    private boolean csv;
-
-    @CommandLine.Option(names = "--separator", order = 12, defaultValue = "tab", showDefaultValue = ALWAYS,
-                        description = "Separator for csv output: ${COMPLETION-CANDIDATES}")
-    private CsvReportHandler.ColumnSeparator columnSeparator;
+    @CommandLine.Option(names = {"--report-type"}, order = 11, defaultValue = "html",
+                        description = "Type of report to generate: ${COMPLETION-CANDIDATES}")
+    private ReportType reportType;
 
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
@@ -118,10 +116,10 @@ public class Driver implements Callable<Integer> {
             executionManager.doValidation();
 
             final ReportHandler reportHandler;
-            if (csv) {
-                reportHandler = new CsvReportHandler(config.getCsvReportDirectory(), columnSeparator);
+            if (reportType == ReportType.html) {
+                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
             } else {
-                reportHandler = new HtmlReportHandler(config.getHtmlReportDirectory());
+                reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
             }
             final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
             final var summaryFile = generator.generate();
