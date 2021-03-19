@@ -17,6 +17,9 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import com.google.common.hash.Funnels;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteStreams;
 import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
@@ -31,13 +34,17 @@ import org.fcrepo.storage.ocfl.ResourceHeaders;
 import org.fcrepo.storage.ocfl.exception.NotFoundException;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
@@ -65,6 +72,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
 
     private ObjectInfo objectInfo;
+    private final boolean checksum;
     private final OcflObjectSession ocflSession;
     private final List<ValidationResult> validationResults = new ArrayList<>();
     private int indexCounter;
@@ -100,9 +108,11 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * Constructor
      *
      * @param session
+     * @param enableChecksums
      */
-    public ValidatingObjectHandler(final OcflObjectSession session) {
+    public ValidatingObjectHandler(final OcflObjectSession session, boolean enableChecksums) {
         this.ocflSession = session;
+        this.checksum = enableChecksums;
     }
 
     /**
@@ -194,6 +204,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 validateSize(dsVersion, headers, version, builder);
                 validateCreatedDate(sourceCreated, headers, version, builder);
                 validateLastModified(dsVersion, headers, version, builder);
+                validateChecksum(dsVersion, headers, version, builder);
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
@@ -217,6 +228,38 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
         } catch (NotFoundException ex) {
             // intentionally left blank: we check for existence above
+        }
+    }
+
+    private void validateChecksum(final DatastreamVersion dsVersion, final ResourceHeaders headers,
+                                  final String version, final ValidationResultBuilder builder) {
+        final var error = "%s binary checksums do no match: sourceValue=%s, targetValue=%s";
+        final var success = "%s binary checksums match: %s";
+
+        String sourceValue = null;
+        final var controlGroup = F3ControlGroup.fromString(dsVersion.getDatastreamInfo().getControlGroup());
+        if (checksum && controlGroup == F3ControlGroup.MANAGED) {
+            try {
+                // compute the checksum of the datastream
+                final var hasher = Hashing.sha512().newHasher();
+                ByteStreams.copy(dsVersion.getContent(), Funnels.asOutputStream(hasher));
+                sourceValue = hasher.hash().toString();
+            } catch (IOException e) {
+                // figure something out
+                sourceValue = e.toString();
+            }
+
+            final var digests = headers.getDigests().stream()
+                                       .map(URI::toString)
+                                       .collect(Collectors.toMap(uri -> uri.substring(0, uri.lastIndexOf(":")),
+                                                                 uri -> uri.substring(uri.lastIndexOf(":") + 1)));
+
+            final var targetValue = digests.getOrDefault("urn:sha-512", "null");
+            if (Objects.equals(sourceValue, targetValue)) {
+                validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceValue)));
+            } else {
+                validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceValue, targetValue)));
+            }
         }
     }
 
