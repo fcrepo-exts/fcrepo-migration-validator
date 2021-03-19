@@ -137,6 +137,6 @@ public class ReportGeneratorImpl {
         resultsList.sort(Comparator.comparingInt(ValidationResult::getIndex));
         final var validationResults = new ObjectValidationResults(resultsList);
         final var reportFilename = reportHandler.objectLevelReport(validationResults);
-        return new ObjectReportSummary(validationResults.hasErrors(), reportFilename);
+        return new ObjectReportSummary(validationResults.hasErrors(), validationResults.getObjectId(), reportFilename);
     }
 }
