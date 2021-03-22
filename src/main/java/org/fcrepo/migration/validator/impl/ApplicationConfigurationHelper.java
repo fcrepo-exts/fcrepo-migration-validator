@@ -41,6 +41,8 @@ import org.fcrepo.storage.ocfl.cache.NoOpCache;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
 import static edu.wisc.library.ocfl.api.util.Enforce.expressionTrue;
@@ -152,6 +154,24 @@ public class ApplicationConfigurationHelper {
         }
     }
 
+    /**
+     * Read the file containing the object ids if available and return it as a set
+     *
+     * @throws RuntimeException if the file cannot be read
+     * @return a Set of objectIds
+     */
+    public Set<String> readObjectsToValidate() {
+        final var file = config.getObjectsToValidate();
+        final var objectIds = new HashSet<String>();
+        if (file != null) {
+            try (final var lines = Files.lines(file.toPath())) {
+                lines.forEach(objectIds::add);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        return objectIds;
+    }
 
     public int getThreadCount() {
         return config.getThreadCount();

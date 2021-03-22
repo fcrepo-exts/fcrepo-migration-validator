@@ -33,6 +33,7 @@ public class Fedora3ValidationConfig extends ValidationConfig {
     private File objectsDirectory;
     private File indexDirectory;
     private String fedora3Hostname;
+    private File objectsToValidate;
 
 
     /**
@@ -119,5 +120,16 @@ public class Fedora3ValidationConfig extends ValidationConfig {
         this.indexDirectory = indexDirectory;
     }
 
+    public File getObjectsToValidate() {
+        return objectsToValidate;
+    }
 
+    /**
+     * @param objectsToValidate
+     * @return
+     */
+    public Fedora3ValidationConfig setObjectsToValidate(final File objectsToValidate) {
+        this.objectsToValidate = objectsToValidate;
+        return this;
+    }
 }
