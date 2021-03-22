@@ -23,6 +23,8 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import org.fcrepo.migration.validator.api.ObjectReportSummary;
 import org.fcrepo.migration.validator.api.ObjectValidationResults;
@@ -67,7 +69,9 @@ public class CsvReportHandler implements ReportHandler {
 
     @Override
     public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
-        final var mapper = new CsvMapper();
+        final var mapper = CsvMapper.builder()
+                                    .addMixIn(ValidationResult.class, ValidationResultMixin.class)
+                                    .build();
         final var schema = mapper.schemaFor(ValidationResult.class)
                                  .withHeader()
                                  .withColumnSeparator(reportType.getSeparator());
@@ -106,5 +110,17 @@ public class CsvReportHandler implements ReportHandler {
     @Override
     public void endReport() {
         // no-op
+    }
+
+    /**
+     * Mixin for csv specific changes
+     */
+    @JsonPropertyOrder({"status", "validationLevel", "validationType", "details", "sourceObject", "sourceResource",
+                        "targetObject", "targetResource"})
+    public abstract static class ValidationResultMixin {
+
+        @JsonIgnore
+        abstract int getIndex();
+
     }
 }
