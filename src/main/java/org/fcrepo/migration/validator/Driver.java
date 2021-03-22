@@ -89,7 +89,7 @@ public class Driver implements Callable<Integer> {
                         description = "PID file listing which Fedora 3 objects to validate")
     private File objectsToValidate;
 
-    @CommandLine.Option(names = {"--report-type"}, order = 11, defaultValue = "html",
+    @CommandLine.Option(names = {"--report-type", "-R"}, order = 11, defaultValue = "html",
                         description = "Type of report to generate: ${COMPLETION-CANDIDATES}")
     private ReportType reportType;
 
