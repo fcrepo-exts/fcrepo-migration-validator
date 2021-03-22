@@ -82,7 +82,8 @@ public class Driver implements Callable<Integer> {
             description = "The number of threads for parallel processing. Default 5", defaultValue = "5")
     private int threadCount;
 
-    @CommandLine.Option(names = {"--from-list", "-l"}, order = 10, description = "A list of F3 object ids to validate")
+    @CommandLine.Option(names = {"--pid-file", "-p"}, order = 10,
+                        description = "PID file listing which Fedora 3 objects to validate")
     private File objectsToValidate;
 
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
