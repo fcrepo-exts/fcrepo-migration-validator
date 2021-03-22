@@ -120,7 +120,6 @@ public class Fedora3ValidationConfig extends ValidationConfig {
         this.indexDirectory = indexDirectory;
     }
 
-
     public File getObjectsToValidate() {
         return objectsToValidate;
     }
