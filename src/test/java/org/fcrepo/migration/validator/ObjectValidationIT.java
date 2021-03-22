@@ -23,10 +23,15 @@ import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.CREATION_DATE;
+import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.LAST_MODIFIED_DATE;
+import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.SIZE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_CREATED_DATE;
@@ -56,6 +61,19 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+
+        // check datastream metadata
+        // we have 7 datastreams overall -- 4 files and 3 inline
+        final var totalManaged = 4;
+        final var totalDatastreams = 7;
+        final var passed = reportHandler.getPassed().stream()
+                                        .filter(result -> result.getValidationType() == BINARY_METADATA)
+                                        .map(BinaryMetadataValidation::fromResult)
+                                        .collect(Collectors.toList());
+        assertThat(passed).containsOnly(CREATION_DATE, LAST_MODIFIED_DATE, SIZE);
+        assertThat(passed).filteredOn(validation -> validation == SIZE).hasSize(totalManaged);
+        assertThat(passed).filteredOn(validation -> validation == CREATION_DATE).hasSize(totalDatastreams);
+        assertThat(passed).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(totalDatastreams);
     }
 
     @Test

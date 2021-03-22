@@ -19,6 +19,7 @@ package org.fcrepo.migration.validator;
 
 import java.io.File;
 
+import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
@@ -66,6 +67,31 @@ public abstract class AbstractValidationIT {
         config.setResultsDirectory(RESULTS_DIR.toPath());
 
         return config;
+    }
+
+    /**
+     * Quick enum to help check the type of validations run. So instead of running result.getDetails.contains(...),
+     * create an enum type based on the details for (hopefully) cleaner assertions.
+     */
+    public enum BinaryMetadataValidation {
+        CREATION_DATE, LAST_MODIFIED_DATE, SIZE;
+
+        public static BinaryMetadataValidation fromResult(final ValidationResult result) {
+            if (result.getValidationType() != ValidationResult.ValidationType.BINARY_METADATA) {
+                throw new IllegalArgumentException("Enum type is only for BINARY_METADATA!");
+            }
+
+            final var details = result.getDetails();
+            if (details.contains("last modified date")) {
+                return LAST_MODIFIED_DATE;
+            } else if (details.contains("creation date")) {
+                return CREATION_DATE;
+            } else if (details.contains("size")) {
+                return SIZE;
+            }
+
+            throw new IllegalArgumentException("Unknown details type!");
+        }
     }
 
 }
