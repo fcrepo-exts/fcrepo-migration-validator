@@ -28,7 +28,7 @@ public enum ReportType {
     private final String extension;
     private final Character separator;
 
-    ReportType(String extension, Character separator) {
+    ReportType(final String extension, final Character separator) {
         this.extension = extension;
         this.separator = separator;
     }
