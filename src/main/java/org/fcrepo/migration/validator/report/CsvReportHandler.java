@@ -115,8 +115,8 @@ public class CsvReportHandler implements ReportHandler {
     /**
      * Mixin for csv specific changes
      */
-    @JsonPropertyOrder({"status", "validationLevel", "validationType", "details", "sourceObject", "sourceResource",
-                        "targetObject", "targetResource"})
+    @JsonPropertyOrder({"status", "validationLevel", "validationType", "details", "sourceObjectId", "sourceResourceId",
+                        "targetObjectId", "targetResourceId"})
     public abstract static class ValidationResultMixin {
 
         @JsonIgnore
