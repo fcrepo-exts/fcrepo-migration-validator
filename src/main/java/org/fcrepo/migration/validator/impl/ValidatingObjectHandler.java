@@ -18,6 +18,7 @@
 package org.fcrepo.migration.validator.impl;
 
 import com.google.common.hash.Funnels;
+import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.fcrepo.migration.DatastreamVersion;
@@ -43,6 +44,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -231,35 +233,56 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
+    /**
+     * Validate the checksum of a datastream.
+     *
+     * This can fail in multiple ways:
+     * 1 - The F3 datastream can not be read
+     * 2 - The F6 headers do not contain a checksum (only checking sha512 atm)
+     * 3 - The two calculated checksums do not match
+     *
+     * @param dsVersion the datastream
+     * @param headers the ocfl headers
+     * @param version the version number
+     * @param builder helper for building ValidationResults
+     */
     private void validateChecksum(final DatastreamVersion dsVersion, final ResourceHeaders headers,
                                   final String version, final ValidationResultBuilder builder) {
-        final var error = "%s binary checksums do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary checksums match: %s";
+        final var error = "%s binary checksums do no match: sourceValue=%s, targetValue=%s";
+        final var notFound = "%s binary checksum not found in Fedora 6 headers";
+        final var exception = "%s binary checksum was unable to be calculated: exception=%s";
 
-        String sourceValue = null;
+        final HashCode sourceHash;
         final var controlGroup = F3ControlGroup.fromString(dsVersion.getDatastreamInfo().getControlGroup());
         if (checksum && controlGroup == F3ControlGroup.MANAGED) {
             try {
                 // compute the checksum of the datastream
                 final var hasher = Hashing.sha512().newHasher();
                 ByteStreams.copy(dsVersion.getContent(), Funnels.asOutputStream(hasher));
-                sourceValue = hasher.hash().toString();
+                sourceHash = hasher.hash();
             } catch (IOException e) {
-                // figure something out
-                sourceValue = e.toString();
+                validationResults.add(builder.fail(BINARY_METADATA, format(exception, version, e.toString())));
+                return; // halt further validation
             }
 
-            final var digests = headers.getDigests().stream()
-                                       .map(URI::toString)
-                                       .collect(Collectors.toMap(uri -> uri.substring(0, uri.lastIndexOf(":")),
-                                                                 uri -> uri.substring(uri.lastIndexOf(":") + 1)));
+            // retrieve the SHA-512 digest from the ocfl headers
+            // note that digests are stored as urn:algorithm:hash
+            final var ocflDigest = headers.getDigests().stream()
+                                          .map(URI::toString)
+                                          .filter(uri -> uri.startsWith("urn:sha-512"))
+                                          .map(uri -> uri.substring(uri.lastIndexOf(":" + 1)))
+                                          .findFirst();
 
-            final var targetValue = digests.getOrDefault("urn:sha-512", "null");
-            if (Objects.equals(sourceValue, targetValue)) {
-                validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceValue)));
-            } else {
-                validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceValue, targetValue)));
-            }
+            final var sourceValue = sourceHash.toString();
+            ocflDigest.ifPresentOrElse(targetValue -> {
+                if (Objects.equals(sourceValue, targetValue)) {
+                    validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceValue)));
+                } else {
+                    validationResults.add(builder.fail(BINARY_METADATA,
+                                                       format(error, version, sourceValue, targetValue)));
+                }
+            }, () -> validationResults.add(builder.fail(BINARY_METADATA, format(notFound, version))));
         }
     }
 
