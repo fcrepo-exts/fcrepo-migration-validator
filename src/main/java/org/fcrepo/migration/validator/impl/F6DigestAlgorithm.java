@@ -9,23 +9,23 @@ import edu.wisc.library.ocfl.api.model.DigestAlgorithm;
  * Supported digest algorithms for ocfl
  */
 public enum F6DigestAlgorithm {
-    sha256(DigestAlgorithm.sha256.getOcflName(), Hashing.sha256()),
-    sha512(DigestAlgorithm.sha512.getOcflName(), Hashing.sha512());
+    sha256(DigestAlgorithm.sha256.getJavaStandardName(), Hashing.sha256()),
+    sha512(DigestAlgorithm.sha512.getJavaStandardName(), Hashing.sha512());
 
-    private final String ocflName;
+    private final String name;
     private final HashFunction hashFunction;
 
-    F6DigestAlgorithm(String ocflName, HashFunction hashFunction) {
-        this.ocflName = ocflName;
+    F6DigestAlgorithm(final String name, final HashFunction hashFunction) {
+        this.name = name;
         this.hashFunction = hashFunction;
     }
 
-    public String getOcflName() {
-        return ocflName;
+    public String getName() {
+        return name;
     }
 
     public String getOcflUrn() {
-        return "urn:" + ocflName;
+        return "urn:" + name;
     }
 
     public Hasher hasher() {
