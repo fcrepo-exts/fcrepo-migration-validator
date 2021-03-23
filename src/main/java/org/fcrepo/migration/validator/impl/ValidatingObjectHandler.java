@@ -19,7 +19,6 @@ package org.fcrepo.migration.validator.impl;
 
 import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
-import com.google.common.hash.Hashing;
 import com.google.common.io.ByteStreams;
 import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
@@ -44,9 +43,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
@@ -79,6 +76,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final List<ValidationResult> validationResults = new ArrayList<>();
     private int indexCounter;
     private final Set<String> headDatastreamIds = new HashSet<>();
+    private final F6DigestAlgorithm digestAlgorithm;
 
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
 
@@ -111,10 +109,13 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      *
      * @param session
      * @param enableChecksums
+     * @param digestAlgorithm
      */
-    public ValidatingObjectHandler(final OcflObjectSession session, boolean enableChecksums) {
+    public ValidatingObjectHandler(final OcflObjectSession session, boolean enableChecksums,
+                                   final F6DigestAlgorithm digestAlgorithm) {
         this.ocflSession = session;
         this.checksum = enableChecksums;
+        this.digestAlgorithm = digestAlgorithm;
     }
 
     /**
@@ -258,7 +259,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         if (checksum && controlGroup == F3ControlGroup.MANAGED) {
             try {
                 // compute the checksum of the datastream
-                final var hasher = Hashing.sha512().newHasher();
+                final var hasher = digestAlgorithm.hasher();
                 ByteStreams.copy(dsVersion.getContent(), Funnels.asOutputStream(hasher));
                 sourceHash = hasher.hash();
             } catch (IOException e) {
@@ -270,7 +271,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // note that digests are stored as urn:algorithm:hash
             final var ocflDigest = headers.getDigests().stream()
                                           .map(URI::toString)
-                                          .filter(uri -> uri.startsWith("urn:sha-512"))
+                                          .filter(uri -> uri.startsWith(digestAlgorithm.getOcflUrn()))
                                           .map(uri -> uri.substring(uri.lastIndexOf(":" + 1)))
                                           .findFirst();
 

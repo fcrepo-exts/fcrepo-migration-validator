@@ -44,10 +44,13 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
 
     private final OcflObjectSessionFactory factory;
     private final boolean enableChecksums;
+    private final F6DigestAlgorithm digestAlgorithm;
 
-    public Fedora3ObjectValidator(final OcflObjectSessionFactory factory, final boolean enableChecksums) {
+    public Fedora3ObjectValidator(final OcflObjectSessionFactory factory, final boolean enableChecksums,
+                                  final F6DigestAlgorithm digestAlgorithm) {
         this.factory = factory;
         this.enableChecksums = enableChecksums;
+        this.digestAlgorithm = digestAlgorithm;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
             fedoraId = "info:fedora/" + objectInfo.getPid();
         }
         final var ocflSession = this.factory.newSession(fedoraId);
-        final var handler = new ValidatingObjectHandler(ocflSession, enableChecksums);
+        final var handler = new ValidatingObjectHandler(ocflSession, enableChecksums, digestAlgorithm);
 
         try {
             object.processObject(new ObjectAbstractionStreamingFedoraObjectHandler(handler));

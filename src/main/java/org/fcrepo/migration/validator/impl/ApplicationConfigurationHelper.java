@@ -180,4 +180,8 @@ public class ApplicationConfigurationHelper {
     public Boolean enableChecksums() {
         return config.enableChecksums();
     }
+
+    public F6DigestAlgorithm getDigestAlgorithm() {
+        return config.getDigestAlgorithm();
+    }
 }

@@ -38,30 +38,33 @@ public class F3ObjectValidationTask extends ValidationTask {
     private final OcflObjectSessionFactory ocflObjectSessionFactory;
     private final ValidationResultWriter writer;
     private final boolean enableChecksums;
+    private final F6DigestAlgorithm digestAlgorithm;
 
     /**
      * Constructor
-     *
-     * @param processor The processor
+     *  @param processor The processor
      * @param ocflObjectSessionFactory The object session factory
      * @param writer    The shared validation state
      * @param enableChecksums Enable running of checksums on datastreams
+     * @param digestAlgorithm The digest algorithm to use
      */
     public F3ObjectValidationTask(final FedoraObjectProcessor processor,
                                   final OcflObjectSessionFactory ocflObjectSessionFactory,
                                   final ValidationResultWriter writer,
-                                  final boolean enableChecksums) {
+                                  final boolean enableChecksums,
+                                  final F6DigestAlgorithm digestAlgorithm) {
         super();
         this.processor = processor;
         this.ocflObjectSessionFactory = ocflObjectSessionFactory;
         this.writer = writer;
         this.enableChecksums = enableChecksums;
+        this.digestAlgorithm = digestAlgorithm;
     }
 
     @Override
     public void run() {
         LOGGER.info("starting to process {} ", processor.getObjectInfo().getPid());
-        final var validator = new Fedora3ObjectValidator(ocflObjectSessionFactory, enableChecksums);
+        final var validator = new Fedora3ObjectValidator(ocflObjectSessionFactory, enableChecksums, digestAlgorithm);
         final var results = validator.validate(processor);
         writer.write(results);
     }
