@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
@@ -272,7 +273,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final var ocflDigest = headers.getDigests().stream()
                                           .map(URI::toString)
                                           .filter(uri -> uri.startsWith(digestAlgorithm.getOcflUrn()))
-                                          .map(uri -> uri.substring(uri.lastIndexOf(":" + 1)))
+                                          .map(uri -> uri.substring(uri.lastIndexOf(":") + 1))
                                           .findFirst();
 
             final var sourceValue = sourceHash.toString();
