@@ -134,6 +134,7 @@ public class Fedora3ValidationConfig extends ValidationConfig {
         this.objectsToValidate = objectsToValidate;
         return this;
     }
+
     /**
      * @param checksum
      */
