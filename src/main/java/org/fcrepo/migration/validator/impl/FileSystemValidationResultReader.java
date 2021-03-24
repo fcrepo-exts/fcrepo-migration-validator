@@ -46,7 +46,7 @@ public class FileSystemValidationResultReader implements ValidationResultReader 
     public ValidationResult read(final File validationResultFile) {
         final var objectMapper = new ObjectMapper();
 
-        LOGGER.info("Reading result from here: {}", validationResultFile);
+        LOGGER.debug("Reading result from here: {}", validationResultFile);
         try (final var reader = new FileReader(validationResultFile)) {
             return objectMapper.readValue(reader, ValidationResult.class);
 
