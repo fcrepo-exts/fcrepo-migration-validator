@@ -81,7 +81,7 @@ public abstract class AbstractValidationIT {
      * create an enum type based on the details for (hopefully) cleaner assertions.
      */
     public enum BinaryMetadataValidation {
-        CREATION_DATE, LAST_MODIFIED_DATE, SIZE, CHECKSUM;
+        CREATION_DATE, LAST_MODIFIED_DATE, SIZE;
 
         public static BinaryMetadataValidation fromResult(final ValidationResult result) {
             if (result.getValidationType() != ValidationResult.ValidationType.BINARY_METADATA) {
@@ -95,8 +95,6 @@ public abstract class AbstractValidationIT {
                 return CREATION_DATE;
             } else if (details.contains("size")) {
                 return SIZE;
-            } else if (details.contains("checksums")) {
-                return CHECKSUM;
             }
 
             throw new IllegalArgumentException("Unknown details type!");
