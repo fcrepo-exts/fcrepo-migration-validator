@@ -76,6 +76,13 @@ public class ObjectValidationResults {
     }
 
     /**
+     * @return all ValidationResults
+     */
+    public List<ValidationResult> getResults() {
+        return results;
+    }
+
+    /**
      * Return all results with an OK validation status
      * @return list of all passed validations
      */

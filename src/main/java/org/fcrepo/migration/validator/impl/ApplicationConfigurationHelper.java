@@ -62,7 +62,7 @@ public class ApplicationConfigurationHelper {
     }
 
     public ValidationResultWriter validationResultWriter() {
-        return new FileSystemValidationResultWriter(config.getJsonOuputDirectory());
+        return new FileSystemValidationResultWriter(config.getJsonOutputDirectory());
     }
 
     public ObjectSource objectSource() {

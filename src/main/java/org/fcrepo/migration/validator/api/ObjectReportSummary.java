@@ -17,6 +17,9 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * A summary of an Object Validation Report
  *
@@ -24,23 +27,35 @@ package org.fcrepo.migration.validator.api;
  */
 public class ObjectReportSummary {
     private final boolean errors;
+    private final String objectId;
     private final String reportFilename;
 
-    public ObjectReportSummary(final boolean errors, final String reportFilename) {
+    public ObjectReportSummary(final boolean errors, final String objectId, final String reportFilename) {
         this.errors = errors;
+        this.objectId = objectId;
         this.reportFilename = reportFilename;
     }
 
     /**
-     * @return true if the report had any errors
+     * @return true if the report has any errors
      */
+    @JsonProperty("errors")
     public boolean hasErrors() {
         return errors;
     }
 
     /**
+     * @return the objectId
+     */
+    @JsonProperty
+    public String getObjectId() {
+        return objectId;
+    }
+
+    /**
      * @return the filename of the html report
      */
+    @JsonIgnore
     public String getReportFilename() {
         return reportFilename;
     }

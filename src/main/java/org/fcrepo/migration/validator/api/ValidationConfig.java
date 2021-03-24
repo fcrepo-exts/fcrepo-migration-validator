@@ -18,6 +18,7 @@
 package org.fcrepo.migration.validator.api;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.fcrepo.migration.validator.report.ReportType;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -71,18 +72,23 @@ public abstract class ValidationConfig {
     }
 
     /**
-     *
-     * @return
+     * @param reportType the report type to get the directory of
+     * @return the output directory
      */
-    public Path getHtmlReportDirectory() {
-        return getResultsDirectory().resolve("html");
+    public Path getReportDirectory(final ReportType reportType) {
+        switch (reportType) {
+            case csv: return getResultsDirectory().resolve("csv");
+            case tsv: return getResultsDirectory().resolve("tsv");
+            case html: return getResultsDirectory().resolve("html");
+            default: throw new IllegalArgumentException("Unknown report type: " + reportType);
+        }
     }
 
     /**
      *
      * @return
      */
-    public Path getJsonOuputDirectory() {
+    public Path getJsonOutputDirectory() {
         return getResultsDirectory().resolve("json");
     }
 

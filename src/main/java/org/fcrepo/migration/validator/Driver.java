@@ -17,12 +17,15 @@
  */
 package org.fcrepo.migration.validator;
 
+import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
 import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
+import org.fcrepo.migration.validator.report.CsvReportHandler;
 import org.fcrepo.migration.validator.report.HtmlReportHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
+import org.fcrepo.migration.validator.report.ReportType;
 import org.slf4j.Logger;
 import picocli.CommandLine;
 
@@ -86,6 +89,10 @@ public class Driver implements Callable<Integer> {
                         description = "PID file listing which Fedora 3 objects to validate")
     private File objectsToValidate;
 
+    @CommandLine.Option(names = {"--report-type", "-R"}, order = 11, defaultValue = "html",
+                        description = "Type of report to generate: ${COMPLETION-CANDIDATES}")
+    private ReportType reportType;
+
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
 
@@ -108,11 +115,15 @@ public class Driver implements Callable<Integer> {
                     new Fedora3ValidationExecutionManager(new ApplicationConfigurationHelper(config));
             executionManager.doValidation();
 
-            final var reportHandler = new HtmlReportHandler(config.getHtmlReportDirectory());
-            final var generator = new ReportGeneratorImpl(config.getJsonOuputDirectory(), reportHandler);
-            generator.generate();
-            LOGGER.info("Validation report written to: " + config.getHtmlReportDirectory() + File.separator +
-                    "index.html");
+            final ReportHandler reportHandler;
+            if (reportType == ReportType.html) {
+                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
+            } else {
+                reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
+            }
+            final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
+            final var summaryFile = generator.generate();
+            LOGGER.info("Validation report written to: {}", summaryFile);
 
             return 0;
     }
