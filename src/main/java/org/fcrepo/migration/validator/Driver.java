@@ -90,13 +90,13 @@ public class Driver implements Callable<Integer> {
                         description = "PID file listing which Fedora 3 objects to validate")
     private File objectsToValidate;
 
-    @CommandLine.Option(names = {"--checksum", "-C"}, order = 15,
-                        description = "Enable checksum validations of datastreams")
-    private boolean checksum;
-
     @CommandLine.Option(names = {"--report-type", "-R"}, order = 11, defaultValue = "html",
                         description = "Type of report to generate: ${COMPLETION-CANDIDATES}")
     private ReportType reportType;
+
+    @CommandLine.Option(names = {"--checksum", "-C"}, order = 15,
+                        description = "Enable checksum validations of datastreams")
+    private boolean checksum;
 
     @CommandLine.Option(names = {"--algorithm", "-a"}, order = 16, defaultValue = "sha512", showDefaultValue = ALWAYS,
                         description = "The digest algorithm to use during checksum validation: " +

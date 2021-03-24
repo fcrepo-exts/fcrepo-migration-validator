@@ -269,7 +269,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 return; // halt further validation
             }
 
-            // retrieve the SHA-512 digest from the ocfl headers
+            // retrieve the digest from the ocfl headers
             // note that digests are stored as urn:algorithm:hash
             final var ocflDigest = headers.getDigests().stream()
                                           .map(URI::toString)
