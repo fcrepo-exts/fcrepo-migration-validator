@@ -112,7 +112,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * @param enableChecksums
      * @param digestAlgorithm
      */
-    public ValidatingObjectHandler(final OcflObjectSession session, boolean enableChecksums,
+    public ValidatingObjectHandler(final OcflObjectSession session,
+                                   final boolean enableChecksums,
                                    final F6DigestAlgorithm digestAlgorithm) {
         this.ocflSession = session;
         this.checksum = enableChecksums;
