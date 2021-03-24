@@ -19,6 +19,7 @@ package org.fcrepo.migration.validator;
 
 import java.io.File;
 
+import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
@@ -26,6 +27,7 @@ import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
+import org.junit.After;
 
 /**
  * @author awoods
@@ -35,6 +37,11 @@ public abstract class AbstractValidationIT {
 
     final static File FIXTURES_BASE_DIR = new File("src/test/resources/test-object-validation");
     final static File RESULTS_DIR = new File("target/test/results-object-validation");
+
+    @After
+    public void teardown() {
+        FileUtils.deleteQuietly(RESULTS_DIR);
+    }
 
     ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir, final File f6OcflRootDir) {
         final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);

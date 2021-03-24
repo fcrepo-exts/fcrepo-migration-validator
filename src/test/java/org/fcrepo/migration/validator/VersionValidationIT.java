@@ -29,9 +29,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.api.ValidationResult;
-import org.junit.After;
 import org.junit.Test;
 
 /**
@@ -41,11 +39,6 @@ import org.junit.Test;
 public class VersionValidationIT extends AbstractValidationIT {
 
     final File VERSIONS_BASE_DIR = new File(FIXTURES_BASE_DIR, "version-validation-it");
-
-    @After
-    public void teardown() {
-        FileUtils.deleteQuietly(RESULTS_DIR);
-    }
 
     @Test
     public void test() {

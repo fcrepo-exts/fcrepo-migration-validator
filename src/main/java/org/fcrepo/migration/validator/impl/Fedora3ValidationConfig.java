@@ -27,6 +27,9 @@ import java.io.File;
  * @author dbernstein
  */
 public class Fedora3ValidationConfig extends ValidationConfig {
+
+    private boolean checksum;
+    private F6DigestAlgorithm digestAlgorithm;
     private F3SourceTypes sourceType;
     private File exportedDirectory;
     private File datastreamsDirectory;
@@ -34,7 +37,6 @@ public class Fedora3ValidationConfig extends ValidationConfig {
     private File indexDirectory;
     private String fedora3Hostname;
     private File objectsToValidate;
-
 
     /**
      * @return
@@ -131,5 +133,27 @@ public class Fedora3ValidationConfig extends ValidationConfig {
     public Fedora3ValidationConfig setObjectsToValidate(final File objectsToValidate) {
         this.objectsToValidate = objectsToValidate;
         return this;
+    }
+
+    /**
+     * @param checksum
+     */
+    public void setEnableChecksums(final boolean checksum) {
+        this.checksum = checksum;
+    }
+
+    public Boolean enableChecksums() {
+        return checksum;
+    }
+
+    /**
+     * @param digestAlgorithm
+     */
+    public void setDigestAlgorithm(final F6DigestAlgorithm digestAlgorithm) {
+        this.digestAlgorithm = digestAlgorithm;
+    }
+
+    public F6DigestAlgorithm getDigestAlgorithm() {
+        return digestAlgorithm;
     }
 }

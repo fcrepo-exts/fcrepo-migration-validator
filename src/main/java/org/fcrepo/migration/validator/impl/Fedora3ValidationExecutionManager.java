@@ -47,6 +47,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     private final Set<String> objectsToValidate;
     private final AtomicLong count;
     private final Object lock;
+    private final Boolean checksum;
+    private final F6DigestAlgorithm digestAlgorithm;
 
     /**
      * Constructor
@@ -60,7 +62,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
         this.count = new AtomicLong(0);
         this.lock = new Object();
-
+        this.checksum = config.enableChecksums();
+        this.digestAlgorithm = config.getDigestAlgorithm();
     }
 
     @Override
@@ -70,6 +73,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                 final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
                 if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
                     final var task = new F3ObjectValidationTaskBuilder().processor(objectProcessor)
+                        .enableChecksums(checksum, digestAlgorithm)
                         .writer(writer)
                         .objectSessionFactory(ocflObjectSessionFactory)
                         .build();

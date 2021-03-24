@@ -176,4 +176,12 @@ public class ApplicationConfigurationHelper {
     public int getThreadCount() {
         return config.getThreadCount();
     }
+
+    public Boolean enableChecksums() {
+        return config.enableChecksums();
+    }
+
+    public F6DigestAlgorithm getDigestAlgorithm() {
+        return config.getDigestAlgorithm();
+    }
 }

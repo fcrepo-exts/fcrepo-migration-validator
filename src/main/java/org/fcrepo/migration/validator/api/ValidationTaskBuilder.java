@@ -36,7 +36,7 @@ public interface ValidationTaskBuilder<T extends ValidationTask> {
       * @param writer
       * @return
       */
-     public ValidationTaskBuilder<T> writer(final ValidationResultWriter writer);
+     ValidationTaskBuilder<T> writer(final ValidationResultWriter writer);
 
      /**
       * Sets the OcflObjectSessionFactory objectSessionFactory
@@ -44,5 +44,5 @@ public interface ValidationTaskBuilder<T extends ValidationTask> {
       * @param objectSessionFactory
       * @return
       */
-     public ValidationTaskBuilder<T> objectSessionFactory(final OcflObjectSessionFactory objectSessionFactory);
+     ValidationTaskBuilder<T> objectSessionFactory(final OcflObjectSessionFactory objectSessionFactory);
 }

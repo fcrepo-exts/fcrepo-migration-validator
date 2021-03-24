@@ -20,6 +20,7 @@ package org.fcrepo.migration.validator;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
 import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
+import org.fcrepo.migration.validator.impl.F6DigestAlgorithm;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.CsvReportHandler;
@@ -93,39 +94,49 @@ public class Driver implements Callable<Integer> {
                         description = "Type of report to generate: ${COMPLETION-CANDIDATES}")
     private ReportType reportType;
 
+    @CommandLine.Option(names = {"--checksum", "-C"}, order = 15,
+                        description = "Enable checksum validations of datastreams")
+    private boolean checksum;
+
+    @CommandLine.Option(names = {"--algorithm", "-a"}, order = 16, defaultValue = "sha512", showDefaultValue = ALWAYS,
+                        description = "The digest algorithm to use during checksum validation: " +
+                                      "${COMPLETION-CANDIDATES}")
+    private F6DigestAlgorithm algorithm;
+
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
 
     @Override
     public Integer call() {
-            final var config = new Fedora3ValidationConfig();
-            config.setSourceType(f3SourceType);
-            config.setDatastreamsDirectory(f3DatastreamsDir);
-            config.setObjectsDirectory(f3ObjectsDir);
-            config.setExportedDirectory(f3ExportedDir);
-            config.setFedora3Hostname(f3hostname);
-            config.setThreadCount(threadCount);
-            config.setResultsDirectory(resultsDirectory.toPath());
-            config.setOcflRepositoryRootDirectory(ocflRootDirectory);
-            config.setObjectsToValidate(objectsToValidate);
-            LOGGER.info("Configuration created: {}", config);
+        final var config = new Fedora3ValidationConfig();
+        config.setSourceType(f3SourceType);
+        config.setEnableChecksums(checksum);
+        config.setDigestAlgorithm(algorithm);
+        config.setDatastreamsDirectory(f3DatastreamsDir);
+        config.setObjectsDirectory(f3ObjectsDir);
+        config.setExportedDirectory(f3ExportedDir);
+        config.setFedora3Hostname(f3hostname);
+        config.setThreadCount(threadCount);
+        config.setResultsDirectory(resultsDirectory.toPath());
+        config.setOcflRepositoryRootDirectory(ocflRootDirectory);
+        config.setObjectsToValidate(objectsToValidate);
+        LOGGER.info("Configuration created: {}", config);
 
-            LOGGER.info("Preparing to execute validation run...");
-            final var executionManager =
-                    new Fedora3ValidationExecutionManager(new ApplicationConfigurationHelper(config));
-            executionManager.doValidation();
+        LOGGER.info("Preparing to execute validation run...");
+        final var executionManager = new Fedora3ValidationExecutionManager(new ApplicationConfigurationHelper(config));
+        executionManager.doValidation();
 
-            final ReportHandler reportHandler;
-            if (reportType == ReportType.html) {
-                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
-            } else {
-                reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
-            }
-            final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
-            final var summaryFile = generator.generate();
-            LOGGER.info("Validation report written to: {}", summaryFile);
+        final ReportHandler reportHandler;
+        if (reportType == ReportType.html) {
+            reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
+        } else {
+            reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
+        }
+        final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
+        final var summaryFile = generator.generate();
+        LOGGER.info("Validation report written to: {}", summaryFile);
 
-            return 0;
+        return 0;
     }
 
     /**

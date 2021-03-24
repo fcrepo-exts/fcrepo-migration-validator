@@ -17,6 +17,9 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import com.google.common.hash.Funnels;
+import com.google.common.hash.HashCode;
+import com.google.common.io.ByteStreams;
 import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
@@ -31,12 +34,15 @@ import org.fcrepo.storage.ocfl.ResourceHeaders;
 import org.fcrepo.storage.ocfl.exception.NotFoundException;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -44,6 +50,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT_RESOURCE;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_CHECKSUM;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
@@ -65,10 +72,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
 
     private ObjectInfo objectInfo;
+    private final boolean checksum;
     private final OcflObjectSession ocflSession;
     private final List<ValidationResult> validationResults = new ArrayList<>();
     private int indexCounter;
     private final Set<String> headDatastreamIds = new HashSet<>();
+    private final F6DigestAlgorithm digestAlgorithm;
 
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
 
@@ -100,9 +109,15 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * Constructor
      *
      * @param session
+     * @param enableChecksums
+     * @param digestAlgorithm
      */
-    public ValidatingObjectHandler(final OcflObjectSession session) {
+    public ValidatingObjectHandler(final OcflObjectSession session,
+                                   final boolean enableChecksums,
+                                   final F6DigestAlgorithm digestAlgorithm) {
         this.ocflSession = session;
+        this.checksum = enableChecksums;
+        this.digestAlgorithm = digestAlgorithm;
     }
 
     /**
@@ -194,6 +209,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 validateSize(dsVersion, headers, version, builder);
                 validateCreatedDate(sourceCreated, headers, version, builder);
                 validateLastModified(dsVersion, headers, version, builder);
+                validateChecksum(dsVersion, headers, version, builder);
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
@@ -217,6 +233,59 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
         } catch (NotFoundException ex) {
             // intentionally left blank: we check for existence above
+        }
+    }
+
+    /**
+     * Validate the checksum of a datastream.
+     *
+     * This can fail in multiple ways:
+     * 1 - The F3 datastream can not be read
+     * 2 - The F6 headers do not contain a checksum (only checking sha512 atm)
+     * 3 - The two calculated checksums do not match
+     *
+     * @param dsVersion the datastream
+     * @param headers the ocfl headers
+     * @param version the version number
+     * @param builder helper for building ValidationResults
+     */
+    private void validateChecksum(final DatastreamVersion dsVersion, final ResourceHeaders headers,
+                                  final String version, final ValidationResultBuilder builder) {
+        final var success = "%s binary checksums match: %s";
+        final var error = "%s binary checksums do no match: sourceValue=%s, targetValue=%s";
+        final var notFound = "%s binary checksum not found in Fedora 6 headers";
+        final var exception = "%s binary checksum was unable to be calculated: exception=%s";
+
+        final HashCode sourceHash;
+        final var controlGroup = F3ControlGroup.fromString(dsVersion.getDatastreamInfo().getControlGroup());
+        if (checksum && controlGroup == F3ControlGroup.MANAGED) {
+            try {
+                // compute the checksum of the datastream
+                final var hasher = digestAlgorithm.hasher();
+                ByteStreams.copy(dsVersion.getContent(), Funnels.asOutputStream(hasher));
+                sourceHash = hasher.hash();
+            } catch (IOException e) {
+                validationResults.add(builder.fail(BINARY_CHECKSUM, format(exception, version, e.toString())));
+                return; // halt further validation
+            }
+
+            // retrieve the digest from the ocfl headers
+            // note that digests are stored as urn:algorithm:hash
+            final var ocflDigest = headers.getDigests().stream()
+                                          .map(URI::toString)
+                                          .filter(uri -> uri.startsWith(digestAlgorithm.getOcflUrn()))
+                                          .map(uri -> uri.substring(uri.lastIndexOf(":") + 1))
+                                          .findFirst();
+
+            final var sourceValue = sourceHash.toString();
+            ocflDigest.ifPresentOrElse(targetValue -> {
+                if (Objects.equals(sourceValue, targetValue)) {
+                    validationResults.add(builder.ok(BINARY_CHECKSUM, format(success, version, sourceValue)));
+                } else {
+                    validationResults.add(builder.fail(BINARY_CHECKSUM,
+                                                       format(error, version, sourceValue, targetValue)));
+                }
+            }, () -> validationResults.add(builder.fail(BINARY_CHECKSUM, format(notFound, version))));
         }
     }
 
