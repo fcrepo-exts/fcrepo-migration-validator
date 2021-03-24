@@ -44,13 +44,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT_RESOURCE;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_CHECKSUM;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
@@ -264,7 +264,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 ByteStreams.copy(dsVersion.getContent(), Funnels.asOutputStream(hasher));
                 sourceHash = hasher.hash();
             } catch (IOException e) {
-                validationResults.add(builder.fail(BINARY_METADATA, format(exception, version, e.toString())));
+                validationResults.add(builder.fail(BINARY_CHECKSUM, format(exception, version, e.toString())));
                 return; // halt further validation
             }
 
@@ -279,12 +279,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final var sourceValue = sourceHash.toString();
             ocflDigest.ifPresentOrElse(targetValue -> {
                 if (Objects.equals(sourceValue, targetValue)) {
-                    validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceValue)));
+                    validationResults.add(builder.ok(BINARY_CHECKSUM, format(success, version, sourceValue)));
                 } else {
-                    validationResults.add(builder.fail(BINARY_METADATA,
+                    validationResults.add(builder.fail(BINARY_CHECKSUM,
                                                        format(error, version, sourceValue, targetValue)));
                 }
-            }, () -> validationResults.add(builder.fail(BINARY_METADATA, format(notFound, version))));
+            }, () -> validationResults.add(builder.fail(BINARY_CHECKSUM, format(notFound, version))));
         }
     }
 
