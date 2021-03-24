@@ -98,7 +98,7 @@ public class Driver implements Callable<Integer> {
                         description = "Type of report to generate: ${COMPLETION-CANDIDATES}")
     private ReportType reportType;
 
-    @CommandLine.Option(names = {"--algorithm", "-m"}, order = 16, defaultValue = "sha512", showDefaultValue = ALWAYS,
+    @CommandLine.Option(names = {"--algorithm", "-a"}, order = 16, defaultValue = "sha512", showDefaultValue = ALWAYS,
                         description = "The digest algorithm to use during checksum validation: " +
                                       "${COMPLETION-CANDIDATES}")
     private F6DigestAlgorithm algorithm;
