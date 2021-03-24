@@ -17,9 +17,7 @@
  */
 package org.fcrepo.migration.validator;
 
-import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
-import org.junit.After;
 import org.junit.Test;
 
 import java.io.File;
@@ -46,11 +44,6 @@ import static org.junit.Assert.fail;
  * @since 2020-12-14
  */
 public class ObjectValidationIT extends AbstractValidationIT {
-
-    @After
-    public void teardown() {
-        FileUtils.deleteQuietly(RESULTS_DIR);
-    }
 
     @Test
     public void test() {
