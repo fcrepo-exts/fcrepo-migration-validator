@@ -7,11 +7,15 @@ A command-line tool for validating migrations of Fedora 3 datasets to Fedora 6.
 ## Usage
 
 General usage is as follows:
+
 ```bash
-java -jar target/fcrepo-migration-validator-0.1.0-SNAPSHOT-driver.jar [cli options | --help],
+java -jar target/fcrepo-migration-validator-0.1.0-SNAPSHOT-driver.jar [cli options | --help]
 ```
 
-The following CLI options for validations are available:
+_Note: the migration validator requires Java 11+ to run_
+
+The following CLI options for the migration validator are available:
+
 ```
 Usage: fcrepo-migration-validator [-ChV] [--debug] [-a=<algorithm>]
                                   [-c=<ocflRootDirectory>]   
@@ -64,6 +68,7 @@ Usage: fcrepo-migration-validator [-ChV] [--debug] [-a=<algorithm>]
 The migration validator is built with [Maven 3](https://maven.apache.org) and requires Java 11 and Maven 3.1+
 
 To build the migration validator and run integration tests, run:
+
 ```bash
 mvn clean verify
 ```
