@@ -71,6 +71,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     public static final String F3_CREATED_DATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
+    public static final String F3_OWNER_ID = "info:fedora/fedora-system:def/model#ownerId";
 
     private ObjectInfo objectInfo;
     private final boolean checksum;
@@ -86,6 +87,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     static {
         OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> headers.getCreatedDate().toString());
         OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE, headers -> headers.getLastModifiedDate().toString());
+        OCFL_PROPERTY_RESOLVERS.put(F3_OWNER_ID, headers -> headers.getCreatedBy());
     }
 
     private interface PropertyResolver<T> {
