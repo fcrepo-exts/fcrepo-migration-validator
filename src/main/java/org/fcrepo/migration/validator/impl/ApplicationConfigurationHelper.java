@@ -20,7 +20,10 @@ package org.fcrepo.migration.validator.impl;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import edu.wisc.library.ocfl.api.MutableOcflRepository;
+import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.core.OcflRepositoryBuilder;
 import edu.wisc.library.ocfl.core.extension.storage.layout.config.HashedNTupleLayoutConfig;
 import edu.wisc.library.ocfl.core.path.mapper.LogicalPathMappers;
@@ -55,10 +58,18 @@ import static edu.wisc.library.ocfl.api.util.Enforce.notNull;
  */
 public class ApplicationConfigurationHelper {
 
-    private Fedora3ValidationConfig config;
+    private final Fedora3ValidationConfig config;
+    private final Path workDirectory;
+    private final Supplier<MutableOcflRepository> repositorySupplier;
 
     public ApplicationConfigurationHelper(final Fedora3ValidationConfig config) {
         this.config = config;
+        try {
+            this.workDirectory = Files.createTempDirectory("ocfl-work");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        this.repositorySupplier = Suppliers.memoize(() -> repository(config, workDirectory));
     }
 
     public ValidationResultWriter validationResultWriter() {
@@ -113,7 +124,6 @@ public class ApplicationConfigurationHelper {
         return objectSource;
     }
 
-
     private MutableOcflRepository repository(final Fedora3ValidationConfig config, final Path workDir) {
         final var storage = FileSystemOcflStorage.builder()
                 .repositoryRoot(config.getOcflRepositoryRootDirectory().toPath())
@@ -129,29 +139,32 @@ public class ApplicationConfigurationHelper {
     }
 
     /**
+     * Retrieves the OcflRepository
+     *
+     * @return the OcflRepository
+     */
+    public OcflRepository ocflRepository() {
+        return repositorySupplier.get();
+    }
+
+    /**
      * Creates and return an OcflObjectSessionFactory.
      *
      * @return a session factory
      */
     public OcflObjectSessionFactory ocflObjectSessionFactory() {
-
-        try {
-            final var workDir = Files.createTempDirectory("ocfl-work");
-            final var objectMapper = new ObjectMapper().configure(WRITE_DATES_AS_TIMESTAMPS, false)
-                    .registerModule(new JavaTimeModule())
-                    .setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            // https://jira.lyrasis.org/browse/FCREPO-3632:
-            return new DefaultOcflObjectSessionFactory(repository(config, workDir),
-                    workDir,
-                    objectMapper,
-                    new NoOpCache<>(),
-                    CommitType.UNVERSIONED,
-                    "Authored by Fedora 6",
-                    "fedoraAdmin",
-                    "info:fedora/fedoraAdmin");
-        } catch (final IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        final var objectMapper = new ObjectMapper().configure(WRITE_DATES_AS_TIMESTAMPS, false)
+                .registerModule(new JavaTimeModule())
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        // https://jira.lyrasis.org/browse/FCREPO-3632:
+        return new DefaultOcflObjectSessionFactory(repositorySupplier.get(),
+                workDirectory,
+                objectMapper,
+                new NoOpCache<>(),
+                CommitType.UNVERSIONED,
+                "Authored by Fedora 6",
+                "fedoraAdmin",
+                "info:fedora/fedoraAdmin");
     }
 
     /**
@@ -179,6 +192,10 @@ public class ApplicationConfigurationHelper {
 
     public Boolean enableChecksums() {
         return config.enableChecksums();
+    }
+
+    public Boolean checkNumObjects() {
+        return config.checkNumObjects();
     }
 
     public F6DigestAlgorithm getDigestAlgorithm() {
