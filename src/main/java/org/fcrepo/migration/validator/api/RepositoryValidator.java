@@ -17,11 +17,12 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import edu.wisc.library.ocfl.api.OcflRepository;
+
 /**
  * An interface for performing validations across the repository.
  *
  * @author dbernstein
  */
-public interface RepositoryValidator extends Validator {
-
+public interface RepositoryValidator extends Validator<OcflRepository> {
 }
