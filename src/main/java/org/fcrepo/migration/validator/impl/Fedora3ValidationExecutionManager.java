@@ -49,12 +49,14 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     private final Object lock;
     private final Boolean checksum;
     private final F6DigestAlgorithm digestAlgorithm;
+    private final ApplicationConfigurationHelper config;
 
     /**
      * Constructor
      * @param config The config
      */
     public Fedora3ValidationExecutionManager(final ApplicationConfigurationHelper config) {
+        this.config = config;
         this.source = config.objectSource();
         this.writer = config.validationResultWriter();
         this.objectsToValidate = config.readObjectsToValidate();
@@ -69,7 +71,10 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     @Override
     public void doValidation() {
         try {
+            // track count of objects processed for final f3 to ocfl validation
+            long numObjects = 0;
             for (final var objectProcessor : source) {
+                numObjects++;
                 final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
                 if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
                     final var task = new F3ObjectValidationTaskBuilder().processor(objectProcessor)
@@ -79,8 +84,14 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                         .build();
                     submit(task);
                 }
-                awaitCompletion();
             }
+
+            final var repository = config.ocflRepository();
+            final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty();
+            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, numObjects, repository, writer);
+            submit(repositoryTask);
+
+            awaitCompletion();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
