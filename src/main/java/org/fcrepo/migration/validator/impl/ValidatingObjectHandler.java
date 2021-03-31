@@ -26,6 +26,7 @@ import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
 import org.fcrepo.migration.ObjectReference;
 import org.fcrepo.migration.ObjectVersionReference;
+import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationType;
@@ -73,6 +74,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     private ObjectInfo objectInfo;
     private final boolean checksum;
+    private final boolean validateHeadOnly;
     private final OcflObjectSession ocflSession;
     private final List<ValidationResult> validationResults = new ArrayList<>();
     private int indexCounter;
@@ -109,15 +111,13 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * Constructor
      *
      * @param session
-     * @param enableChecksums
-     * @param digestAlgorithm
+     * @param config
      */
-    public ValidatingObjectHandler(final OcflObjectSession session,
-                                   final boolean enableChecksums,
-                                   final F6DigestAlgorithm digestAlgorithm) {
+    public ValidatingObjectHandler(final OcflObjectSession session, final ObjectValidationConfig config) {
         this.ocflSession = session;
-        this.checksum = enableChecksums;
-        this.digestAlgorithm = digestAlgorithm;
+        this.checksum = config.isChecksum();
+        this.digestAlgorithm = config.getDigestAlgorithm();
+        this.validateHeadOnly = config.isValidateHeadOnly();
     }
 
     /**
@@ -206,10 +206,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
                                                                 targetResource, OBJECT_RESOURCE);
 
-                validateSize(dsVersion, headers, version, builder);
-                validateCreatedDate(sourceCreated, headers, version, builder);
-                validateLastModified(dsVersion, headers, version, builder);
-                validateChecksum(dsVersion, headers, version, builder);
+                if (isHead || !validateHeadOnly) {
+                    validateSize(dsVersion, headers, version, builder);
+                    validateCreatedDate(sourceCreated, headers, version, builder);
+                    validateLastModified(dsVersion, headers, version, builder);
+                    validateChecksum(dsVersion, headers, version, builder);
+                }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
