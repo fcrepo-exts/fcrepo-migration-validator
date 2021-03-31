@@ -29,6 +29,7 @@ import java.io.File;
 public class Fedora3ValidationConfig extends ValidationConfig {
 
     private boolean checksum;
+    private boolean validateHeadOnly;
     private boolean checkNumObjects;
     private F6DigestAlgorithm digestAlgorithm;
     private F3SourceTypes sourceType;
@@ -156,6 +157,18 @@ public class Fedora3ValidationConfig extends ValidationConfig {
 
     public F6DigestAlgorithm getDigestAlgorithm() {
         return digestAlgorithm;
+    }
+
+    public boolean validateHeadOnly() {
+        return validateHeadOnly;
+    }
+
+    /**
+     * @param validateHeadOnly
+     */
+    public Fedora3ValidationConfig setValidateHeadOnly(boolean validateHeadOnly) {
+        this.validateHeadOnly = validateHeadOnly;
+        return this;
     }
 
     public boolean checkNumObjects() {
