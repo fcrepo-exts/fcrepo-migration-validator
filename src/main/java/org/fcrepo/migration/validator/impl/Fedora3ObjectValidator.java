@@ -19,6 +19,7 @@ package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.handlers.ObjectAbstractionStreamingFedoraObjectHandler;
+import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.Validator;
 import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
@@ -43,14 +44,12 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
 
 
     private final OcflObjectSessionFactory factory;
-    private final boolean enableChecksums;
-    private final F6DigestAlgorithm digestAlgorithm;
+    private final ObjectValidationConfig objectValidationConfig;
 
-    public Fedora3ObjectValidator(final OcflObjectSessionFactory factory, final boolean enableChecksums,
-                                  final F6DigestAlgorithm digestAlgorithm) {
+    public Fedora3ObjectValidator(final OcflObjectSessionFactory factory,
+                                  final ObjectValidationConfig objectValidationConfig) {
         this.factory = factory;
-        this.enableChecksums = enableChecksums;
-        this.digestAlgorithm = digestAlgorithm;
+        this.objectValidationConfig = objectValidationConfig;
     }
 
     @Override
@@ -61,7 +60,7 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
             fedoraId = "info:fedora/" + objectInfo.getPid();
         }
         final var ocflSession = this.factory.newSession(fedoraId);
-        final var handler = new ValidatingObjectHandler(ocflSession, enableChecksums, digestAlgorithm);
+        final var handler = new ValidatingObjectHandler(ocflSession, objectValidationConfig);
 
         try {
             object.processObject(new ObjectAbstractionStreamingFedoraObjectHandler(handler));

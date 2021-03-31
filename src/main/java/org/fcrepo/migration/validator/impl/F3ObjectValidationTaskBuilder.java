@@ -19,6 +19,7 @@ package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.validator.api.AbstractValidationTaskBuilder;
+import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 
 /**
  * A builder for F3ObjectValidationTask instances.
@@ -27,24 +28,12 @@ import org.fcrepo.migration.validator.api.AbstractValidationTaskBuilder;
  */
 public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder<F3ObjectValidationTask> {
 
-    private boolean enableChecksums;
-    private F6DigestAlgorithm digestAlgorithm;
     private FedoraObjectProcessor processor;
+    private ObjectValidationConfig objectValidationConfig;
 
     @Override
     public F3ObjectValidationTask build() {
-        return new F3ObjectValidationTask(processor, objectSessionFactory, writer, enableChecksums, digestAlgorithm);
-    }
-
-    /**
-     * @param enableChecksums
-     * @param digestAlgorithm
-     */
-    public F3ObjectValidationTaskBuilder enableChecksums(final boolean enableChecksums,
-                                                         final F6DigestAlgorithm digestAlgorithm) {
-        this.enableChecksums = enableChecksums;
-        this.digestAlgorithm = digestAlgorithm;
-        return this;
+        return new F3ObjectValidationTask(processor, objectSessionFactory, writer, objectValidationConfig);
     }
 
     /**
@@ -52,6 +41,11 @@ public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder
      */
     public F3ObjectValidationTaskBuilder processor(final FedoraObjectProcessor processor) {
         this.processor = processor;
+        return this;
+    }
+
+    public F3ObjectValidationTaskBuilder withValidationConfig(ObjectValidationConfig objectValidationConfig) {
+        this.objectValidationConfig = objectValidationConfig;
         return this;
     }
 }

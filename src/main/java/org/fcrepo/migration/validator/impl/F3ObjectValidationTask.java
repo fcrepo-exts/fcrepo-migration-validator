@@ -18,6 +18,7 @@
 package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.FedoraObjectProcessor;
+import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
 import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
@@ -37,34 +38,31 @@ public class F3ObjectValidationTask extends ValidationTask {
     private final FedoraObjectProcessor processor;
     private final OcflObjectSessionFactory ocflObjectSessionFactory;
     private final ValidationResultWriter writer;
-    private final boolean enableChecksums;
-    private final F6DigestAlgorithm digestAlgorithm;
+    private final ObjectValidationConfig objectValidationConfig;
 
     /**
      * Constructor
-     *  @param processor The processor
+     *
+     * @param processor                The processor
      * @param ocflObjectSessionFactory The object session factory
-     * @param writer    The shared validation state
-     * @param enableChecksums Enable running of checksums on datastreams
-     * @param digestAlgorithm The digest algorithm to use
+     * @param writer                   The shared validation state
+     * @param objectValidationConfig   The config to use when validating objects
      */
     public F3ObjectValidationTask(final FedoraObjectProcessor processor,
                                   final OcflObjectSessionFactory ocflObjectSessionFactory,
                                   final ValidationResultWriter writer,
-                                  final boolean enableChecksums,
-                                  final F6DigestAlgorithm digestAlgorithm) {
+                                  final ObjectValidationConfig objectValidationConfig) {
         super();
         this.processor = processor;
         this.ocflObjectSessionFactory = ocflObjectSessionFactory;
         this.writer = writer;
-        this.enableChecksums = enableChecksums;
-        this.digestAlgorithm = digestAlgorithm;
+        this.objectValidationConfig = objectValidationConfig;
     }
 
     @Override
     public void run() {
         LOGGER.info("starting to process {} ", processor.getObjectInfo().getPid());
-        final var validator = new Fedora3ObjectValidator(ocflObjectSessionFactory, enableChecksums, digestAlgorithm);
+        final var validator = new Fedora3ObjectValidator(ocflObjectSessionFactory, objectValidationConfig);
         final var results = validator.validate(processor);
         writer.write(results);
     }
