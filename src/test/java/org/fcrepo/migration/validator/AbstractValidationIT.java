@@ -44,7 +44,10 @@ public abstract class AbstractValidationIT {
     }
 
     ResultsReportHandler doValidation(final File f3DatastreamsDir, final File f3ObjectsDir, final File f6OcflRootDir) {
-        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        return doValidation(getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir));
+    }
+
+    ResultsReportHandler doValidation(final Fedora3ValidationConfig config) {
         final var configuration = new ApplicationConfigurationHelper(config);
         final var executionManager = new Fedora3ValidationExecutionManager(configuration);
         executionManager.doValidation();
