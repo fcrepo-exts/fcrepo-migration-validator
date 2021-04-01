@@ -115,6 +115,23 @@ public class HtmlReportHandler implements ReportHandler {
         return filename;
     }
 
+    @Override
+    public String repositoryLevelReport(final ObjectValidationResults objectValidationResults) {
+        final String filename = "repository.html";
+
+        try {
+            final Template template = config.getTemplate("repository.ftl");
+            final var file = new File(outputDir, filename);
+            file.getParentFile().mkdirs();
+            final Writer writer = new FileWriter(file);
+            template.process(null, writer);
+        } catch (final IOException | TemplateException e) {
+            throw new RuntimeException(e);
+        }
+
+        return filename;
+    }
+
     /**
      * This method writes the HTML summary of the entire validation run
      *

@@ -108,6 +108,12 @@ public class CsvReportHandler implements ReportHandler {
     }
 
     @Override
+    public String repositoryLevelReport(final ObjectValidationResults objectValidationResults) {
+        // just use the previous implementation for now; can update later if needed
+        return objectLevelReport(objectValidationResults);
+    }
+
+    @Override
     public void endReport() {
         // no-op
     }
