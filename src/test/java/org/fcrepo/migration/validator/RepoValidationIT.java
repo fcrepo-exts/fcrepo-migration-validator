@@ -18,18 +18,12 @@
 package org.fcrepo.migration.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.CREATION_DATE;
-import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.LAST_MODIFIED_DATE;
-import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.SIZE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.REPOSITORY;
-import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.REPOSITORY_RESOURCE_COUNT;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.util.stream.Collectors;
 
-import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;

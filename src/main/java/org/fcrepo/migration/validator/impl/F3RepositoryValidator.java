@@ -30,6 +30,11 @@ import org.fcrepo.migration.validator.api.ValidationResult.Status;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationType;
 
+/**
+ * A validator for repository scoped validations for F3 against F6
+ *
+ * @author mikejritter
+ */
 public class F3RepositoryValidator implements RepositoryValidator {
 
     private final boolean enableCheckNumObjects;
@@ -38,7 +43,7 @@ public class F3RepositoryValidator implements RepositoryValidator {
     private final List<ValidationResult> validationResults = new ArrayList<>();
 
     /**
-     * Construct
+     * Constructor
      *
      * @param enableCheckNumObjects
      * @param numObjects
@@ -65,7 +70,7 @@ public class F3RepositoryValidator implements RepositoryValidator {
         try (final var ocflIds = ocflRepository.listObjectIds()) {
             final long ocflCount = ocflIds.count();
 
-            ValidationResult result;
+            final ValidationResult result;
             if (ocflCount == numObjectsF3) {
                 result = new ValidationResult(index.getAndIncrement(), Status.OK, ValidationLevel.REPOSITORY,
                                               ValidationType.REPOSITORY_RESOURCE_COUNT, format(success, numObjectsF3));
