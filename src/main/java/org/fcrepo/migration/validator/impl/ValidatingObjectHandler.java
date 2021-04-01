@@ -98,6 +98,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         T resolve(ResourceHeaders headers);
     }
 
+    private interface Resolver<T, R> {
+        T resolve(R r);
+    }
+
     @Override
     public void processObjectVersions(final Iterable<ObjectVersionReference> iterable, final ObjectInfo objectInfo) {
         this.objectInfo = objectInfo;
@@ -179,10 +183,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 final var result = sourceValue.equals(targetValue) ? OK : FAIL;
                 if (result.equals(FAIL)) {
                     details = format("pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s",
-                                     property, pid, sourceValue, targetValue);
+                                     pid, property, sourceValue, targetValue);
                 } else {
                     details = format("pid: %s -> props match: f3 prop name=%s, source=%s, target=%s",
-                                     property, pid, sourceValue, targetValue);
+                                     pid, property, sourceValue, targetValue);
                 }
                 LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
                 validationResults.add(new ValidationResult(indexCounter++, result, OBJECT, METADATA,
