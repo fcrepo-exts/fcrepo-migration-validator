@@ -75,7 +75,7 @@ public class F3RepositoryValidator implements RepositoryValidator {
                 result = new ValidationResult(index.getAndIncrement(), Status.OK, ValidationLevel.REPOSITORY,
                                               ValidationType.REPOSITORY_RESOURCE_COUNT, format(success, numObjectsF3));
             } else {
-                result = new ValidationResult(index.getAndIncrement(), Status.OK, ValidationLevel.REPOSITORY,
+                result = new ValidationResult(index.getAndIncrement(), Status.FAIL, ValidationLevel.REPOSITORY,
                                               ValidationType.REPOSITORY_RESOURCE_COUNT,
                                               format(error, numObjectsF3, ocflCount));
             }
