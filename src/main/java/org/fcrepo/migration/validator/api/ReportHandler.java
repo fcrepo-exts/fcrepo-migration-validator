@@ -30,11 +30,19 @@ public interface ReportHandler {
     void beginReport();
 
     /**
-     * A hook hook for processing an object level validation report
+     * A hook for processing an object level validation report
      * @param objectValidationResults An individual object validation report
      * @return filename of object report
      */
     String objectLevelReport(ObjectValidationResults objectValidationResults);
+
+    /**
+     * A hook for processing a repository level validation report
+     *
+     * @param objectValidationResults An individual validation report
+     * @return filename of repository report
+     */
+    String repositoryLevelReport(ObjectValidationResults objectValidationResults);
 
     /**
      * A hook for processing a validation run's summary info.
