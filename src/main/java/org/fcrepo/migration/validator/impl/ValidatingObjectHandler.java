@@ -20,6 +20,10 @@ package org.fcrepo.migration.validator.impl;
 import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
+import com.hp.hpl.jena.rdf.model.Model;
+import com.hp.hpl.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
@@ -82,12 +86,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final Set<String> headDatastreamIds = new HashSet<>();
     private final F6DigestAlgorithm digestAlgorithm;
 
+    private static final Set<String> OCFL_CHECK_TRIPLE = Set.of(F3_OWNER_ID);
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
 
     static {
         OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> headers.getCreatedDate().toString());
         OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE, headers -> headers.getLastModifiedDate().toString());
-        OCFL_PROPERTY_RESOLVERS.put(F3_OWNER_ID, headers -> headers.getCreatedBy());
     }
 
     private interface PropertyResolver<T> {
@@ -140,35 +144,49 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var ocflId = ocflSession.ocflObjectId();
 
         final ResourceHeaders headers;
+        final Model model = ModelFactory.createDefaultModel();
 
         try {
             headers = ocflSession.readHeaders(ocflId);
             validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT, SOURCE_OBJECT_EXISTS_IN_TARGET,
                                                        pid, ocflId, "Source object is present in target repository."));
+
+            ocflSession.readContent(ocflId).getContentStream()
+                       .ifPresent(is -> RDFDataMgr.read(model, is, RDFFormat.NTRIPLES.getLang()));
         } catch (NotFoundException ex) {
             validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT, SOURCE_OBJECT_EXISTS_IN_TARGET,
                     pid, ocflId, "Source object not present in target repository."));
             return false;
         }
 
-        // check that last updated date:
+        // check properties against what is stored in OCFL
         objectProperties.listProperties().forEach(op -> {
-            final var resolver = OCFL_PROPERTY_RESOLVERS.get(op.getName());
-            String details = null;
+            final String property = op.getName();
+            final var sourceValue = op.getValue();
+            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+
+            String targetValue = null;
+            // first try the property resolver; then check if we should try to verify against the n-triple model
             if (resolver != null) {
-                final var sourceValue = op.getValue();
-                final var targetValue = resolver.resolve(headers);
+                targetValue = resolver.resolve(headers);
+            } else if (OCFL_CHECK_TRIPLE.contains(property)) {
+                final var statement = model.getProperty(model.createResource(ocflId), model.createProperty(property));
+                targetValue = statement.getObject().toString();
+            }
+
+            if (targetValue != null) {
+                String details;
                 final var result = sourceValue.equals(targetValue) ? OK : FAIL;
                 if (result.equals(FAIL)) {
                     details = format("pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s",
-                            op.getName(), pid, sourceValue, targetValue);
+                                     property, pid, sourceValue, targetValue);
                 } else {
                     details = format("pid: %s -> props match: f3 prop name=%s, source=%s, target=%s",
-                            op.getName(), pid, sourceValue, targetValue);
+                                     property, pid, sourceValue, targetValue);
                 }
-                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, op.getName(), op.getValue());
+                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
                 validationResults.add(new ValidationResult(indexCounter++, result, OBJECT, METADATA,
-                        pid, ocflId, details));
+                                                           pid, ocflId, details));
             }
         });
 
