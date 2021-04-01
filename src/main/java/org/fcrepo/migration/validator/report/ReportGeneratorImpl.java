@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -92,13 +93,14 @@ public class ReportGeneratorImpl {
         Files.walkFileTree(resultDir, new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) {
-
                 // If file is a validation result (i.e. result-*.json, ValidationResultUtils.resolvePathToJsonResult)
                 // ..and the containing object has not already been loaded
                 // ..then, load all result files as a set.
+                final var depth = file.getNameCount() - resultDir.getNameCount();
                 final String objectId = file.getParent().toFile().getName();
-                if (!summary.containsReport(objectId) && isValidationResultFile(file.toFile().getName())) {
-                    final var reportSummary = loadValidationResults(file.getParent().toFile());
+                if (depth > 1 && !summary.containsReport(objectId) && isValidationResultFile(file.toFile().getName())) {
+                    final var reportSummary = loadValidationResults(file.getParent().toFile(),
+                                                                    reportHandler::objectLevelReport);
 
                     // Update summary with newly created object reports
                     summary.addObjectReport(objectId, reportSummary);
@@ -109,6 +111,10 @@ public class ReportGeneratorImpl {
                 return FileVisitResult.CONTINUE;
             }
         });
+
+        // repository level results
+        final var repositoryReport = loadValidationResults(resultDir.toFile(), reportHandler::repositoryLevelReport);
+        summary.addRepositoryReport(repositoryReport);
 
         return reportHandler.validationSummary(summary);
     }
@@ -124,7 +130,8 @@ public class ReportGeneratorImpl {
         return FilenameUtils.getExtension(filename).equalsIgnoreCase("json") && filename.startsWith("result-");
     }
 
-    private ObjectReportSummary loadValidationResults(final File objectDir) {
+    private ObjectReportSummary loadValidationResults(final File objectDir,
+                                                      final Function<ObjectValidationResults, String> reportHandler) {
         LOGGER.debug("Loading validation results from: {}", objectDir);
         final FilenameFilter filter = (dir, name) -> isValidationResultFile(name);
 
@@ -136,7 +143,7 @@ public class ReportGeneratorImpl {
 
         resultsList.sort(Comparator.comparingInt(ValidationResult::getIndex));
         final var validationResults = new ObjectValidationResults(resultsList);
-        final var reportFilename = reportHandler.objectLevelReport(validationResults);
+        final var reportFilename = reportHandler.apply(validationResults);
         return new ObjectReportSummary(validationResults.hasErrors(), validationResults.getObjectId(), reportFilename);
     }
 }
