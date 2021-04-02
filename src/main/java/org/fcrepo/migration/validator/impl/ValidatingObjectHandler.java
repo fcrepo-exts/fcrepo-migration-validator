@@ -179,6 +179,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
 
             findOcflValue(ocflId, property, model, headers).map(targetValue -> {
+                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
                 if (sourceValue.equals(targetValue)) {
                     return builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue));
                 }
