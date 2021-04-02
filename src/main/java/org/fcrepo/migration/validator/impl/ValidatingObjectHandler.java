@@ -148,11 +148,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * @return true if initial validation successful and should proceed.
      */
     private boolean initialObjectValidation(final ObjectProperties objectProperties) {
+        final ResourceHeaders headers;
         final var pid = objectInfo.getPid();
         final var ocflId = ocflSession.ocflObjectId();
-
-        final ResourceHeaders headers;
-        final Model model = ModelFactory.createDefaultModel();
+        final var model = ModelFactory.createDefaultModel();
 
         try {
             headers = ocflSession.readHeaders(ocflId);
@@ -173,7 +172,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         // check properties against what is stored in OCFL
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         objectProperties.listProperties().forEach(op -> {
-            final String property = op.getName();
+            final var property = op.getName();
             final var sourceValue = op.getValue();
             final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
             final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
