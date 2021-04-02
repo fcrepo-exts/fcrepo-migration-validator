@@ -48,6 +48,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -86,7 +87,14 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final Set<String> headDatastreamIds = new HashSet<>();
     private final F6DigestAlgorithm digestAlgorithm;
 
+    /**
+     * Properties which we should query n triples for
+     */
     private static final Set<String> OCFL_CHECK_TRIPLE = Set.of(F3_OWNER_ID);
+
+    /**
+     * Properties which migrated to OCFL headers
+     */
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
 
     static {
@@ -96,10 +104,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     private interface PropertyResolver<T> {
         T resolve(ResourceHeaders headers);
-    }
-
-    private interface Resolver<T, R> {
-        T resolve(R r);
     }
 
     @Override
@@ -195,6 +199,32 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         });
 
         return true;
+    }
+
+    /**
+     * Try to resolve the value of a property in a F6 repository using either the OCFL_PROPERTY_RESOLVERS or a model
+     * which has previously been read in. If we do not have any way of resolving a property, just return an empty
+     * Optional so that we can skip any validation operations.
+     *
+     * @param ocflId
+     * @param property
+     * @param model
+     * @param headers
+     */
+    private Optional<String> findOcflValue(final String ocflId,
+                                           final String property,
+                                           final Model model,
+                                           final ResourceHeaders headers) {
+        Optional<String> targetVal = Optional.empty();
+        if (OCFL_PROPERTY_RESOLVERS.containsKey(property)) {
+            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+            targetVal = Optional.of(resolver.resolve(headers));
+        } else if (OCFL_CHECK_TRIPLE.contains(property)) {
+            final var resolver = model.getProperty(model.createResource(ocflId), model.createProperty(property));
+            targetVal = Optional.of(resolver.getObject().toString());
+        }
+
+        return targetVal;
     }
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
