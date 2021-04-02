@@ -156,11 +156,14 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
         try {
             headers = ocflSession.readHeaders(ocflId);
+
+            // read the fcr-container.nt as well
+            ocflSession.readContent(ocflId)
+                       .getContentStream()
+                       .ifPresent(is -> RDFDataMgr.read(model, is, RDFFormat.NTRIPLES.getLang()));
+
             validationResults.add(new ValidationResult(indexCounter++, OK, OBJECT, SOURCE_OBJECT_EXISTS_IN_TARGET,
                                                        pid, ocflId, "Source object is present in target repository."));
-
-            ocflSession.readContent(ocflId).getContentStream()
-                       .ifPresent(is -> RDFDataMgr.read(model, is, RDFFormat.NTRIPLES.getLang()));
         } catch (NotFoundException ex) {
             validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT, SOURCE_OBJECT_EXISTS_IN_TARGET,
                     pid, ocflId, "Source object not present in target repository."));
@@ -168,34 +171,20 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         // check properties against what is stored in OCFL
+        final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         objectProperties.listProperties().forEach(op -> {
             final String property = op.getName();
             final var sourceValue = op.getValue();
-            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+            final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
+            final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
 
-            String targetValue = null;
-            // first try the property resolver; then check if we should try to verify against the n-triple model
-            if (resolver != null) {
-                targetValue = resolver.resolve(headers);
-            } else if (OCFL_CHECK_TRIPLE.contains(property)) {
-                final var statement = model.getProperty(model.createResource(ocflId), model.createProperty(property));
-                targetValue = statement.getObject().toString();
-            }
-
-            if (targetValue != null) {
-                String details;
-                final var result = sourceValue.equals(targetValue) ? OK : FAIL;
-                if (result.equals(FAIL)) {
-                    details = format("pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s",
-                                     pid, property, sourceValue, targetValue);
-                } else {
-                    details = format("pid: %s -> props match: f3 prop name=%s, source=%s, target=%s",
-                                     pid, property, sourceValue, targetValue);
+            findOcflValue(ocflId, property, model, headers).map(targetValue -> {
+                if (sourceValue.equals(targetValue)) {
+                    return builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue));
                 }
-                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
-                validationResults.add(new ValidationResult(indexCounter++, result, OBJECT, METADATA,
-                                                           pid, ocflId, details));
-            }
+
+                return builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue));
+            }).ifPresent(validationResults::add);
         });
 
         return true;
