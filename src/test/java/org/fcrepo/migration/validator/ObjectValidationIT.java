@@ -87,7 +87,8 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results
         final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(2)
+        assertThat(errors).hasSize(3)
+                          .anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
                           .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
                           .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE))
                           .allSatisfy(result -> {
