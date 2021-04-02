@@ -34,6 +34,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_CREATED_DATE;
+import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_LABEL;
 import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_LAST_MODIFIED_DATE;
 import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_OWNER_ID;
 import static org.junit.Assert.assertEquals;
@@ -87,8 +88,9 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results
         final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(3)
+        assertThat(errors).hasSize(4)
                           .anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
+                          .anyMatch(result -> result.getDetails().contains(F3_LABEL))
                           .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
                           .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE))
                           .allSatisfy(result -> {
