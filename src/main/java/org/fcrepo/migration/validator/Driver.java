@@ -103,7 +103,7 @@ public class Driver implements Callable<Integer> {
                                       "${COMPLETION-CANDIDATES}")
     private F6DigestAlgorithm algorithm;
 
-    @CommandLine.Option(names = {"--head-only", "-H"}, order=18,
+    @CommandLine.Option(names = {"--head-only", "-H"}, order = 18,
                         description = "Validate only the most recent version of a datastream")
     private boolean validateHeadOnly;
 

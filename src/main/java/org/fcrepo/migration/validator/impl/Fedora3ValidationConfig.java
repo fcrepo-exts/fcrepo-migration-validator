@@ -166,7 +166,7 @@ public class Fedora3ValidationConfig extends ValidationConfig {
     /**
      * @param validateHeadOnly
      */
-    public Fedora3ValidationConfig setValidateHeadOnly(boolean validateHeadOnly) {
+    public Fedora3ValidationConfig setValidateHeadOnly(final boolean validateHeadOnly) {
         this.validateHeadOnly = validateHeadOnly;
         return this;
     }

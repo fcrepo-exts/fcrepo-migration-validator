@@ -125,7 +125,6 @@ public class ApplicationConfigurationHelper {
         return objectSource;
     }
 
-
     private MutableOcflRepository repository(final Fedora3ValidationConfig config, final Path workDir) {
         final var storage = FileSystemOcflStorage.builder()
                 .repositoryRoot(config.getOcflRepositoryRootDirectory().toPath())

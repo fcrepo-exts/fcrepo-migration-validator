@@ -149,7 +149,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             return false;
         }
 
-        //check that last updated date:
+        // check that last updated date:
         objectProperties.listProperties().forEach(op -> {
             final var resolver = OCFL_PROPERTY_RESOLVERS.get(op.getName());
             String details = null;

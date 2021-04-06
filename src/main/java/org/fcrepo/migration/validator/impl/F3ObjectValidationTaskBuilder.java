@@ -44,7 +44,7 @@ public class F3ObjectValidationTaskBuilder extends AbstractValidationTaskBuilder
         return this;
     }
 
-    public F3ObjectValidationTaskBuilder withValidationConfig(ObjectValidationConfig objectValidationConfig) {
+    public F3ObjectValidationTaskBuilder withValidationConfig(final ObjectValidationConfig objectValidationConfig) {
         this.objectValidationConfig = objectValidationConfig;
         return this;
     }
