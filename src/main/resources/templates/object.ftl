@@ -134,8 +134,8 @@
             <td>${error.validationLevel}</td>
             <td>${error.validationType}</td>
             <td>${error.details}</td>
-            <td>${error.sourceObjectId}</td>
-            <td>${error.targetObjectId}</td>
+            <td>${error.sourceObjectId!'dne'}</td>
+            <td>${error.targetObjectId!'dne'}</td>
             <td>${error.sourceResourceId!'dne'}</td>
             <td>${error.targetResourceId!'dne'}</td>
           </tr>
@@ -170,8 +170,8 @@
             <td>${s.validationLevel}</td>
             <td>${s.validationType}</td>
             <td>${s.details}</td>
-            <td>${s.sourceObjectId}</td>
-            <td>${s.targetObjectId}</td>
+            <td>${s.sourceObjectId!'dne'}</td>
+            <td>${s.targetObjectId!'dne'}</td>
             <td>${s.sourceResourceId!'dne'}</td>
             <td>${s.targetResourceId!'dne'}</td>
           </tr>
