@@ -196,9 +196,9 @@ public class ApplicationConfigurationHelper {
         return new ObjectValidationConfig(config.enableChecksums(),
                                           config.validateHeadOnly(),
                                           config.getDigestAlgorithm());
+    }
 
     public Boolean checkNumObjects() {
         return config.checkNumObjects();
     }
-
 }
