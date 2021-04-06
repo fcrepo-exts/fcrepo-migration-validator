@@ -38,6 +38,7 @@ public class ValidationResultsSummary {
 
     // Object-id to report filename map
     private final Map<String, ObjectReportSummary> objectReports = new HashMap<>();
+    private ObjectReportSummary repositoryReport;
 
     /**
      * Setter for collecting ObjectReport filenames
@@ -63,5 +64,17 @@ public class ValidationResultsSummary {
      */
     public Collection<ObjectReportSummary> getObjectReports() {
         return objectReports.values();
+    }
+
+    /**
+     * Setter for the repository level ObjectReportSummary
+     * @param repositoryReport the report
+     */
+    public void addRepositoryReport(final ObjectReportSummary repositoryReport) {
+        this.repositoryReport = repositoryReport;
+    }
+
+    public ObjectReportSummary getRepositoryReport() {
+        return repositoryReport;
     }
 }

@@ -29,6 +29,7 @@ import java.io.File;
 public class Fedora3ValidationConfig extends ValidationConfig {
 
     private boolean checksum;
+    private boolean checkNumObjects;
     private F6DigestAlgorithm digestAlgorithm;
     private F3SourceTypes sourceType;
     private File exportedDirectory;
@@ -155,5 +156,17 @@ public class Fedora3ValidationConfig extends ValidationConfig {
 
     public F6DigestAlgorithm getDigestAlgorithm() {
         return digestAlgorithm;
+    }
+
+    public boolean checkNumObjects() {
+        return checkNumObjects;
+    }
+
+    /**
+     * @param checkNumObjects
+     */
+    public Fedora3ValidationConfig setCheckNumObjects(final boolean checkNumObjects) {
+        this.checkNumObjects = checkNumObjects;
+        return this;
     }
 }

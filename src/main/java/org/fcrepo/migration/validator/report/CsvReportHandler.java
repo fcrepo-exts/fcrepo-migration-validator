@@ -69,22 +69,8 @@ public class CsvReportHandler implements ReportHandler {
 
     @Override
     public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
-        final var mapper = CsvMapper.builder()
-                                    .addMixIn(ValidationResult.class, ValidationResultMixin.class)
-                                    .build();
-        final var schema = mapper.schemaFor(ValidationResult.class)
-                                 .withHeader()
-                                 .withColumnSeparator(reportType.getSeparator());
-
         final var csvFile = outputDir.resolve(objectValidationResults.getObjectId() + reportType.getExtension());
-        try (var fileWriter = Files.newBufferedWriter(csvFile);
-             var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {
-            csvWriter.writeAll(objectValidationResults.getResults());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return csvFile.toString();
+        return writeValidationResults(csvFile, objectValidationResults);
     }
 
     @Override
@@ -105,6 +91,30 @@ public class CsvReportHandler implements ReportHandler {
         }
 
         return csvFile.toString();
+    }
+
+    @Override
+    public String repositoryLevelReport(final ObjectValidationResults objectValidationResults) {
+        final var csvFile = outputDir.resolve("repository" + reportType.getExtension());
+        return writeValidationResults(csvFile, objectValidationResults);
+    }
+
+    private String writeValidationResults(final Path file, final ObjectValidationResults objectValidationResults) {
+        final var mapper = CsvMapper.builder()
+                                    .addMixIn(ValidationResult.class, ValidationResultMixin.class)
+                                    .build();
+        final var schema = mapper.schemaFor(ValidationResult.class)
+                                 .withHeader()
+                                 .withColumnSeparator(reportType.getSeparator());
+
+        try (var fileWriter = Files.newBufferedWriter(file);
+             var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {
+            csvWriter.writeAll(objectValidationResults.getResults());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return file.toString();
     }
 
     @Override

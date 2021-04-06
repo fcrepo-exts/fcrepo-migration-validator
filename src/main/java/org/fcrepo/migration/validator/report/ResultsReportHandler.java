@@ -60,6 +60,15 @@ public class ResultsReportHandler implements ReportHandler {
         return null;
     }
 
+    @Override
+    public String repositoryLevelReport(final ObjectValidationResults objectValidationResults) {
+        errors.addAll(objectValidationResults.getErrors());
+        passed.addAll(objectValidationResults.getPassed());
+
+        // No HTML report filename
+        return null;
+    }
+
     /**
      * A hook for processing a validation run's summary info.
      *
