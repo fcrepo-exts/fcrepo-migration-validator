@@ -60,6 +60,12 @@ Usage: fcrepo-migration-validator [-ChV] [--debug] [-a=<algorithm>]
                    The digest algorithm to use during checksum validation:
                      sha256, sha512
                      Default: sha512
+  -n, --check-num-objects   Enable validation comparing the number of objects
+                              in the Fedora 3 and Fedora OCFL repositories.
+                              This validation is always disabled if a PID File
+                              is used.
+  -H, --head-only           Validate only the most recent version of a
+                              datastream
   --debug      Enables debug logging
 ```
 
