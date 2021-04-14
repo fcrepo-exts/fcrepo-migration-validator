@@ -18,6 +18,7 @@
 package org.fcrepo.migration.validator.impl;
 
 import org.fcrepo.migration.ObjectSource;
+import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ValidationExecutionManager;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
@@ -47,8 +48,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     private final Set<String> objectsToValidate;
     private final AtomicLong count;
     private final Object lock;
-    private final Boolean checksum;
-    private final F6DigestAlgorithm digestAlgorithm;
+    private final ObjectValidationConfig objectValidationConfig;
     private final ApplicationConfigurationHelper config;
 
     /**
@@ -64,8 +64,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
         this.count = new AtomicLong(0);
         this.lock = new Object();
-        this.checksum = config.enableChecksums();
-        this.digestAlgorithm = config.getDigestAlgorithm();
+        this.objectValidationConfig = config.getObjectValidationConfig();
     }
 
     @Override
@@ -78,7 +77,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                 final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
                 if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
                     final var task = new F3ObjectValidationTaskBuilder().processor(objectProcessor)
-                        .enableChecksums(checksum, digestAlgorithm)
+                        .withValidationConfig(objectValidationConfig)
                         .writer(writer)
                         .objectSessionFactory(ocflObjectSessionFactory)
                         .build();

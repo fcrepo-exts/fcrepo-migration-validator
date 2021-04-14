@@ -35,6 +35,7 @@ import org.fcrepo.migration.foxml.ArchiveExportedFoxmlDirectoryObjectSource;
 import org.fcrepo.migration.foxml.InternalIDResolver;
 import org.fcrepo.migration.foxml.LegacyFSIDResolver;
 import org.fcrepo.migration.foxml.NativeFoxmlDirectoryObjectSource;
+import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.storage.ocfl.CommitType;
 import org.fcrepo.storage.ocfl.DefaultOcflObjectSessionFactory;
@@ -190,15 +191,13 @@ public class ApplicationConfigurationHelper {
         return config.getThreadCount();
     }
 
-    public Boolean enableChecksums() {
-        return config.enableChecksums();
+    public ObjectValidationConfig getObjectValidationConfig() {
+        return new ObjectValidationConfig(config.enableChecksums(),
+                                          config.validateHeadOnly(),
+                                          config.getDigestAlgorithm());
     }
 
     public Boolean checkNumObjects() {
         return config.checkNumObjects();
-    }
-
-    public F6DigestAlgorithm getDigestAlgorithm() {
-        return config.getDigestAlgorithm();
     }
 }

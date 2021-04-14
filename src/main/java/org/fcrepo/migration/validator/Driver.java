@@ -103,6 +103,10 @@ public class Driver implements Callable<Integer> {
                                       "${COMPLETION-CANDIDATES}")
     private F6DigestAlgorithm algorithm;
 
+    @CommandLine.Option(names = {"--head-only", "-H"}, order = 18,
+                        description = "Validate only the most recent version of a datastream")
+    private boolean validateHeadOnly;
+
     @CommandLine.Option(names = {"--check-num-objects", "-n"}, order = 17,
                         description = "Enable validation comparing the number of objects in the Fedora 3 and Fedora " +
                                       "OCFL repositories. This validation is always disabled if a PID File is used.")
@@ -117,6 +121,7 @@ public class Driver implements Callable<Integer> {
         config.setSourceType(f3SourceType);
         config.setEnableChecksums(checksum);
         config.setCheckNumObjects(checkNumberOfObjects);
+        config.setValidateHeadOnly(validateHeadOnly);
         config.setDigestAlgorithm(algorithm);
         config.setDatastreamsDirectory(f3DatastreamsDir);
         config.setObjectsDirectory(f3ObjectsDir);
