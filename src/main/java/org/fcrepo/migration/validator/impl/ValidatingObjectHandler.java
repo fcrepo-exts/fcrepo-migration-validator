@@ -412,9 +412,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private void completeObjectValidation() {
         final var pid = objectInfo.getPid();
         final var ocflId = ocflSession.ocflObjectId();
+        final var nonRdfSource = "http://www.w3.org/ns/ldp#NonRDFSource";
         final var ocflResourceCount = ocflSession.streamResourceHeaders()
-                                                 .filter(r -> r.getInteractionModel().equals("http://www.w3.org/ns/ldp#NonRDFSource") && !r.isDeleted())
-                                                 .count();
+                       .filter(r -> !r.isDeleted() && r.getInteractionModel().equals(nonRdfSource))
+                       .count();
         final String details;
         final var result = headDatastreamIds.size() == ocflResourceCount ? OK : FAIL;
         if (headDatastreamIds.size() == ocflResourceCount) {
