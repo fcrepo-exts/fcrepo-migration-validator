@@ -245,8 +245,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // if head: store the dataStreamId for future validations
             String version = "version " + sourceVersionCount;
             var isDeleted = false;
+            final var state = dsInfo.getState();
             final var isHead = dsVersion.isLastVersionIn(objectReference);
-            if (dsInfo.getState().equals("D")) {
+            if (state.equals("D") || (deleteInactive && state.equals("I"))) {
                 isDeleted = true;
                 sourceDeletedCount++;
             } else if (isHead) {
