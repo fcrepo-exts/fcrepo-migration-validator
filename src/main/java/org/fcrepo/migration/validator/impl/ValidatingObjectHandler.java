@@ -35,6 +35,7 @@ import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationType;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
+import org.fcrepo.storage.ocfl.OcflVersionInfo;
 import org.fcrepo.storage.ocfl.ResourceHeaders;
 import org.fcrepo.storage.ocfl.exception.NotFoundException;
 import org.slf4j.Logger;
@@ -209,6 +210,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
             targetVal = Optional.of(resolver.resolve(headers));
         } else if (OCFL_CHECK_TRIPLE.contains(property)) {
+            // todo: this can fail if model.getProperty returns null
             final var resolver = model.getProperty(model.createResource(ocflId), model.createProperty(property));
             targetVal = Optional.of(resolver.getObject().toString());
         }
@@ -224,28 +226,35 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var targetResource = targetObjectId + "/" + dsId;
         final var targetVersions = ocflSession.listVersions(targetResource);
 
+        // var targetVersionCount = 0;
         var sourceVersionCount = 0;
+        var sourceDeletedCount = 0;
         String sourceCreated = null;
         for (final var dsVersion : dsVersions) {
+            final var dsInfo = dsVersion.getDatastreamInfo();
+
             // in f3 the created entry on the first version is what we want to check against for all ocfl versions
             if (sourceCreated == null) {
                 sourceCreated = dsVersion.getCreated();
             }
 
+            // setup the version info and check for deleted/head datastreams
+            // if deleted: we wanted to increment the count to get the correct ocfl version
+            // if head: store the dataStreamId for future validations
+            String version = "version " + sourceVersionCount;
+            var isDeleted = false;
+            final var isHead = dsVersion.isLastVersionIn(objectReference);
+            if (dsInfo.getState().equals("D")) {
+                isDeleted = true;
+                sourceDeletedCount++;
+            } else if (isHead) {
+                version = "HEAD";
+                headDatastreamIds.add(dsId);
+            }
+
             try {
-                final var isHead = dsVersion.isLastVersionIn(objectReference);
                 final var ocflVersionInfo = targetVersions.get(sourceVersionCount);
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
-
-                String version = "version " + sourceVersionCount;
-                if (isHead) {
-                    version = "HEAD";
-                    final var dsInfo = dsVersion.getDatastreamInfo();
-                    if (!dsInfo.getState().equals("D")) {
-                        headDatastreamIds.add(dsId);
-                    }
-                }
-
                 final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
                                                                 targetResource, OBJECT_RESOURCE);
 
@@ -254,6 +263,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     validateCreatedDate(sourceCreated, headers, version, builder);
                     validateLastModified(dsVersion, headers, version, builder);
                     validateChecksum(dsVersion, headers, version, builder);
+                }
+
+                if (isDeleted) {
+                    validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
                 }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
@@ -324,7 +337,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 ByteStreams.copy(dsVersion.getContent(), Funnels.asOutputStream(hasher));
                 sourceHash = hasher.hash();
             } catch (IOException e) {
-                validationResults.add(builder.fail(BINARY_CHECKSUM, format(exception, version, e.toString())));
+                validationResults.add(builder.fail(BINARY_CHECKSUM, format(exception, version, e)));
                 return; // halt further validation
             }
 
@@ -397,10 +410,11 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     }
 
     private void completeObjectValidation() {
-        final var pid = this.objectInfo.getPid();
-        final var ocflId = this.ocflSession.ocflObjectId();
-        final var ocflResourceCount = ocflSession.streamResourceHeaders().filter(r -> r.getInteractionModel()
-                .equals("http://www.w3.org/ns/ldp#NonRDFSource")).count();
+        final var pid = objectInfo.getPid();
+        final var ocflId = ocflSession.ocflObjectId();
+        final var ocflResourceCount = ocflSession.streamResourceHeaders()
+                                                 .filter(r -> r.getInteractionModel().equals("http://www.w3.org/ns/ldp#NonRDFSource") && !r.isDeleted())
+                                                 .count();
         final String details;
         final var result = headDatastreamIds.size() == ocflResourceCount ? OK : FAIL;
         if (headDatastreamIds.size() == ocflResourceCount) {
