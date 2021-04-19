@@ -266,18 +266,32 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             sourceVersionCount++;
         }
 
+        final var targetVersionCount = targetVersions.size() - sourceDeletedCount;
+        final var ok = sourceVersionCount == targetVersionCount;
+        var details = format("binary version counts match for resource: %s", sourceVersionCount);
+        if (!ok) {
+            details = format("binary version counts do not match: source=%d, target=%d", sourceVersionCount,
+                    targetVersionCount);
+        }
+        validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
+                BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
+    }
+
+    private void validateDeleted(final String resource,
+                                 final int sourceVersionCount,
+                                 final List<OcflVersionInfo> versions,
+                                 final ValidationResultBuilder builder) {
+
         try {
-            final var targetVersionCount = targetVersions.size();
-            final var ok = sourceVersionCount == targetVersionCount;
-            var details = format("binary version counts match for resource: %s", sourceVersionCount);
-            if (!ok) {
-                details = format("binary version counts do not match: source=%d, target=%d", sourceVersionCount,
-                        targetVersionCount);
+            final var versionInfo = versions.get(sourceVersionCount + 1);
+            final var headers = ocflSession.readHeaders(resource, versionInfo.getVersionNumber());
+            if (headers.isDeleted()) {
+                validationResults.add(builder.ok(SOURCE_OBJECT_EXISTS_IN_TARGET, "Deleted resource exists in ocfl"));
+            } else  {
+                validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, "Deleted resource does not exist in ocfl"));
             }
-            validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
-                    BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
-        } catch (NotFoundException ex) {
-            // intentionally left blank: we check for existence above
+        } catch (NotFoundException | IndexOutOfBoundsException ex) {
+            validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, "Deleted resource does not exist in ocfl"));
         }
     }
 
