@@ -81,6 +81,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     private ObjectInfo objectInfo;
     private final boolean checksum;
+    private final boolean deleteInactive;
     private final boolean validateHeadOnly;
     private final OcflObjectSession ocflSession;
     private final List<ValidationResult> validationResults = new ArrayList<>();
@@ -131,6 +132,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public ValidatingObjectHandler(final OcflObjectSession session, final ObjectValidationConfig config) {
         this.ocflSession = session;
         this.checksum = config.isChecksum();
+        this.deleteInactive = config.deleteInactive();
         this.digestAlgorithm = config.getDigestAlgorithm();
         this.validateHeadOnly = config.isValidateHeadOnly();
     }
