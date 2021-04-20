@@ -151,4 +151,24 @@ public class VersionValidationIT extends AbstractValidationIT {
             .containsOnlyOnce(SOURCE_OBJECT_RESOURCE_DELETED);
     }
 
+    @Test
+    public void testValidateDeletedDatastreamError() {
+        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "deleted-datastream/f3/datastreams");
+        final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "deleted-datastream/f3/objects");
+        final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "deleted-datastream-failure/f6/data/ocfl-root");
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        config.setValidateHeadOnly(true);
+
+        final var reportHandler = doValidation(config);
+
+        // verify expected results
+        // SOURCE_OBJECT_RESOURCE_DELETED -> no deleted version exists
+        // BINARY_VERSION_COUNT -> we expected an extra version from OCFL because of the deleted resource
+        // BINARY_HEAD_COUNT -> the datastream was never deleted, so it still exists in the HEAD for OCFL
+        assertThat(reportHandler.getErrors())
+            .isNotEmpty()
+            .map(ValidationResult::getValidationType)
+            .containsOnly(SOURCE_OBJECT_RESOURCE_DELETED, BINARY_VERSION_COUNT, BINARY_HEAD_COUNT);
+    }
+
 }
