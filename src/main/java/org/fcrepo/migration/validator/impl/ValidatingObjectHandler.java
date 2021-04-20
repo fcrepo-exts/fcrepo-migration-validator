@@ -228,7 +228,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var targetResource = targetObjectId + "/" + dsId;
         final var targetVersions = ocflSession.listVersions(targetResource);
 
-        // var targetVersionCount = 0;
         var sourceVersionCount = 0;
         var sourceDeletedCount = 0;
         String sourceCreated = null;
@@ -245,9 +244,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // if head: store the dataStreamId for future validations
             String version = "version " + sourceVersionCount;
             var isDeleted = false;
-            final var state = dsInfo.getState();
+            final var state = F3DatastreamState.fromString(dsInfo.getState());
             final var isHead = dsVersion.isLastVersionIn(objectReference);
-            if (state.equals("D") || (deleteInactive && state.equals("I"))) {
+            if (state == F3DatastreamState.DELETED || (deleteInactive && state == F3DatastreamState.INACTIVE)) {
                 isDeleted = true;
                 sourceDeletedCount++;
             } else if (isHead) {
