@@ -191,7 +191,7 @@ public class Fedora3ValidationConfig extends ValidationConfig {
     /**
      * @param deleteInactive
      */
-    public Fedora3ValidationConfig setDeleteInactive(boolean deleteInactive) {
+    public Fedora3ValidationConfig setDeleteInactive(final boolean deleteInactive) {
         this.deleteInactive = deleteInactive;
         return this;
     }
