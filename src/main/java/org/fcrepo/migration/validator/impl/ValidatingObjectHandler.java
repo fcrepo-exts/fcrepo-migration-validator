@@ -63,6 +63,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -240,22 +241,17 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             }
 
             // setup the version info and check for deleted/head datastreams
-            // if deleted: we wanted to increment the count to get the correct ocfl version
-            // if head: store the dataStreamId for future validations
+            // if head store the dataStreamId for future validations
             String version = "version " + sourceVersionCount;
-            var isDeleted = false;
-            final var state = F3DatastreamState.fromString(dsInfo.getState());
             final var isHead = dsVersion.isLastVersionIn(objectReference);
-            if (state == F3DatastreamState.DELETED || (deleteInactive && state == F3DatastreamState.INACTIVE)) {
-                isDeleted = true;
-                sourceDeletedCount++;
-            } else if (isHead) {
+            final var state = F3State.fromString(dsInfo.getState());
+            if (isHead) {
                 version = "HEAD";
                 headDatastreamIds.add(dsId);
             }
 
             try {
-                final var ocflVersionInfo = targetVersions.get(sourceVersionCount);
+                final var ocflVersionInfo = targetVersions.get(sourceVersionCount + sourceDeletedCount);
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
                 final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
                                                                 targetResource, OBJECT_RESOURCE);
@@ -267,7 +263,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     validateChecksum(dsVersion, headers, version, builder);
                 }
 
-                if (isDeleted) {
+                // check if we need to handle a delete as well
+                if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
+                    sourceDeletedCount++;
+                    headDatastreamIds.remove(dsId);
                     validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
                 }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
@@ -282,10 +281,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         final var targetVersionCount = targetVersions.size() - sourceDeletedCount;
-        final var ok = sourceVersionCount == targetVersionCount;
-        var details = format("binary version counts match for resource: %s", sourceVersionCount);
+        final var ok = dsVersions.size() == targetVersionCount;
+        var details = format("binary version counts match for resource: %s", dsVersions.size());
         if (!ok) {
-            details = format("binary version counts do not match: source=%d, target=%d", sourceVersionCount,
+            details = format("binary version counts do not match: source=%d, target=%d", dsVersions.size(),
                     targetVersionCount);
         }
         validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
@@ -296,17 +295,21 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                                  final int sourceVersionCount,
                                  final List<OcflVersionInfo> versions,
                                  final ValidationResultBuilder builder) {
-
+        final var version = "version " + sourceVersionCount;
+        final var success = "%s is marked as deleted";
+        final var failure = "%s is not marked as deleted in Fedora 6 OCFL";
+        final var error = "Deleted object for %s does not exist in Fedora 6 OCFL";
         try {
+            // ocfl creates a new version for deletes, so we need to get the next highest version
             final var versionInfo = versions.get(sourceVersionCount + 1);
             final var headers = ocflSession.readHeaders(resource, versionInfo.getVersionNumber());
             if (headers.isDeleted()) {
-                validationResults.add(builder.ok(SOURCE_OBJECT_EXISTS_IN_TARGET, "Deleted resource exists in ocfl"));
+                validationResults.add(builder.ok(SOURCE_OBJECT_RESOURCE_DELETED, format(success, version)));
             } else  {
-                validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, "Deleted resource does not exist in ocfl"));
+                validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_DELETED, format(failure, version)));
             }
         } catch (NotFoundException | IndexOutOfBoundsException ex) {
-            validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, "Deleted resource does not exist in ocfl"));
+            validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_DELETED, format(error, version)));
         }
     }
 
