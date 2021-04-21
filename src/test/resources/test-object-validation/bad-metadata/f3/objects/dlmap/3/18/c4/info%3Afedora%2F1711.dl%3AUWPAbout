@@ -6,7 +6,7 @@ xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/
 <foxml:objectProperties>
 <foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
 <foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE="History of UW–Platteville"/>
-<foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE=""/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE="exampleOwner"/>
 <foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2019-07-01T17:12:45.310Z"/>
 <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2019-07-25T17:43:56.210Z"/>
 </foxml:objectProperties>

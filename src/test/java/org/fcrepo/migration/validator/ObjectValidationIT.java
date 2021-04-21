@@ -17,6 +17,7 @@
  */
 package org.fcrepo.migration.validator;
 
+import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.Test;
 
@@ -34,6 +35,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_CREATED_DATE;
 import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_LAST_MODIFIED_DATE;
+import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_OWNER_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -54,19 +56,26 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        final var resultsByType = reportHandler.getPassed().stream()
+                                               .collect(Collectors.groupingBy(ValidationResult::getValidationType));
+
+        // check that we have results for each of the f3 properties we look for
+        final var metadataResults = resultsByType.get(METADATA);
+        assertThat(metadataResults).anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
+                                   .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
+                                   .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE));
 
         // check datastream metadata
         // we have 7 datastreams overall -- 4 files and 3 inline
         final var totalManaged = 4;
         final var totalDatastreams = 7;
-        final var passed = reportHandler.getPassed().stream()
-                                        .filter(result -> result.getValidationType() == BINARY_METADATA)
-                                        .map(BinaryMetadataValidation::fromResult)
-                                        .collect(Collectors.toList());
-        assertThat(passed).containsOnly(CREATION_DATE, LAST_MODIFIED_DATE, SIZE);
-        assertThat(passed).filteredOn(validation -> validation == SIZE).hasSize(totalManaged);
-        assertThat(passed).filteredOn(validation -> validation == CREATION_DATE).hasSize(totalDatastreams);
-        assertThat(passed).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(totalDatastreams);
+        final var binaryMetadata = resultsByType.get(BINARY_METADATA).stream()
+                                                .map(BinaryMetadataValidation::fromResult)
+                                                .collect(Collectors.toList());
+        assertThat(binaryMetadata).containsOnly(CREATION_DATE, LAST_MODIFIED_DATE, SIZE);
+        assertThat(binaryMetadata).filteredOn(validation -> validation == SIZE).hasSize(totalManaged);
+        assertThat(binaryMetadata).filteredOn(validation -> validation == CREATION_DATE).hasSize(totalDatastreams);
+        assertThat(binaryMetadata).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(totalDatastreams);
     }
 
     @Test
@@ -78,7 +87,8 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results
         final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(2)
+        assertThat(errors).hasSize(3)
+                          .anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
                           .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
                           .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE))
                           .allSatisfy(result -> {
