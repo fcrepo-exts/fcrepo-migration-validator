@@ -42,6 +42,7 @@ public class ValidationResult {
 
     public enum ValidationType {
         OBJECT_READABLE,
+        SOURCE_OBJECT_DELETED,
         SOURCE_OBJECT_EXISTS_IN_TARGET,
         TARGET_OBJECT_EXISTS_IN_SOURCE,
         SOURCE_OBJECT_RESOURCE_DELETED,
