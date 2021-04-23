@@ -281,10 +281,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         final var targetVersionCount = targetVersions.size() - sourceDeletedCount;
-        final var ok = dsVersions.size() == targetVersionCount;
-        var details = format("binary version counts match for resource: %s", dsVersions.size());
+        final var ok = sourceVersionCount == targetVersionCount;
+        var details = format("binary version counts match for resource: %s", sourceVersionCount);
         if (!ok) {
-            details = format("binary version counts do not match: source=%d, target=%d", dsVersions.size(),
+            details = format("binary version counts do not match: source=%d, target=%d", sourceVersionCount,
                     targetVersionCount);
         }
         validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
