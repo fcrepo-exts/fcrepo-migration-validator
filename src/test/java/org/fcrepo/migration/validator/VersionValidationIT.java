@@ -20,10 +20,8 @@ package org.fcrepo.migration.validator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.CREATION_DATE;
 import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.LAST_MODIFIED_DATE;
-import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
-import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
 import static org.junit.Assert.assertEquals;
 
@@ -129,46 +127,6 @@ public class VersionValidationIT extends AbstractValidationIT {
                                              .map(ValidationResult::getDetails)
                                              .collect(Collectors.toList());
         assertThat(validations).allMatch(details -> details.contains("HEAD"));
-    }
-
-    @Test
-    public void testValidateDeletedDatastream() {
-        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "deleted-datastream/f3/datastreams");
-        final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "deleted-datastream/f3/objects");
-        final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "deleted-datastream/f6/data/ocfl-root");
-        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
-        config.setValidateHeadOnly(true);
-
-        final var reportHandler = doValidation(config);
-
-        // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
-
-        // verify datastream metadata
-        // only 1 datastream was deleted, so we expect 1 SOURCE_OBJECT_RESOURCE_DELETED
-        assertThat(reportHandler.getPassed())
-            .map(ValidationResult::getValidationType)
-            .containsOnlyOnce(SOURCE_OBJECT_RESOURCE_DELETED);
-    }
-
-    @Test
-    public void testValidateDeletedDatastreamError() {
-        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "deleted-datastream/f3/datastreams");
-        final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "deleted-datastream/f3/objects");
-        final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "deleted-datastream-failure/f6/data/ocfl-root");
-        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
-        config.setValidateHeadOnly(true);
-
-        final var reportHandler = doValidation(config);
-
-        // verify expected results
-        // SOURCE_OBJECT_RESOURCE_DELETED -> no deleted version exists
-        // BINARY_VERSION_COUNT -> we expected an extra version from OCFL because of the deleted resource
-        // BINARY_HEAD_COUNT -> the datastream was never deleted, so it still exists in the HEAD for OCFL
-        assertThat(reportHandler.getErrors())
-            .isNotEmpty()
-            .map(ValidationResult::getValidationType)
-            .containsOnly(SOURCE_OBJECT_RESOURCE_DELETED, BINARY_VERSION_COUNT, BINARY_HEAD_COUNT);
     }
 
 }
