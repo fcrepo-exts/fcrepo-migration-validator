@@ -228,6 +228,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var sourceResource = sourceObjectId + "/" + dsId;
         final var targetResource = targetObjectId + "/" + dsId;
         final var targetVersions = ocflSession.listVersions(targetResource);
+        final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource, targetResource,
+                                                        OBJECT_RESOURCE);
 
         var sourceVersionCount = 0;
         var sourceDeletedCount = 0;
@@ -244,7 +246,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // if head store the dataStreamId for future validations
             String version = "version " + sourceVersionCount;
             final var isHead = dsVersion.isLastVersionIn(objectReference);
-            final var state = F3State.fromString(dsInfo.getState());
             if (isHead) {
                 version = "HEAD";
                 headDatastreamIds.add(dsId);
@@ -253,8 +254,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             try {
                 final var ocflVersionInfo = targetVersions.get(sourceVersionCount + sourceDeletedCount);
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
-                final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
-                                                                targetResource, OBJECT_RESOURCE);
 
                 if (isHead || !validateHeadOnly) {
                     validateSize(dsVersion, headers, version, builder);
@@ -262,19 +261,20 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     validateLastModified(dsVersion, headers, version, builder);
                     validateChecksum(dsVersion, headers, version, builder);
                 }
-
-                // check if we need to handle a delete as well
-                if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
-                    sourceDeletedCount++;
-                    headDatastreamIds.remove(dsId);
-                    validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
-                }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
                                                            targetObjectId, sourceResource, targetResource,
                                                            "Source object resource does not exist in target for " +
                                                            "source version=" + sourceVersionCount + "."));
+            }
+
+            // check if we need to handle a delete as well
+            final var state = F3State.fromString(dsInfo.getState());
+            if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
+                sourceDeletedCount++;
+                headDatastreamIds.remove(dsId);
+                validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
             }
 
             sourceVersionCount++;
