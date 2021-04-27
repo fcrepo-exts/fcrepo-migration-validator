@@ -179,25 +179,26 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             return false;
         }
 
-        // check properties against what is stored in OCFL
-        // probably split these into separate methods
+        // if an object is deleted, only validate that the deleted flag is set
+        // otherwise check properties against what is stored in OCFL (headers or ntriples)
+        final var notFound = "pid: %s -> %s property could not be found!";
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         if (headers.isDeleted()) {
-            // figure these out later
             final var error = "pid: %s -> deleted states do not match: source=%s, target=%s";
             final var success = "pid: %s -> deleted states match: source=%s, target=%s";
-            final var notFound = "pid: %s -> %s property could not be found!";
-            objectProperties.listProperties().stream()
-                            .filter(property -> property.getName().equals(F3_STATE))
-                            .findFirst()
-                            .ifPresentOrElse(property -> {
-                                final var state = F3State.fromString(property.getValue());
-                                if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
-                                    builder.ok(SOURCE_OBJECT_DELETED, format(success));
-                                } else {
-                                    builder.fail(SOURCE_OBJECT_DELETED, format(error));
-                                }
-                            }, () -> builder.fail(SOURCE_OBJECT_DELETED, format(notFound, pid, F3_STATE)));
+
+            final var optional = objectProperties.listProperties().stream()
+                                                 .filter(property -> property.getName().equals(F3_STATE))
+                                                 .findFirst();
+
+            optional.map(property -> F3State.fromString(property.getValue()))
+                    .ifPresentOrElse(state -> {
+                        if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
+                            builder.ok(SOURCE_OBJECT_DELETED, format(success, pid, state, Boolean.TRUE));
+                        } else {
+                            builder.fail(SOURCE_OBJECT_DELETED, format(error, pid, state, Boolean.FALSE));
+                        }
+                    }, () -> builder.fail(SOURCE_OBJECT_DELETED, format(notFound, pid, F3_STATE)));
         } else {
             objectProperties.listProperties().forEach(op -> {
                 final var property = op.getName();
