@@ -17,6 +17,8 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import org.fcrepo.migration.ObjectProperty;
+
 /**
  * Possible states for Fedora 3 Objects
  *
@@ -27,11 +29,15 @@ public enum F3State {
 
     public static F3State fromString(final String state) {
         switch (state.toUpperCase()) {
-            case "A": return ACTIVE;
-            case "D": return DELETED;
-            case "I": return INACTIVE;
+            case "A": case "ACTIVE": return ACTIVE;
+            case "D": case "DELETED": return DELETED;
+            case "I": case "INACTIVE": return INACTIVE;
             default: throw new IllegalArgumentException("Invalid datastream state");
         }
+    }
+
+    public static F3State fromProperty(final ObjectProperty property) {
+        return fromString(property.getValue());
     }
 
 }
