@@ -24,14 +24,12 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
 import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.sparql.function.FunctionBase2;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
-import org.fcrepo.migration.ObjectProperty;
 import org.fcrepo.migration.ObjectReference;
 import org.fcrepo.migration.ObjectVersionReference;
 import org.fcrepo.migration.validator.api.ObjectValidationConfig;
@@ -55,7 +53,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
@@ -115,6 +112,17 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     private interface PropertyResolver<T> {
         T resolve(ResourceHeaders headers);
+    }
+
+    /**
+     * Interface to describe comparing a Fedora 3 property to a Fedora 6 property
+     * @param <T> the type of the Fedora 3 property
+     * @param <U> the type of the Fedora 6 property
+     */
+    private interface PropertyComparator<T, U> {
+        PropertyComparator<String, String> DEFAULT = String::equals;
+
+        boolean compare(T source, U target);
     }
 
     @Override
@@ -186,41 +194,47 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var notFound = "pid: %s -> %s property could not be found!";
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         if (headers.isDeleted()) {
-            final var error = "pid: %s -> deleted states do not match: source=%s, target=%s";
-            final var success = "pid: %s -> deleted states match: source=%s, target=%s";
+            final PropertyComparator<F3State, Boolean> comparator = (source, target) -> {
+                final var asBool = (source == F3State.DELETED || (deleteInactive && source == F3State.INACTIVE));
+                return asBool == target;
+            };
 
             final var optional = objectProperties.listProperties().stream()
                                                  .filter(property -> property.getName().equals(F3_STATE))
                                                  .findFirst();
 
-            optional.map(property -> F3State.fromString(property.getValue()))
-                    .ifPresentOrElse(state -> {
-                        if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
-                            builder.ok(SOURCE_OBJECT_DELETED, format(success, pid, state, Boolean.TRUE));
-                        } else {
-                            builder.fail(SOURCE_OBJECT_DELETED, format(error, pid, state, Boolean.FALSE));
-                        }
-                    }, () -> builder.fail(SOURCE_OBJECT_DELETED, format(notFound, pid, F3_STATE)));
+            optional.map(F3State::fromProperty)
+                    .map(state -> compareProperty(pid, F3_STATE, state, Boolean.TRUE, comparator, builder))
+                    .or(() -> Optional.of(builder.fail(SOURCE_OBJECT_DELETED, format(notFound, pid, F3_STATE))))
+                    .ifPresent(validationResults::add);
         } else {
             // imo this syntax works better when you don't just have a method reference
             objectProperties.listProperties().forEach(op -> {
                 final var property = op.getName();
                 final var sourceValue = op.getValue();
-                final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
-                final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
-
-                findOcflValue(ocflId, property, model, headers).map(targetValue -> {
-                    LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
-                    if (sourceValue.equals(targetValue)) {
-                        return builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue));
-                    }
-
-                    return builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue));
-                }).ifPresent(validationResults::add);
+                findOcflValue(ocflId, property, model, headers)
+                    .map(targetValue -> compareProperty(pid, property, sourceValue, targetValue,
+                                                        PropertyComparator.DEFAULT, builder))
+                    .ifPresent(validationResults::add);
             });
         }
 
         return true;
+    }
+
+    private <T, U> ValidationResult compareProperty(final String pid, final String property,
+                                                    final T source, final U target,
+                                                    final PropertyComparator<T, U> comparator,
+                                                    final ValidationResultBuilder builder) {
+        final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
+        final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
+        LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, source);
+
+        if (comparator.compare(source, target)) {
+            return builder.ok(METADATA, format(success, pid, property, source, target));
+        }
+
+        return builder.fail(METADATA, format(error, pid, property, source, target));
     }
 
     /**
