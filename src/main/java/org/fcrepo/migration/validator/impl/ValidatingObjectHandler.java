@@ -23,6 +23,8 @@ import com.google.common.io.ByteStreams;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Statement;
+import com.hp.hpl.jena.sparql.function.FunctionBase2;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
@@ -200,6 +202,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                         }
                     }, () -> builder.fail(SOURCE_OBJECT_DELETED, format(notFound, pid, F3_STATE)));
         } else {
+            // imo this syntax works better when you don't just have a method reference
             objectProperties.listProperties().forEach(op -> {
                 final var property = op.getName();
                 final var sourceValue = op.getValue();
@@ -237,13 +240,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         Optional<String> targetVal = Optional.empty();
         if (OCFL_PROPERTY_RESOLVERS.containsKey(property)) {
             final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
-            targetVal = Optional.of(resolver.resolve(headers));
+            targetVal = Optional.ofNullable(resolver.resolve(headers));
         } else if (OCFL_CHECK_TRIPLE.contains(property)) {
-            // todo: figure out how to handle null... should be a property not found or something
             final var resolver = model.getProperty(model.createResource(ocflId), model.createProperty(property));
+            // need a way to return a not-found
             targetVal = Optional.ofNullable(resolver)
-                                // not sure if this can happen but just in case
-                                .flatMap(r -> Optional.ofNullable(resolver.getObject()))
+                                .map(Statement::getObject)
                                 .map(RDFNode::toString);
         }
 
