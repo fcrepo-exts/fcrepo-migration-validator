@@ -64,6 +64,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
@@ -204,8 +205,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final PropertyComparator<F3State, Boolean> comparator =
                 (source, target) -> source.isDeleted(deleteInactive) == target;
 
-            final var validationResult = compareProperty(pid, F3_STATE, objectState, headers.isDeleted(),
-                                                         comparator, builder);
+            final var ocflDeleted = headers.isDeleted();
+            final var validationResult = compareProperty(pid, F3_STATE, SOURCE_OBJECT_DELETED, objectState,
+                                                         ocflDeleted, comparator, builder);
             validationResults.add(validationResult);
         } else {
             // imo this syntax works better when you don't just have a method reference
@@ -213,7 +215,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 final var property = op.getName();
                 final var sourceValue = op.getValue();
                 findOcflValue(ocflId, property, model, headers)
-                    .map(targetValue -> compareProperty(pid, property, sourceValue, targetValue,
+                    .map(targetValue -> compareProperty(pid, property, METADATA, sourceValue, targetValue,
                                                         PropertyComparator.DEFAULT, builder))
                     .ifPresent(validationResults::add);
             });
@@ -223,6 +225,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     }
 
     private <T, U> ValidationResult compareProperty(final String pid, final String property,
+                                                    final ValidationType validation,
                                                     final T source, final U target,
                                                     final PropertyComparator<T, U> comparator,
                                                     final ValidationResultBuilder builder) {
@@ -231,10 +234,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, source);
 
         if (comparator.compare(source, target)) {
-            return builder.ok(METADATA, format(success, pid, property, source, target));
+            return builder.ok(validation, format(success, pid, property, source, target));
         }
 
-        return builder.fail(METADATA, format(error, pid, property, source, target));
+        return builder.fail(validation, format(error, pid, property, source, target));
     }
 
     /**
