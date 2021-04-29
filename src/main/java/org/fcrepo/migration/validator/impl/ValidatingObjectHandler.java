@@ -108,7 +108,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     static {
         OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> headers.getCreatedDate().toString());
         OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE, headers -> headers.getLastModifiedDate().toString());
-        OCFL_PROPERTY_RESOLVERS.put(F3_OWNER_ID, headers -> headers.getCreatedBy());
     }
 
     private interface PropertyResolver<T> {
@@ -199,7 +198,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
        objectState = F3State.fromProperty(stateProperty);
 
         // if an object is deleted, only validate that the deleted flag is set
-        // otherwise check properties against what is stored in OCFL (headers or ntriples)
+        // otherwise check properties against what is stored in OCFL (headers or n-triples)
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         if (objectState.isDeleted(deleteInactive)) {
             final PropertyComparator<F3State, Boolean> comparator =
@@ -470,7 +469,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                        .filter(r -> !r.isDeleted() && r.getInteractionModel().equals(nonRdfSource))
                        .count();
         final String details;
-        // todo: if object is marked as deleted expect resourceCount == 0
         final var result = headDatastreamIds.size() == ocflResourceCount ? OK : FAIL;
         if (headDatastreamIds.size() == ocflResourceCount) {
             details = "The number of binary objects in HEAD are identical.";
