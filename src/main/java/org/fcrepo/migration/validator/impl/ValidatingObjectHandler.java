@@ -64,7 +64,6 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
-import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
@@ -84,6 +83,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String F3_OWNER_ID = "info:fedora/fedora-system:def/model#ownerId";
 
+    private F3State objectState;
     private ObjectInfo objectInfo;
     private final boolean checksum;
     private final boolean deleteInactive;
@@ -189,27 +189,27 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             return false;
         }
 
+        // set the object state
+        final var properties = objectProperties.listProperties();
+        final var stateProperty = properties.stream()
+                                            .filter(p -> p.getName().equals(F3_STATE))
+                                            .findFirst()
+                                            .orElseThrow(IllegalStateException::new);
+       objectState = F3State.fromProperty(stateProperty);
+
         // if an object is deleted, only validate that the deleted flag is set
         // otherwise check properties against what is stored in OCFL (headers or ntriples)
-        final var notFound = "pid: %s -> %s property could not be found!";
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
-        if (headers.isDeleted()) {
-            final PropertyComparator<F3State, Boolean> comparator = (source, target) -> {
-                final var asBool = (source == F3State.DELETED || (deleteInactive && source == F3State.INACTIVE));
-                return asBool == target;
-            };
+        if (objectState.isDeleted(deleteInactive)) {
+            final PropertyComparator<F3State, Boolean> comparator =
+                (source, target) -> source.isDeleted(deleteInactive) == target;
 
-            final var optional = objectProperties.listProperties().stream()
-                                                 .filter(property -> property.getName().equals(F3_STATE))
-                                                 .findFirst();
-
-            optional.map(F3State::fromProperty)
-                    .map(state -> compareProperty(pid, F3_STATE, state, Boolean.TRUE, comparator, builder))
-                    .or(() -> Optional.of(builder.fail(SOURCE_OBJECT_DELETED, format(notFound, pid, F3_STATE))))
-                    .ifPresent(validationResults::add);
+            final var validationResult = compareProperty(pid, F3_STATE, objectState, headers.isDeleted(),
+                                                         comparator, builder);
+            validationResults.add(validationResult);
         } else {
             // imo this syntax works better when you don't just have a method reference
-            objectProperties.listProperties().forEach(op -> {
+            properties.forEach(op -> {
                 final var property = op.getName();
                 final var sourceValue = op.getValue();
                 findOcflValue(ocflId, property, model, headers)
@@ -316,7 +316,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
             // check if we need to handle a delete as well
             final var state = F3State.fromString(dsInfo.getState());
-            if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
+            if (state.isDeleted(deleteInactive) || (isHead && objectState.isDeleted(deleteInactive))) {
                 sourceDeletedCount++;
                 headDatastreamIds.remove(dsId);
                 validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
@@ -467,6 +467,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                        .filter(r -> !r.isDeleted() && r.getInteractionModel().equals(nonRdfSource))
                        .count();
         final String details;
+        // todo: if object is marked as deleted expect resourceCount == 0
         final var result = headDatastreamIds.size() == ocflResourceCount ? OK : FAIL;
         if (headDatastreamIds.size() == ocflResourceCount) {
             details = "The number of binary objects in HEAD are identical.";
