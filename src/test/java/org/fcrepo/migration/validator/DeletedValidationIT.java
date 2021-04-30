@@ -20,6 +20,9 @@ package org.fcrepo.migration.validator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_DELETED;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.junit.Assert.assertEquals;
 
@@ -91,6 +94,64 @@ public class DeletedValidationIT extends AbstractValidationIT {
             .isNotEmpty()
             .map(ValidationResult::getValidationType)
             .containsOnly(SOURCE_OBJECT_RESOURCE_DELETED, BINARY_HEAD_COUNT);
+    }
+
+    // Deleted Objects
+
+    @Test
+    public void testValidateDeletedObject() {
+        final var f3DatastreamsDir = new File(DELETED_BASE_DIR, "deleted-object/f3/datastreams");
+        final var f3ObjectsDir = new File(DELETED_BASE_DIR, "deleted-object/f3/objects");
+        final var f6OcflRootDir = new File(DELETED_BASE_DIR, "deleted-object/f6/data/ocfl-root");
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+
+        final var reportHandler = doValidation(config);
+
+        // verify expected results
+        assertThat(reportHandler.getErrors()).isEmpty();
+        assertThat(reportHandler.getPassed()).map(ValidationResult::getValidationType)
+                                             .contains(SOURCE_OBJECT_DELETED, SOURCE_OBJECT_RESOURCE_DELETED);
+    }
+
+    @Test
+    public void testF3ObjectNotDeleted() {
+        final var f3DatastreamsDir = new File(DELETED_BASE_DIR, "f3-object-not-deleted/f3/datastreams");
+        final var f3ObjectsDir = new File(DELETED_BASE_DIR, "f3-object-not-deleted/f3/objects");
+        final var f6OcflRootDir = new File(DELETED_BASE_DIR, "deleted-object/f6/data/ocfl-root");
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+
+        final var reportHandler = doValidation(config);
+
+        // - todo: METADATA not found (requires ValidatingObjectHandler support first)
+        // - METADATA state is not equal
+        // - METADATA lastModifiedDate is not equal (extra deleted version)
+        // - BINARY_VERSION_COUNT for all datastreams
+        // - BINARY_HEAD_COUNT
+        final var errors = reportHandler.getErrors();
+        assertThat(errors).isNotEmpty()
+                          .map(ValidationResult::getValidationType)
+                          .contains(METADATA, BINARY_VERSION_COUNT, BINARY_HEAD_COUNT);
+    }
+
+    @Test
+    public void testOcflObjectNotDeleted() {
+        final var f3DatastreamsDir = new File(DELETED_BASE_DIR, "deleted-object/f3/datastreams");
+        final var f3ObjectsDir = new File(DELETED_BASE_DIR, "deleted-object/f3/objects");
+        final var f6OcflRootDir = new File(DELETED_BASE_DIR, "ocfl-not-deleted/f6/data/ocfl-root");
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+
+        final var reportHandler = doValidation(config);
+
+        // expected errors:
+        // - SOURCE_OBJECT_DELETED
+        // - SOURCE_OBJECT_RESOURCE_DELETED
+        // - BINARY_VERSION_COUNT
+        // - BINARY_HEAD_COUNT
+        final var errors = reportHandler.getErrors();
+        assertThat(errors).isNotEmpty()
+                          .map(ValidationResult::getValidationType)
+                          .contains(SOURCE_OBJECT_DELETED, SOURCE_OBJECT_RESOURCE_DELETED,
+                                    BINARY_VERSION_COUNT, BINARY_HEAD_COUNT);
     }
 
 }
