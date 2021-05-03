@@ -22,6 +22,8 @@ import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
@@ -43,7 +45,6 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -91,22 +92,22 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final F6DigestAlgorithm digestAlgorithm;
 
     /**
-     * Properties which we should query n triples for
-     */
-    private static final Set<String> OCFL_CHECK_TRIPLE = Set.of(F3_OWNER_ID);
-
-    /**
      * Properties which migrated to OCFL headers
      */
-    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
-
-    static {
-        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> headers.getCreatedDate().toString());
-        OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE, headers -> headers.getLastModifiedDate().toString());
-    }
+    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = Map.of(
+        F3_OWNER_ID, headers -> Optional.empty(),
+        F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),
+        F3_LAST_MODIFIED_DATE, headers -> Optional.of(headers.getLastModifiedDate().toString())
+    );
 
     private interface PropertyResolver<T> {
-        T resolve(ResourceHeaders headers);
+        Optional<T> resolve(ResourceHeaders headers);
+
+        static Optional<String> fromModel(final Model model, final String ocflId, final String property) {
+            return Optional.ofNullable(model.getProperty(model.createResource(ocflId), model.createProperty(property)))
+                           .map(Statement::getObject)
+                           .map(RDFNode::toString);
+        }
     }
 
     @Override
@@ -174,51 +175,28 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         // check properties against what is stored in OCFL
+        final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
+        final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
+        final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         objectProperties.listProperties().forEach(op -> {
             final var property = op.getName();
             final var sourceValue = op.getValue();
-            final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
-            final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
+            LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
 
-            findOcflValue(ocflId, property, model, headers).map(targetValue -> {
-                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
-                if (sourceValue.equals(targetValue)) {
-                    return builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue));
-                }
-
-                return builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue));
-            }).ifPresent(validationResults::add);
+            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+            if (resolver != null) {
+                final var result = resolver.resolve(headers)
+                            .or(() -> PropertyResolver.fromModel(model, ocflId, property))
+                            .map(targetValue -> sourceValue.equals(targetValue)
+                                     ? builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue))
+                                     : builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue)))
+                            .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
+                validationResults.add(result);
+            }
         });
 
         return true;
-    }
-
-    /**
-     * Try to resolve the value of a property in a F6 repository using either the OCFL_PROPERTY_RESOLVERS or a model
-     * which has previously been read in. If we do not have any way of resolving a property, just return an empty
-     * Optional so that we can skip any validation operations.
-     *
-     * @param ocflId
-     * @param property
-     * @param model
-     * @param headers
-     */
-    private Optional<String> findOcflValue(final String ocflId,
-                                           final String property,
-                                           final Model model,
-                                           final ResourceHeaders headers) {
-        Optional<String> targetVal = Optional.empty();
-        if (OCFL_PROPERTY_RESOLVERS.containsKey(property)) {
-            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
-            targetVal = Optional.of(resolver.resolve(headers));
-        } else if (OCFL_CHECK_TRIPLE.contains(property)) {
-            // todo: this can fail if model.getProperty returns null
-            final var resolver = model.getProperty(model.createResource(ocflId), model.createProperty(property));
-            targetVal = Optional.of(resolver.getObject().toString());
-        }
-
-        return targetVal;
     }
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
