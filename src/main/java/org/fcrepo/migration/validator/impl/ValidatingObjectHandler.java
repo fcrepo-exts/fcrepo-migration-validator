@@ -45,7 +45,6 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -98,15 +97,11 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     /**
      * Properties which migrated to OCFL headers
      */
-    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
-
-    static {
-        OCFL_PROPERTY_RESOLVERS.put(F3_STATE, headers -> Optional.empty());
-        OCFL_PROPERTY_RESOLVERS.put(F3_OWNER_ID, headers -> Optional.empty());
-        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()));
-        OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE,
-                                    headers -> Optional.of(headers.getLastModifiedDate().toString()));
-    }
+    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS =
+        Map.of(F3_STATE, headers -> Optional.empty(),
+               F3_OWNER_ID, headers -> Optional.empty(),
+               F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),
+               F3_LAST_MODIFIED_DATE, headers -> Optional.of(headers.getLastModifiedDate().toString()));
 
     private interface PropertyResolver<T> {
         Optional<T> resolve(ResourceHeaders headers);
