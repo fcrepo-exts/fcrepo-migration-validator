@@ -22,7 +22,6 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_DELETED;
-import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.junit.Assert.assertEquals;
 
@@ -122,7 +121,6 @@ public class DeletedValidationIT extends AbstractValidationIT {
 
         final var reportHandler = doValidation(config);
 
-        // - todo: METADATA not found (requires ValidatingObjectHandler support first)
         // - METADATA state is not equal
         // - METADATA lastModifiedDate is not equal (extra deleted version)
         // - BINARY_VERSION_COUNT for all datastreams
@@ -131,6 +129,10 @@ public class DeletedValidationIT extends AbstractValidationIT {
         assertThat(errors).isNotEmpty()
                           .map(ValidationResult::getValidationType)
                           .contains(METADATA, BINARY_VERSION_COUNT, BINARY_HEAD_COUNT);
+
+        // some METADATA should contain not found errors
+        assertThat(errors).filteredOn(error -> error.getDetails().contains("not found"))
+                          .isNotEmpty();
     }
 
     @Test
