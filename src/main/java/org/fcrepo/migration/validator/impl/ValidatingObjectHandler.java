@@ -119,17 +119,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
-    /**
-     * Interface to describe comparing a Fedora 3 property to a Fedora 6 property
-     * @param <T> the type of the Fedora 3 property
-     * @param <U> the type of the Fedora 6 property
-     */
-    private interface PropertyComparator<T, U> {
-        PropertyComparator<String, String> DEFAULT = String::equals;
-
-        boolean compare(T source, U target);
-    }
-
     @Override
     public void processObjectVersions(final Iterable<ObjectVersionReference> iterable, final ObjectInfo objectInfo) {
         this.objectInfo = objectInfo;
@@ -200,77 +189,48 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                                             .filter(p -> p.getName().equals(F3_STATE))
                                             .findFirst()
                                             .orElseThrow(IllegalStateException::new);
-       objectState = F3State.fromProperty(stateProperty);
+        objectState = F3State.fromProperty(stateProperty);
 
-        // if an object is deleted, only validate that the deleted flag is set
-        // otherwise check properties against what is stored in OCFL (headers or n-triples)
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         if (objectState.isDeleted(deleteInactive)) {
-            final PropertyComparator<F3State, Boolean> comparator =
-                (source, target) -> source.isDeleted(deleteInactive) == target;
+            final var success = "pid: %s -> object deleted states match: source=%s, target=%s";
+            final var error = "pid: %s -> object deleted states do not match: source=%s, target=%s";
 
+            // if an object is deleted, only validate that the deleted flag is set
+            ValidationResult deletedResult;
             final var ocflDeleted = headers.isDeleted();
-            final var validationResult = compareProperty(pid, F3_STATE, SOURCE_OBJECT_DELETED, objectState,
-                                                         ocflDeleted, comparator, builder);
-            validationResults.add(validationResult);
+            if (ocflDeleted) {
+                deletedResult = builder.ok(SOURCE_OBJECT_DELETED, format(success, pid, objectState, true));
+            } else {
+                deletedResult = builder.fail(SOURCE_OBJECT_DELETED, format(error, pid, objectState, false));
+            }
+
+            validationResults.add(deletedResult);
         } else {
-            // imo this syntax works better when you don't just have a method reference
+            final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
+            final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
+            final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
             properties.forEach(op -> {
                 final var property = op.getName();
                 final var sourceValue = op.getValue();
-                findOcflValue(ocflId, property, model, headers)
-                    .map(targetValue -> compareProperty(pid, property, METADATA, sourceValue, targetValue,
-                                                        PropertyComparator.DEFAULT, builder))
-                    .ifPresent(validationResults::add);
+                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
+
+                final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+                if (resolver != null) {
+                    // try to get the ocfl property from the headers first, otherwise fallback to reading the n-triples
+                    final var result =
+                        resolver.resolve(headers)
+                                .or(() -> PropertyResolver.resolveFromModel(model, ocflId, property))
+                                .map(targetVal -> sourceValue.equals(targetVal)
+                                         ? builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal))
+                                         : builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
+                                .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
+                    validationResults.add(result);
+                }
             });
         }
 
         return true;
-    }
-
-    private <T, U> ValidationResult compareProperty(final String pid, final String property,
-                                                    final ValidationType validation,
-                                                    final T source, final U target,
-                                                    final PropertyComparator<T, U> comparator,
-                                                    final ValidationResultBuilder builder) {
-        final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
-        final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
-        LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, source);
-
-        if (comparator.compare(source, target)) {
-            return builder.ok(validation, format(success, pid, property, source, target));
-        }
-
-        return builder.fail(validation, format(error, pid, property, source, target));
-    }
-
-    /**
-     * Try to resolve the value of a property in a F6 repository using either the OCFL_PROPERTY_RESOLVERS or a model
-     * which has previously been read in. If we do not have any way of resolving a property, just return an empty
-     * Optional so that we can skip any validation operations.
-     *
-     * @param ocflId
-     * @param property
-     * @param model
-     * @param headers
-     */
-    private Optional<String> findOcflValue(final String ocflId,
-                                           final String property,
-                                           final Model model,
-                                           final ResourceHeaders headers) {
-        Optional<String> targetVal = Optional.empty();
-        if (OCFL_PROPERTY_RESOLVERS.containsKey(property)) {
-            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
-            targetVal = Optional.ofNullable(resolver.resolve(headers));
-        } else if (OCFL_CHECK_TRIPLE.contains(property)) {
-            final var resolver = model.getProperty(model.createResource(ocflId), model.createProperty(property));
-            // need a way to return a not-found
-            targetVal = Optional.ofNullable(resolver)
-                                .map(Statement::getObject)
-                                .map(RDFNode::toString);
-        }
-
-        return targetVal;
     }
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
