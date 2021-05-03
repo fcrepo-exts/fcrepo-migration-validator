@@ -103,8 +103,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     static {
         OCFL_PROPERTY_RESOLVERS.put(F3_STATE, headers -> Optional.empty());
         OCFL_PROPERTY_RESOLVERS.put(F3_OWNER_ID, headers -> Optional.empty());
-        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE,
-                                    headers -> Optional.of(headers.getCreatedDate().toString()));
+        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()));
         OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE,
                                     headers -> Optional.of(headers.getLastModifiedDate().toString()));
     }
@@ -197,9 +196,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final var error = "pid: %s -> object deleted states do not match: source=%s, target=%s";
 
             // if an object is deleted, only validate that the deleted flag is set
-            ValidationResult deletedResult;
-            final var ocflDeleted = headers.isDeleted();
-            if (ocflDeleted) {
+            final ValidationResult deletedResult;
+            if (headers.isDeleted()) {
                 deletedResult = builder.ok(SOURCE_OBJECT_DELETED, format(success, pid, objectState, true));
             } else {
                 deletedResult = builder.fail(SOURCE_OBJECT_DELETED, format(error, pid, objectState, false));
