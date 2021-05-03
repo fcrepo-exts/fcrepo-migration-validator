@@ -96,22 +96,27 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final F6DigestAlgorithm digestAlgorithm;
 
     /**
-     * Properties which we should query n triples for
-     */
-    private static final Set<String> OCFL_CHECK_TRIPLE = Set.of(F3_OWNER_ID, F3_STATE);
-
-    /**
      * Properties which migrated to OCFL headers
      */
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
 
     static {
-        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> headers.getCreatedDate().toString());
-        OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE, headers -> headers.getLastModifiedDate().toString());
+        OCFL_PROPERTY_RESOLVERS.put(F3_STATE, headers -> Optional.empty());
+        OCFL_PROPERTY_RESOLVERS.put(F3_OWNER_ID, headers -> Optional.empty());
+        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE,
+                                    headers -> Optional.of(headers.getCreatedDate().toString()));
+        OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE,
+                                    headers -> Optional.of(headers.getLastModifiedDate().toString()));
     }
 
     private interface PropertyResolver<T> {
-        T resolve(ResourceHeaders headers);
+        Optional<T> resolve(ResourceHeaders headers);
+
+        static Optional<String> resolveFromModel(final Model model, final String ocflId, final String property) {
+            return Optional.ofNullable(model.getProperty(model.createResource(ocflId), model.createProperty(property)))
+                           .map(Statement::getObject)
+                           .map(RDFNode::toString);
+        }
     }
 
     /**
