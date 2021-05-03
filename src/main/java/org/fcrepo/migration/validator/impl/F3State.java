@@ -27,9 +27,9 @@ public enum F3State {
 
     public static F3State fromString(final String state) {
         switch (state.toUpperCase()) {
+            case "A": return ACTIVE;
             case "D": return DELETED;
             case "I": return INACTIVE;
-            case "A": return ACTIVE;
             default: throw new IllegalArgumentException("Invalid datastream state");
         }
     }
