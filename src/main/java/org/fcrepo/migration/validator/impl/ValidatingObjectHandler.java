@@ -188,9 +188,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             if (resolver != null) {
                 final var result = resolver.resolve(headers)
                             .or(() -> PropertyResolver.fromModel(model, ocflId, property))
-                            .map(targetValue -> sourceValue.equals(targetValue)
-                                     ? builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue))
-                                     : builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue)))
+                            .map(targetValue -> sourceValue.equals(targetValue) ?
+                                     builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue)) :
+                                     builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue)))
                             .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
                 validationResults.add(result);
             }
