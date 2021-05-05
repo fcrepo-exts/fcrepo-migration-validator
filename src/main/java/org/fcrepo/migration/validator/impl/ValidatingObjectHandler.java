@@ -30,6 +30,7 @@ import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
+import org.fcrepo.migration.ObjectProperty;
 import org.fcrepo.migration.ObjectReference;
 import org.fcrepo.migration.ObjectVersionReference;
 import org.fcrepo.migration.validator.api.ObjectValidationConfig;
@@ -201,30 +202,36 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
             validationResults.add(deletedResult);
         } else {
-            final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
-            final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
-            final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
-            properties.forEach(op -> {
-                final var property = op.getName();
-                final var sourceValue = op.getValue();
-                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
-
-                final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
-                if (resolver != null) {
-                    // try to get the ocfl property from the headers first, otherwise fallback to reading the n-triples
-                    final var result =
-                        resolver.resolve(headers)
-                                .or(() -> PropertyResolver.fromModel(model, ocflId, property))
-                                .map(targetVal -> sourceValue.equals(targetVal) ?
-                                         builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal)) :
-                                         builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
-                                .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
-                    validationResults.add(result);
-                }
-            });
+            properties.forEach(op -> validateObjectProperty(op, headers, model, builder));
         }
 
         return true;
+    }
+
+    private void validateObjectProperty(final ObjectProperty op, final ResourceHeaders headers,
+                                       final Model model, final ValidationResultBuilder builder) {
+        final var pid = objectInfo.getPid();
+        final var ocflId = ocflSession.ocflObjectId();
+        final var property = op.getName();
+        final var sourceValue = op.getValue();
+
+        LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
+        final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+        if (resolver != null) {
+            final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
+            final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
+            final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
+
+            // try to get the ocfl property from the headers first, otherwise fallback to reading the n-triples
+            final var result =
+                resolver.resolve(headers)
+                        .or(() -> PropertyResolver.fromModel(model, ocflId, property))
+                        .map(targetVal -> sourceValue.equals(targetVal) ?
+                                 builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal)) :
+                                 builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
+                        .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
+            validationResults.add(result);
+        }
     }
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
