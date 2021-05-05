@@ -97,16 +97,17 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     /**
      * Properties which migrated to OCFL headers
      */
-    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS =
-        Map.of(F3_STATE, headers -> Optional.empty(),
-               F3_OWNER_ID, headers -> Optional.empty(),
-               F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),
-               F3_LAST_MODIFIED_DATE, headers -> Optional.of(headers.getLastModifiedDate().toString()));
+    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = Map.of(
+        F3_STATE, headers -> Optional.empty(),
+        F3_OWNER_ID, headers -> Optional.empty(),
+        F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),
+        F3_LAST_MODIFIED_DATE, headers -> Optional.of(headers.getLastModifiedDate().toString())
+    );
 
     private interface PropertyResolver<T> {
         Optional<T> resolve(ResourceHeaders headers);
 
-        static Optional<String> resolveFromModel(final Model model, final String ocflId, final String property) {
+        static Optional<String> fromModel(final Model model, final String ocflId, final String property) {
             return Optional.ofNullable(model.getProperty(model.createResource(ocflId), model.createProperty(property)))
                            .map(Statement::getObject)
                            .map(RDFNode::toString);
@@ -213,10 +214,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     // try to get the ocfl property from the headers first, otherwise fallback to reading the n-triples
                     final var result =
                         resolver.resolve(headers)
-                                .or(() -> PropertyResolver.resolveFromModel(model, ocflId, property))
-                                .map(targetVal -> sourceValue.equals(targetVal)
-                                         ? builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal))
-                                         : builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
+                                .or(() -> PropertyResolver.fromModel(model, ocflId, property))
+                                .map(targetVal -> sourceValue.equals(targetVal) ?
+                                         builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal)) :
+                                         builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
                                 .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
                     validationResults.add(result);
                 }
