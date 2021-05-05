@@ -184,7 +184,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var stateProperty = properties.stream()
                                             .filter(p -> p.getName().equals(F3_STATE))
                                             .findFirst()
-                                            .orElseThrow(IllegalStateException::new);
+                                            .orElseThrow(() -> new IllegalStateException("Could not find " + F3_STATE +
+                                                                                         "on object" + ocflId));
         objectState = F3State.fromProperty(stateProperty);
 
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
