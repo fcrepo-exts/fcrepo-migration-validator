@@ -112,7 +112,7 @@ public class Driver implements Callable<Integer> {
                                       "OCFL repositories. This validation is always disabled if a PID File is used.")
     private boolean checkNumberOfObjects;
 
-    @CommandLine.Option(names = {"--delete-inactive", "-I"}, order = 18,
+    @CommandLine.Option(names = {"--inactive-as-deleted", "-I"}, order = 18,
                         description = "Validate objects in the Inactive state as deleted.")
     private boolean deleteInactive;
 
