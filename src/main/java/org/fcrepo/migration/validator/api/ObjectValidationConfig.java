@@ -27,19 +27,26 @@ import org.fcrepo.migration.validator.impl.F6DigestAlgorithm;
 public class ObjectValidationConfig {
 
     private final boolean checksum;
+    private final boolean deleteInactive;
     private final boolean validateHeadOnly;
     private final F6DigestAlgorithm digestAlgorithm;
 
     public ObjectValidationConfig(final boolean checksum,
+                                  final boolean deleteInactive,
                                   final boolean validateHeadOnly,
                                   final F6DigestAlgorithm digestAlgorithm) {
         this.checksum = checksum;
+        this.deleteInactive = deleteInactive;
         this.validateHeadOnly = validateHeadOnly;
         this.digestAlgorithm = digestAlgorithm;
     }
 
     public boolean isChecksum() {
         return checksum;
+    }
+
+    public boolean deleteInactive() {
+        return deleteInactive;
     }
 
     public boolean isValidateHeadOnly() {

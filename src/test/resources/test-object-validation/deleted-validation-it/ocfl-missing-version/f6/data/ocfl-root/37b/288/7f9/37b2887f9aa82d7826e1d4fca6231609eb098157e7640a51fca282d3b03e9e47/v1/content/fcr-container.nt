@@ -1,0 +1,5 @@
+<info:fedora/fixture:deleted-datastream-1> <info:fedora/fedora-system:def/view#lastModifiedDate> "2021-04-16T22:29:35.378Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<info:fedora/fixture:deleted-datastream-1> <info:fedora/fedora-system:def/model#createdDate> "2021-04-16T22:25:35.034Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<info:fedora/fixture:deleted-datastream-1> <info:fedora/fedora-system:def/model#ownerId> "fedoraAdmin" .
+<info:fedora/fixture:deleted-datastream-1> <info:fedora/fedora-system:def/model#label> "A test object" .
+<info:fedora/fixture:deleted-datastream-1> <info:fedora/fedora-system:def/model#state> "Active" .

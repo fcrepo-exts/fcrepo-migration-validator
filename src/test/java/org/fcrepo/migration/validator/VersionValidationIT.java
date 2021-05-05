@@ -20,7 +20,6 @@ package org.fcrepo.migration.validator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.CREATION_DATE;
 import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadataValidation.LAST_MODIFIED_DATE;
-import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
@@ -70,9 +69,9 @@ public class VersionValidationIT extends AbstractValidationIT {
 
         // verify expected results
         final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(3)
+        assertThat(errors).hasSize(2)
                           .map(ValidationResult::getValidationType)
-                          .containsOnly(BINARY_VERSION_COUNT, BINARY_HEAD_COUNT,
+                          .containsOnly(BINARY_VERSION_COUNT,
                                         SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET);
     }
 

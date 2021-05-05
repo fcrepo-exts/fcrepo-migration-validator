@@ -1,0 +1,3 @@
+<info:fedora/fixture:deleted-datastream-1/AUDIT> <http://www.loc.gov/premis/rdf/v1#formatDesignation> "info:fedora/fedora-system:format/xml.fedora.audit" .
+<info:fedora/fixture:deleted-datastream-1/AUDIT> <http://fedora.info/definitions/1/0/access/objState> "A" .
+<info:fedora/fixture:deleted-datastream-1/AUDIT> <http://purl.org/dc/terms/title> "Audit Trail for this object" .

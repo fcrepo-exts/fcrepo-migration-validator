@@ -44,6 +44,7 @@ public class ValidationResult {
         OBJECT_READABLE,
         SOURCE_OBJECT_EXISTS_IN_TARGET,
         TARGET_OBJECT_EXISTS_IN_SOURCE,
+        SOURCE_OBJECT_RESOURCE_DELETED,
         SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET,
         TARGET_OBJECT_RESOURCE_EXISTS_IN_SOURCE,
         METADATA,
@@ -52,7 +53,7 @@ public class ValidationResult {
         BINARY_VERSION_COUNT,
         BINARY_HEAD_COUNT,
         BINARY_METADATA,
-        REPOSITORY_RESOURCE_COUNT;
+        REPOSITORY_RESOURCE_COUNT
     }
 
     private int index;

@@ -193,6 +193,7 @@ public class ApplicationConfigurationHelper {
 
     public ObjectValidationConfig getObjectValidationConfig() {
         return new ObjectValidationConfig(config.enableChecksums(),
+                                          config.isDeleteInactive(),
                                           config.validateHeadOnly(),
                                           config.getDigestAlgorithm());
     }

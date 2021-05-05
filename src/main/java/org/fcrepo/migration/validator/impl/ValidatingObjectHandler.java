@@ -22,6 +22,8 @@ import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
@@ -35,6 +37,7 @@ import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel;
 import org.fcrepo.migration.validator.api.ValidationResult.ValidationType;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
+import org.fcrepo.storage.ocfl.OcflVersionInfo;
 import org.fcrepo.storage.ocfl.ResourceHeaders;
 import org.fcrepo.storage.ocfl.exception.NotFoundException;
 import org.slf4j.Logger;
@@ -42,7 +45,6 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -62,6 +64,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -80,6 +83,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     private ObjectInfo objectInfo;
     private final boolean checksum;
+    private final boolean deleteInactive;
     private final boolean validateHeadOnly;
     private final OcflObjectSession ocflSession;
     private final List<ValidationResult> validationResults = new ArrayList<>();
@@ -88,22 +92,22 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final F6DigestAlgorithm digestAlgorithm;
 
     /**
-     * Properties which we should query n triples for
-     */
-    private static final Set<String> OCFL_CHECK_TRIPLE = Set.of(F3_OWNER_ID);
-
-    /**
      * Properties which migrated to OCFL headers
      */
-    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = new HashMap<>();
-
-    static {
-        OCFL_PROPERTY_RESOLVERS.put(F3_CREATED_DATE, headers -> headers.getCreatedDate().toString());
-        OCFL_PROPERTY_RESOLVERS.put(F3_LAST_MODIFIED_DATE, headers -> headers.getLastModifiedDate().toString());
-    }
+    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = Map.of(
+        F3_OWNER_ID, headers -> Optional.empty(),
+        F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),
+        F3_LAST_MODIFIED_DATE, headers -> Optional.of(headers.getLastModifiedDate().toString())
+    );
 
     private interface PropertyResolver<T> {
-        T resolve(ResourceHeaders headers);
+        Optional<T> resolve(ResourceHeaders headers);
+
+        static Optional<String> fromModel(final Model model, final String ocflId, final String property) {
+            return Optional.ofNullable(model.getProperty(model.createResource(ocflId), model.createProperty(property)))
+                           .map(Statement::getObject)
+                           .map(RDFNode::toString);
+        }
     }
 
     @Override
@@ -130,6 +134,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public ValidatingObjectHandler(final OcflObjectSession session, final ObjectValidationConfig config) {
         this.ocflSession = session;
         this.checksum = config.isChecksum();
+        this.deleteInactive = config.deleteInactive();
         this.digestAlgorithm = config.getDigestAlgorithm();
         this.validateHeadOnly = config.isValidateHeadOnly();
     }
@@ -170,50 +175,28 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         // check properties against what is stored in OCFL
+        final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
+        final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
+        final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
         final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
         objectProperties.listProperties().forEach(op -> {
             final var property = op.getName();
             final var sourceValue = op.getValue();
-            final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
-            final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
+            LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
 
-            findOcflValue(ocflId, property, model, headers).map(targetValue -> {
-                LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
-                if (sourceValue.equals(targetValue)) {
-                    return builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue));
-                }
-
-                return builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue));
-            }).ifPresent(validationResults::add);
+            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+            if (resolver != null) {
+                final var result = resolver.resolve(headers)
+                            .or(() -> PropertyResolver.fromModel(model, ocflId, property))
+                            .map(targetValue -> sourceValue.equals(targetValue) ?
+                                     builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue)) :
+                                     builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue)))
+                            .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
+                validationResults.add(result);
+            }
         });
 
         return true;
-    }
-
-    /**
-     * Try to resolve the value of a property in a F6 repository using either the OCFL_PROPERTY_RESOLVERS or a model
-     * which has previously been read in. If we do not have any way of resolving a property, just return an empty
-     * Optional so that we can skip any validation operations.
-     *
-     * @param ocflId
-     * @param property
-     * @param model
-     * @param headers
-     */
-    private Optional<String> findOcflValue(final String ocflId,
-                                           final String property,
-                                           final Model model,
-                                           final ResourceHeaders headers) {
-        Optional<String> targetVal = Optional.empty();
-        if (OCFL_PROPERTY_RESOLVERS.containsKey(property)) {
-            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
-            targetVal = Optional.of(resolver.resolve(headers));
-        } else if (OCFL_CHECK_TRIPLE.contains(property)) {
-            final var resolver = model.getProperty(model.createResource(ocflId), model.createProperty(property));
-            targetVal = Optional.of(resolver.getObject().toString());
-        }
-
-        return targetVal;
     }
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
@@ -223,31 +206,32 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var sourceResource = sourceObjectId + "/" + dsId;
         final var targetResource = targetObjectId + "/" + dsId;
         final var targetVersions = ocflSession.listVersions(targetResource);
+        final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource, targetResource,
+                                                        OBJECT_RESOURCE);
 
         var sourceVersionCount = 0;
+        var sourceDeletedCount = 0;
         String sourceCreated = null;
         for (final var dsVersion : dsVersions) {
+            final var dsInfo = dsVersion.getDatastreamInfo();
+
             // in f3 the created entry on the first version is what we want to check against for all ocfl versions
             if (sourceCreated == null) {
                 sourceCreated = dsVersion.getCreated();
             }
 
+            // setup the version info and check for deleted/head datastreams
+            // if head store the dataStreamId for future validations
+            String version = "version " + sourceVersionCount;
+            final var isHead = dsVersion.isLastVersionIn(objectReference);
+            if (isHead) {
+                version = "HEAD";
+                headDatastreamIds.add(dsId);
+            }
+
             try {
-                final var isHead = dsVersion.isLastVersionIn(objectReference);
-                final var ocflVersionInfo = targetVersions.get(sourceVersionCount);
+                final var ocflVersionInfo = targetVersions.get(sourceVersionCount + sourceDeletedCount);
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
-
-                String version = "version " + sourceVersionCount;
-                if (isHead) {
-                    version = "HEAD";
-                    final var dsInfo = dsVersion.getDatastreamInfo();
-                    if (!dsInfo.getState().equals("D")) {
-                        headDatastreamIds.add(dsId);
-                    }
-                }
-
-                final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource,
-                                                                targetResource, OBJECT_RESOURCE);
 
                 if (isHead || !validateHeadOnly) {
                     validateSize(dsVersion, headers, version, builder);
@@ -263,21 +247,47 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                                                            "source version=" + sourceVersionCount + "."));
             }
 
+            // check if we need to handle a delete as well
+            final var state = F3State.fromString(dsInfo.getState());
+            if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
+                sourceDeletedCount++;
+                headDatastreamIds.remove(dsId);
+                validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
+            }
+
             sourceVersionCount++;
         }
 
+        final var targetVersionCount = targetVersions.size() - sourceDeletedCount;
+        final var ok = sourceVersionCount == targetVersionCount;
+        var details = format("binary version counts match for resource: %s", sourceVersionCount);
+        if (!ok) {
+            details = format("binary version counts do not match: source=%d, target=%d", sourceVersionCount,
+                    targetVersionCount);
+        }
+        validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
+                BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
+    }
+
+    private void validateDeleted(final String resource,
+                                 final int sourceVersionCount,
+                                 final List<OcflVersionInfo> versions,
+                                 final ValidationResultBuilder builder) {
+        final var version = "version " + sourceVersionCount;
+        final var success = "%s is marked as deleted";
+        final var failure = "%s is not marked as deleted in Fedora 6 OCFL";
+        final var error = "Deleted object for %s does not exist in Fedora 6 OCFL";
         try {
-            final var targetVersionCount = targetVersions.size();
-            final var ok = sourceVersionCount == targetVersionCount;
-            var details = format("binary version counts match for resource: %s", sourceVersionCount);
-            if (!ok) {
-                details = format("binary version counts do not match: source=%d, target=%d", sourceVersionCount,
-                        targetVersionCount);
+            // ocfl creates a new version for deletes, so we need to get the next highest version
+            final var versionInfo = versions.get(sourceVersionCount + 1);
+            final var headers = ocflSession.readHeaders(resource, versionInfo.getVersionNumber());
+            if (headers.isDeleted()) {
+                validationResults.add(builder.ok(SOURCE_OBJECT_RESOURCE_DELETED, format(success, version)));
+            } else  {
+                validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_DELETED, format(failure, version)));
             }
-            validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
-                    BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
-        } catch (NotFoundException ex) {
-            // intentionally left blank: we check for existence above
+        } catch (NotFoundException | IndexOutOfBoundsException ex) {
+            validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_DELETED, format(error, version)));
         }
     }
 
@@ -310,7 +320,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 ByteStreams.copy(dsVersion.getContent(), Funnels.asOutputStream(hasher));
                 sourceHash = hasher.hash();
             } catch (IOException e) {
-                validationResults.add(builder.fail(BINARY_CHECKSUM, format(exception, version, e.toString())));
+                validationResults.add(builder.fail(BINARY_CHECKSUM, format(exception, version, e)));
                 return; // halt further validation
             }
 
@@ -383,10 +393,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     }
 
     private void completeObjectValidation() {
-        final var pid = this.objectInfo.getPid();
-        final var ocflId = this.ocflSession.ocflObjectId();
-        final var ocflResourceCount = ocflSession.streamResourceHeaders().filter(r -> r.getInteractionModel()
-                .equals("http://www.w3.org/ns/ldp#NonRDFSource")).count();
+        final var pid = objectInfo.getPid();
+        final var ocflId = ocflSession.ocflObjectId();
+        final var nonRdfSource = "http://www.w3.org/ns/ldp#NonRDFSource";
+        final var ocflResourceCount = ocflSession.streamResourceHeaders()
+                       .filter(r -> !r.isDeleted() && r.getInteractionModel().equals(nonRdfSource))
+                       .count();
         final String details;
         final var result = headDatastreamIds.size() == ocflResourceCount ? OK : FAIL;
         if (headDatastreamIds.size() == ocflResourceCount) {

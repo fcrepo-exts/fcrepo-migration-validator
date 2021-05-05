@@ -29,6 +29,7 @@ import java.io.File;
 public class Fedora3ValidationConfig extends ValidationConfig {
 
     private boolean checksum;
+    private boolean deleteInactive;
     private boolean validateHeadOnly;
     private boolean checkNumObjects;
     private F6DigestAlgorithm digestAlgorithm;
@@ -180,6 +181,18 @@ public class Fedora3ValidationConfig extends ValidationConfig {
      */
     public Fedora3ValidationConfig setCheckNumObjects(final boolean checkNumObjects) {
         this.checkNumObjects = checkNumObjects;
+        return this;
+    }
+
+    public boolean isDeleteInactive() {
+        return deleteInactive;
+    }
+
+    /**
+     * @param deleteInactive
+     */
+    public Fedora3ValidationConfig setDeleteInactive(final boolean deleteInactive) {
+        this.deleteInactive = deleteInactive;
         return this;
     }
 }
