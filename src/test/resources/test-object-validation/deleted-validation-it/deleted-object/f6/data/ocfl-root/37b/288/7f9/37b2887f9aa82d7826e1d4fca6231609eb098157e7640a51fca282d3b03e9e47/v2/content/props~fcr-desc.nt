@@ -1,0 +1,2 @@
+<info:fedora/fixture:deleted-datastream-1/props> <http://fedora.info/definitions/1/0/access/objState> "A"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/fixture:deleted-datastream-1/props> <http://purl.org/dc/terms/title> "label"^^<http://www.w3.org/2001/XMLSchema#string> .

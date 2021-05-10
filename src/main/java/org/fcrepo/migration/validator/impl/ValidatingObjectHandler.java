@@ -30,6 +30,7 @@ import org.fcrepo.migration.DatastreamVersion;
 import org.fcrepo.migration.FedoraObjectVersionHandler;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
+import org.fcrepo.migration.ObjectProperty;
 import org.fcrepo.migration.ObjectReference;
 import org.fcrepo.migration.ObjectVersionReference;
 import org.fcrepo.migration.validator.api.ObjectValidationConfig;
@@ -63,6 +64,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
@@ -77,10 +79,12 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
 
+    public static final String F3_STATE = "info:fedora/fedora-system:def/model#state";
     public static final String F3_CREATED_DATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String F3_OWNER_ID = "info:fedora/fedora-system:def/model#ownerId";
 
+    private F3State objectState;
     private ObjectInfo objectInfo;
     private final boolean checksum;
     private final boolean deleteInactive;
@@ -95,6 +99,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * Properties which migrated to OCFL headers
      */
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = Map.of(
+        F3_STATE, headers -> Optional.empty(),
         F3_OWNER_ID, headers -> Optional.empty(),
         F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),
         F3_LAST_MODIFIED_DATE, headers -> Optional.of(headers.getLastModifiedDate().toString())
@@ -174,29 +179,60 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             return false;
         }
 
-        // check properties against what is stored in OCFL
-        final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
-        final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
-        final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
-        final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
-        objectProperties.listProperties().forEach(op -> {
-            final var property = op.getName();
-            final var sourceValue = op.getValue();
-            LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
+        // set the object state
+        final var properties = objectProperties.listProperties();
+        final var stateProperty = properties.stream()
+                                            .filter(p -> p.getName().equals(F3_STATE))
+                                            .findFirst()
+                                            .orElseThrow(() -> new IllegalStateException("Could not find " + F3_STATE +
+                                                                                         "on object" + ocflId));
+        objectState = F3State.fromProperty(stateProperty);
 
-            final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
-            if (resolver != null) {
-                final var result = resolver.resolve(headers)
-                            .or(() -> PropertyResolver.fromModel(model, ocflId, property))
-                            .map(targetValue -> sourceValue.equals(targetValue) ?
-                                     builder.ok(METADATA, format(success, pid, property, sourceValue, targetValue)) :
-                                     builder.fail(METADATA, format(error, pid, property, sourceValue, targetValue)))
-                            .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
-                validationResults.add(result);
+        final var builder = new ValidationResultBuilder(pid, ocflId, null, null, OBJECT);
+        if (objectState.isDeleted(deleteInactive)) {
+            final var success = "pid: %s -> object deleted states match: source=%s, target=%s";
+            final var error = "pid: %s -> object deleted states do not match: source=%s, target=%s";
+
+            // if an object is deleted, only validate that the deleted flag is set
+            final ValidationResult deletedResult;
+            if (headers.isDeleted()) {
+                deletedResult = builder.ok(SOURCE_OBJECT_DELETED, format(success, pid, objectState, true));
+            } else {
+                deletedResult = builder.fail(SOURCE_OBJECT_DELETED, format(error, pid, objectState, false));
             }
-        });
+
+            validationResults.add(deletedResult);
+        } else {
+            properties.forEach(op -> validateObjectProperty(op, headers, model, builder));
+        }
 
         return true;
+    }
+
+    private void validateObjectProperty(final ObjectProperty op, final ResourceHeaders headers,
+                                       final Model model, final ValidationResultBuilder builder) {
+        final var pid = objectInfo.getPid();
+        final var ocflId = ocflSession.ocflObjectId();
+        final var property = op.getName();
+        final var sourceValue = op.getValue();
+
+        LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
+        final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
+        if (resolver != null) {
+            final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
+            final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
+            final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
+
+            // try to get the ocfl property from the headers first, otherwise fallback to reading the n-triples
+            final var result =
+                resolver.resolve(headers)
+                        .or(() -> PropertyResolver.fromModel(model, ocflId, property))
+                        .map(targetVal -> sourceValue.equals(targetVal) ?
+                                 builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal)) :
+                                 builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
+                        .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
+            validationResults.add(result);
+        }
     }
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
@@ -249,7 +285,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
             // check if we need to handle a delete as well
             final var state = F3State.fromString(dsInfo.getState());
-            if (state == F3State.DELETED || (deleteInactive && state == F3State.INACTIVE)) {
+            if (state.isDeleted(deleteInactive) || (isHead && objectState.isDeleted(deleteInactive))) {
                 sourceDeletedCount++;
                 headDatastreamIds.remove(dsId);
                 validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
