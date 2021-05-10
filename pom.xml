@@ -19,8 +19,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compiler.plugin.version>3.8.0</compiler.plugin.version>
         <fcrepo-build-tools.version>6.0.0-SNAPSHOT</fcrepo-build-tools.version>
-        <fcrepo-migration-utils.version>6.0.0-beta-1</fcrepo-migration-utils.version>
+        <fcrepo-migration-utils.version>6.0.0-SNAPSHOT</fcrepo-migration-utils.version>
         <fcrepo.storage.ocfl.version>6.0.0-beta-1</fcrepo.storage.ocfl.version>
+        <jena.version>3.17.0</jena.version>
         <ocfl-java.version>0.1.0</ocfl-java.version>
         <gpg.plugin.version>1.6</gpg.plugin.version>
         <jackson.version>2.11.1</jackson.version>
@@ -297,6 +298,18 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.30</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-core</artifactId>
+            <version>${jena.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jena</groupId>
+            <artifactId>jena-arq</artifactId>
+            <version>${jena.version}</version>
         </dependency>
 
         <!-- Test -->
