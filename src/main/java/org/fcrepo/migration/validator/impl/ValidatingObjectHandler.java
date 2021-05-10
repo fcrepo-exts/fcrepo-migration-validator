@@ -20,10 +20,13 @@ package org.fcrepo.migration.validator.impl;
 import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.RDFNode;
-import com.hp.hpl.jena.rdf.model.Statement;
+import edu.wisc.library.ocfl.api.OcflRepository;
+import edu.wisc.library.ocfl.api.model.ObjectVersionId;
+import edu.wisc.library.ocfl.api.model.OcflObjectVersion;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
@@ -45,6 +48,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -62,6 +66,7 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLeve
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_CHECKSUM;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_SIZE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_DELETED;
@@ -90,6 +95,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final boolean checksum;
     private final boolean deleteInactive;
     private final boolean validateHeadOnly;
+    private final Path ocflRoot;
+    private final OcflRepository repository;
     private final OcflObjectSession ocflSession;
     private final List<ValidationResult> validationResults = new ArrayList<>();
     private int indexCounter;
@@ -141,6 +148,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public ValidatingObjectHandler(final OcflObjectSession session, final ObjectValidationConfig config) {
         this.ocflSession = session;
         this.checksum = config.isChecksum();
+        this.ocflRoot = config.getOcflRoot();
+        this.repository = config.getOcflRepository();
         this.deleteInactive = config.deleteInactive();
         this.digestAlgorithm = config.getDigestAlgorithm();
         this.validateHeadOnly = config.isValidateHeadOnly();
@@ -269,10 +278,13 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
             try {
                 final var ocflVersionInfo = targetVersions.get(sourceVersionCount + sourceDeletedCount);
+                final var objectVersionId = ObjectVersionId.version(ocflVersionInfo.getOcflObjectId(),
+                                                                      ocflVersionInfo.getVersionNumber());
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
+                final var ocflObject = repository.getObject(objectVersionId);
 
                 if (isHead || !validateHeadOnly) {
-                    validateSize(dsVersion, headers, version, builder);
+                    validateSize(dsVersion, headers, ocflObject, version, builder);
                     validateCreatedDate(sourceCreated, headers, version, builder);
                     validateLastModified(dsVersion, headers, version, builder);
                     validateChecksum(dsVersion, headers, version, builder);
@@ -413,6 +425,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     }
 
     private void validateSize(final DatastreamVersion dsVersion, final ResourceHeaders headers,
+                              final OcflObjectVersion ocflObjectVersion,
                               final String version, final ValidationResultBuilder builder) {
         final var error = "%s binary size does not match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary size matches: %s";
@@ -427,6 +440,22 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             } else {
                 validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceSize, targetSize)));
             }
+
+            // compare file size from looking at the filesystem
+            final var sourceFile = dsVersion.getFile();
+            final var result = sourceFile.map(file -> {
+                final var sourceBytes = file.length();
+                final var ocflRelativePath = ocflObjectVersion.getFile(headers.getFilename()).getStorageRelativePath();
+                final var targetPath = ocflRoot.resolve(ocflRelativePath);
+                final var targetBytes = targetPath.toFile().length();
+                if (sourceBytes == targetBytes) {
+                    return builder.ok(BINARY_SIZE, format(success, version, sourceBytes));
+                } else {
+                    return builder.fail(BINARY_SIZE, format(error, version, sourceBytes, targetBytes));
+                }
+                // use proper not found string
+            }).orElse(builder.fail(BINARY_SIZE, format(error, version, "NOT FOUND", "NOT FOUND")));
+            validationResults.add(result);
         }
     }
 
