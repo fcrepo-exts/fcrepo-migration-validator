@@ -89,14 +89,9 @@ public class ObjectValidationIT extends AbstractValidationIT {
         // verify expected results
         final var errors = reportHandler.getErrors();
         assertThat(errors).hasSize(4)
-                          .anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
-                          .anyMatch(result -> result.getDetails().contains(F3_LABEL))
-                          .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
-                          .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE))
-                          .allSatisfy(result -> {
-                              assertThat(result.getValidationLevel()).isEqualTo(OBJECT);
-                              assertThat(result.getValidationType()).isEqualTo(METADATA);
-                          });
+                          .map(ObjectMetadataValidation::fromResult)
+                          .contains(ObjectMetadataValidation.LABEL, ObjectMetadataValidation.OWNER,
+                                    ObjectMetadataValidation.CREATED_DATE, ObjectMetadataValidation.LAST_MODIFIED_DATE);
     }
 
     @Test
