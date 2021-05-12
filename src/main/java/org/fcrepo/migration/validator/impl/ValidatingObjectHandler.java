@@ -443,7 +443,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                 validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceSize, targetSize)));
             }
 
-            // compare file size from looking at the filesystem
+            // compare file size by looking at the filesystem
             final var sourceFile = dsVersion.getFile();
             final var result = sourceFile.map(file -> {
                 final var ocflRelativePath = ocflObjectVersion.getFile(headers.getFilename()).getStorageRelativePath();
