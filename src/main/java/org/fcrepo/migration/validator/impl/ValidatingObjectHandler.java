@@ -221,7 +221,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     }
 
     private void validateObjectProperty(final ObjectProperty op, final ResourceHeaders headers,
-                                       final Model model, final ValidationResultBuilder builder) {
+                                        final Model model, final ValidationResultBuilder builder) {
         final var pid = objectInfo.getPid();
         final var ocflId = ocflSession.ocflObjectId();
         final var property = op.getName();
@@ -425,8 +425,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     }
 
     private void validateSize(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                              final OcflObjectVersion ocflObjectVersion,
-                              final String version, final ValidationResultBuilder builder) {
+                              final OcflObjectVersion ocflObjectVersion, final String version,
+                              final ValidationResultBuilder builder) {
         final var error = "%s binary size does not match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary size matches: %s";
 
