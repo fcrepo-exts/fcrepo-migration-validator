@@ -79,6 +79,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
 
+    public static final String F3_LABEL = "info:fedora/fedora-system:def/model#label";
     public static final String F3_STATE = "info:fedora/fedora-system:def/model#state";
     public static final String F3_CREATED_DATE = "info:fedora/fedora-system:def/model#createdDate";
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
@@ -99,6 +100,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * Properties which migrated to OCFL headers
      */
     private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = Map.of(
+        F3_LABEL, headers -> Optional.empty(),
         F3_STATE, headers -> Optional.empty(),
         F3_OWNER_ID, headers -> Optional.empty(),
         F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),

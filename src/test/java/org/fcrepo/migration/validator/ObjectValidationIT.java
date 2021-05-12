@@ -22,6 +22,7 @@ import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,9 +34,6 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
-import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_CREATED_DATE;
-import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_LAST_MODIFIED_DATE;
-import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_OWNER_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -61,9 +59,8 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // check that we have results for each of the f3 properties we look for
         final var metadataResults = resultsByType.get(METADATA);
-        assertThat(metadataResults).anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
-                                   .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
-                                   .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE));
+        assertThat(metadataResults).map(ObjectMetadataValidation::fromResult)
+                                   .containsAll(Arrays.asList(ObjectMetadataValidation.values()));
 
         // check datastream metadata
         // we have 7 datastreams overall -- 4 files and 3 inline
@@ -87,14 +84,10 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results
         final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(3)
-                          .anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
-                          .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
-                          .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE))
-                          .allSatisfy(result -> {
-                              assertThat(result.getValidationLevel()).isEqualTo(OBJECT);
-                              assertThat(result.getValidationType()).isEqualTo(METADATA);
-                          });
+        assertThat(errors).hasSize(4)
+                          .map(ObjectMetadataValidation::fromResult)
+                          .contains(ObjectMetadataValidation.LABEL, ObjectMetadataValidation.OWNER,
+                                    ObjectMetadataValidation.CREATED_DATE, ObjectMetadataValidation.LAST_MODIFIED_DATE);
     }
 
     @Test
