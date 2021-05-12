@@ -22,6 +22,7 @@ import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,9 +63,8 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // check that we have results for each of the f3 properties we look for
         final var metadataResults = resultsByType.get(METADATA);
-        assertThat(metadataResults).anyMatch(result -> result.getDetails().contains(F3_OWNER_ID))
-                                   .anyMatch(result -> result.getDetails().contains(F3_CREATED_DATE))
-                                   .anyMatch(result -> result.getDetails().contains(F3_LAST_MODIFIED_DATE));
+        assertThat(metadataResults).map(ObjectMetadataValidation::fromResult)
+                                   .containsAll(Arrays.asList(ObjectMetadataValidation.values()));
 
         // check datastream metadata
         // we have 7 datastreams overall -- 4 files and 3 inline
