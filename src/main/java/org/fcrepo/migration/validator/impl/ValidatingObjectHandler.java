@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -429,6 +430,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                               final ValidationResultBuilder builder) {
         final var error = "%s binary size does not match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary size matches: %s";
+        final var notFound = "%s %s file could not be found to check size!";
 
         final var dsInfo = dsVersion.getDatastreamInfo();
         final var controlGroup = F3ControlGroup.fromString(dsInfo.getControlGroup());
@@ -444,17 +446,19 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // compare file size from looking at the filesystem
             final var sourceFile = dsVersion.getFile();
             final var result = sourceFile.map(file -> {
-                final var sourceBytes = file.length();
                 final var ocflRelativePath = ocflObjectVersion.getFile(headers.getFilename()).getStorageRelativePath();
                 final var targetPath = ocflRoot.resolve(ocflRelativePath);
+                if (Files.notExists(targetPath)) {
+                    return builder.fail(BINARY_SIZE, format(notFound, version, "target"));
+                }
+
+                final var sourceBytes = file.length();
                 final var targetBytes = targetPath.toFile().length();
                 if (sourceBytes == targetBytes) {
                     return builder.ok(BINARY_SIZE, format(success, version, sourceBytes));
-                } else {
-                    return builder.fail(BINARY_SIZE, format(error, version, sourceBytes, targetBytes));
                 }
-                // use proper not found string
-            }).orElse(builder.fail(BINARY_SIZE, format(error, version, "NOT FOUND", "NOT FOUND")));
+                return builder.fail(BINARY_SIZE, format(error, version, sourceBytes, targetBytes));
+            }).orElse(builder.fail(BINARY_SIZE, format(notFound, version, "source")));
             validationResults.add(result);
         }
     }
