@@ -25,6 +25,7 @@ import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
+import org.fcrepo.migration.validator.impl.ValidatingObjectHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.After;
@@ -98,6 +99,35 @@ public abstract class AbstractValidationIT {
                 return CREATION_DATE;
             } else if (details.contains("size")) {
                 return SIZE;
+            }
+
+            throw new IllegalArgumentException("Unknown details type!");
+        }
+    }
+
+    /**
+     * Same as BinaryMetadataValidation but for Object metadata. Could probably be combined but keeping them distinct
+     * for now.
+     */
+    public enum ObjectMetadataValidation {
+        LABEL, OWNER, STATE, CREATED_DATE, LAST_MODIFIED_DATE;
+
+        public static ObjectMetadataValidation fromResult(final ValidationResult result) {
+            if (result.getValidationType() != ValidationResult.ValidationType.METADATA) {
+                throw new IllegalArgumentException("Enum type is only for BINARY_METADATA!");
+            }
+            final var details = result.getDetails();
+
+            if (details.contains(ValidatingObjectHandler.F3_LABEL)) {
+                return LABEL;
+            } else if (details.contains(ValidatingObjectHandler.F3_OWNER_ID)) {
+                return OWNER;
+            } else if (details.contains(ValidatingObjectHandler.F3_STATE)) {
+                return STATE;
+            } else if (details.contains(ValidatingObjectHandler.F3_CREATED_DATE)) {
+                return CREATED_DATE;
+            } else if (details.contains(ValidatingObjectHandler.F3_LAST_MODIFIED_DATE)) {
+                return LAST_MODIFIED_DATE;
             }
 
             throw new IllegalArgumentException("Unknown details type!");
