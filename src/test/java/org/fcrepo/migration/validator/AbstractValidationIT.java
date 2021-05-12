@@ -116,8 +116,8 @@ public abstract class AbstractValidationIT {
             if (result.getValidationType() != ValidationResult.ValidationType.METADATA) {
                 throw new IllegalArgumentException("Enum type is only for BINARY_METADATA!");
             }
-            final var details = result.getDetails();
 
+            final var details = result.getDetails();
             if (details.contains(ValidatingObjectHandler.F3_LABEL)) {
                 return LABEL;
             } else if (details.contains(ValidatingObjectHandler.F3_OWNER_ID)) {
