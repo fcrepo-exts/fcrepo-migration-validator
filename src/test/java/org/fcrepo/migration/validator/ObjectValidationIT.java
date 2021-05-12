@@ -34,10 +34,6 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
-import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_CREATED_DATE;
-import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_LABEL;
-import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_LAST_MODIFIED_DATE;
-import static org.fcrepo.migration.validator.impl.ValidatingObjectHandler.F3_OWNER_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
