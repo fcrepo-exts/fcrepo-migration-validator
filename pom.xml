@@ -160,33 +160,11 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                  <execution>
-                    <id>create-runnable-jar</id>
-                    <phase>package</phase>
-                    <goals>
-                      <goal>single</goal>
-                    </goals>
-                    <configuration>
-                      <descriptors>
-                        <descriptor>src/assembly/driver.xml</descriptor>
-                      </descriptors>
-                      <archive>
-                        <manifest>
-                          <mainClass>org.fcrepo.migration.validator.Driver</mainClass>
-                        </manifest>
-                      </archive>
-                    </configuration>
-                  </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.4</version>
                 <configuration>
+                    <finalName>${project.artifactId}-${project.version}-driver</finalName>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
