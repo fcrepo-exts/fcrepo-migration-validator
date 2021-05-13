@@ -419,8 +419,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
         // the last modified date in ocfl is derived from when a datastream was created
         // so we check equality of the two values
-        final var sourceValue = dsVersion.getCreated();
-        final var targetValue = headers.getLastModifiedDate().toString();
+        final var sourceValue = Instant.from(ISO_8601.parse(dsVersion.getCreated()));
+        final var targetValue = headers.getLastModifiedDate();
 
         if (sourceValue.equals(targetValue)) {
             validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceValue)));
@@ -434,8 +434,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var error = "%s binary creation dates do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary creation dates match: %s";
 
-        final var targetCreated = headers.getCreatedDate().toString();
-        if (sourceCreated.equals(targetCreated)) {
+        final var sourceInstant = Instant.from(ISO_8601.parse(sourceCreated));
+        final var targetCreated = headers.getCreatedDate();
+        if (sourceInstant.equals(targetCreated)) {
             validationResults.add(builder.ok(BINARY_METADATA, format(success, version, sourceCreated)));
         } else {
             validationResults.add(builder.fail(BINARY_METADATA, format(error, version, sourceCreated, targetCreated)));
