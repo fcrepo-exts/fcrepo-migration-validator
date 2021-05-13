@@ -50,6 +50,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -84,6 +86,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  */
 public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
+    private static final DateTimeFormatter ISO_8601 = DateTimeFormatter.ISO_INSTANT;
 
     public static final String F3_LABEL = "info:fedora/fedora-system:def/model#label";
     public static final String F3_STATE = "info:fedora/fedora-system:def/model#state";
@@ -107,21 +110,35 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     /**
      * Properties which migrated to OCFL headers
      */
-    private static final Map<String, PropertyResolver<String>> OCFL_PROPERTY_RESOLVERS = Map.of(
+    private static final Map<String, PropertyResolver> OCFL_PROPERTY_RESOLVERS = Map.of(
         F3_LABEL, headers -> Optional.empty(),
         F3_STATE, headers -> Optional.empty(),
         F3_OWNER_ID, headers -> Optional.empty(),
-        F3_CREATED_DATE, headers -> Optional.of(headers.getCreatedDate().toString()),
-        F3_LAST_MODIFIED_DATE, headers -> Optional.of(headers.getLastModifiedDate().toString())
+        F3_CREATED_DATE, (DateTimeResolver) headers -> Optional.of(headers.getCreatedDate().toString()),
+        F3_LAST_MODIFIED_DATE, (DateTimeResolver) headers -> Optional.of(headers.getLastModifiedDate().toString())
     );
 
-    private interface PropertyResolver<T> {
-        Optional<T> resolve(ResourceHeaders headers);
+    private interface PropertyResolver {
+        Optional<String> resolve(ResourceHeaders headers);
 
-        static Optional<String> fromModel(final Model model, final String ocflId, final String property) {
+        default boolean equals(final String source, final String target) {
+            return source.equals(target);
+        }
+
+        default Optional<String> fromModel(final Model model, final String ocflId, final String property) {
             return Optional.ofNullable(model.getProperty(model.createResource(ocflId), model.createProperty(property)))
                            .map(Statement::getObject)
                            .map(RDFNode::toString);
+        }
+    }
+
+    private interface DateTimeResolver extends PropertyResolver {
+        @Override
+        default boolean equals(final String source, final String target) {
+            // For DateTime comparisons we convert back to Instants as Strings might have differences in formatting
+            final var sourceDT = Instant.from(ISO_8601.parse(source));
+            final var targetDT = Instant.from(ISO_8601.parse(target));
+            return sourceDT.equals(targetDT);
         }
     }
 
@@ -238,8 +255,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // try to get the ocfl property from the headers first, otherwise fallback to reading the n-triples
             final var result =
                 resolver.resolve(headers)
-                        .or(() -> PropertyResolver.fromModel(model, ocflId, property))
-                        .map(targetVal -> sourceValue.equals(targetVal) ?
+                        .or(() -> resolver.fromModel(model, ocflId, property))
+                        .map(targetVal -> resolver.equals(sourceValue, targetVal) ?
                                  builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal)) :
                                  builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
                         .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
