@@ -128,6 +128,7 @@ public class Driver implements Callable<Integer> {
         config.setValidateHeadOnly(validateHeadOnly);
         config.setDigestAlgorithm(algorithm);
         config.setDatastreamsDirectory(f3DatastreamsDir);
+        config.setIndexDirectory(indexDir);
         config.setObjectsDirectory(f3ObjectsDir);
         config.setExportedDirectory(f3ExportedDir);
         config.setFedora3Hostname(f3hostname);
