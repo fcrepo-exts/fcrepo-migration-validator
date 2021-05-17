@@ -192,9 +192,11 @@ public class ApplicationConfigurationHelper {
     }
 
     public ObjectValidationConfig getObjectValidationConfig() {
-        return new ObjectValidationConfig(config.enableChecksums(),
+        return new ObjectValidationConfig(config.getOcflRepositoryRootDirectory(),
+                                          config.enableChecksums(),
                                           config.isDeleteInactive(),
                                           config.validateHeadOnly(),
+                                          repositorySupplier.get(),
                                           config.getDigestAlgorithm());
     }
 

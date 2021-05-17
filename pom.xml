@@ -19,7 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compiler.plugin.version>3.8.0</compiler.plugin.version>
         <fcrepo-build-tools.version>6.0.0-SNAPSHOT</fcrepo-build-tools.version>
-        <fcrepo-migration-utils.version>6.0.0-beta-1</fcrepo-migration-utils.version>
+        <fcrepo-migration-utils.version>6.0.0-SNAPSHOT</fcrepo-migration-utils.version>
         <fcrepo.storage.ocfl.version>6.0.0-beta-1</fcrepo.storage.ocfl.version>
         <ocfl-java.version>0.1.0</ocfl-java.version>
         <gpg.plugin.version>1.6</gpg.plugin.version>
@@ -32,6 +32,7 @@
         <scm-provider-gitexe.plugin.version>1.9.4</scm-provider-gitexe.plugin.version>
         <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
         <source.plugin.version>3.2.0</source.plugin.version>
+        <main.class>org.fcrepo.migration.validator.Driver</main.class>
     </properties>
 
     <scm>
@@ -158,26 +159,37 @@
                 </executions>
             </plugin>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.3.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <configuration>
+                    <finalName>${project.artifactId}-${project.version}-driver</finalName>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <manifestEntries>
+                                <Main-Class>${main.class}</Main-Class>
+                            </manifestEntries>
+                        </transformer>
+                    </transformers>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
                 <executions>
-                  <execution>
-                    <id>create-runnable-jar</id>
-                    <phase>package</phase>
-                    <goals>
-                      <goal>single</goal>
-                    </goals>
-                    <configuration>
-                      <descriptors>
-                        <descriptor>src/assembly/driver.xml</descriptor>
-                      </descriptors>
-                      <archive>
-                        <manifest>
-                          <mainClass>org.fcrepo.migration.validator.Driver</mainClass>
-                        </manifest>
-                      </archive>
-                    </configuration>
-                  </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>

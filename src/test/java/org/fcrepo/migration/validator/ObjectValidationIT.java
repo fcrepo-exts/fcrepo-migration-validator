@@ -32,6 +32,7 @@ import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadata
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_HEAD_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
+import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_SIZE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.junit.Assert.assertEquals;
@@ -62,7 +63,7 @@ public class ObjectValidationIT extends AbstractValidationIT {
         assertThat(metadataResults).map(ObjectMetadataValidation::fromResult)
                                    .containsAll(Arrays.asList(ObjectMetadataValidation.values()));
 
-        // check datastream metadata
+        // check datastream validations
         // we have 7 datastreams overall -- 4 files and 3 inline
         final var totalManaged = 4;
         final var totalDatastreams = 7;
@@ -73,6 +74,10 @@ public class ObjectValidationIT extends AbstractValidationIT {
         assertThat(binaryMetadata).filteredOn(validation -> validation == SIZE).hasSize(totalManaged);
         assertThat(binaryMetadata).filteredOn(validation -> validation == CREATION_DATE).hasSize(totalDatastreams);
         assertThat(binaryMetadata).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(totalDatastreams);
+
+        // check that each managed datastream also has a BINARY_SIZE validation
+        final var sizeValidations = resultsByType.get(BINARY_SIZE);
+        assertThat(sizeValidations).hasSize(totalManaged);
     }
 
     @Test

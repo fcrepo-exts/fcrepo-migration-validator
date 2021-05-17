@@ -17,6 +17,10 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import java.io.File;
+import java.nio.file.Path;
+
+import edu.wisc.library.ocfl.api.OcflRepository;
 import org.fcrepo.migration.validator.impl.F6DigestAlgorithm;
 
 /**
@@ -26,19 +30,29 @@ import org.fcrepo.migration.validator.impl.F6DigestAlgorithm;
  */
 public class ObjectValidationConfig {
 
+    private final Path ocflRoot;
     private final boolean checksum;
     private final boolean deleteInactive;
     private final boolean validateHeadOnly;
+    private final OcflRepository ocflRepository;
     private final F6DigestAlgorithm digestAlgorithm;
 
-    public ObjectValidationConfig(final boolean checksum,
+    public ObjectValidationConfig(final File ocflRoot,
+                                  final boolean checksum,
                                   final boolean deleteInactive,
                                   final boolean validateHeadOnly,
+                                  final OcflRepository ocflRepository,
                                   final F6DigestAlgorithm digestAlgorithm) {
+        this.ocflRoot = ocflRoot.toPath();
         this.checksum = checksum;
         this.deleteInactive = deleteInactive;
         this.validateHeadOnly = validateHeadOnly;
+        this.ocflRepository = ocflRepository;
         this.digestAlgorithm = digestAlgorithm;
+    }
+
+    public Path getOcflRoot() {
+        return ocflRoot;
     }
 
     public boolean isChecksum() {
@@ -51,6 +65,10 @@ public class ObjectValidationConfig {
 
     public boolean isValidateHeadOnly() {
         return validateHeadOnly;
+    }
+
+    public OcflRepository getOcflRepository() {
+        return ocflRepository;
     }
 
     public F6DigestAlgorithm getDigestAlgorithm() {
