@@ -79,7 +79,7 @@ public class Driver implements Callable<Integer> {
     private File resultsDirectory;
 
     @CommandLine.Option(names = {"--ocfl-root-dir", "-c"}, order = 8,
-            description = "The root directory of the Fedora OCFL.")
+            description = "The root directory of the Fedora OCFL.", required = true)
     private File ocflRootDirectory;
 
     @CommandLine.Option(names = {"--threads", "-t"}, order = 9,
