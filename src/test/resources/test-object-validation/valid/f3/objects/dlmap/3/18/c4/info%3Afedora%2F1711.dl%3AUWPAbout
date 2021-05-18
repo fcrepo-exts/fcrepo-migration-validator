@@ -11,7 +11,7 @@ xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/
 <foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2019-07-25T17:43:56.259Z"/>
 </foxml:objectProperties>
 <foxml:datastream ID="AUDIT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="false">
-<foxml:datastreamVersion ID="AUDIT.0" LABEL="Audit Trail for this object" CREATED="2019-07-01T17:12:45.311Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:format/xml.fedora.audit">
+<foxml:datastreamVersion ID="AUDIT.0" LABEL="Audit Trail for this object" CREATED="2019-07-01T17:12:45.000Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:format/xml.fedora.audit">
 <foxml:xmlContent>
 <audit:auditTrail xmlns:audit="info:fedora/fedora-system:def/audit#">
 <audit:record ID="AUDREC1">
@@ -35,7 +35,7 @@ xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="RELS-EXT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
-<foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" CREATED="2019-07-01T17:12:45.311Z" MIMETYPE="application/rdf+xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" SIZE="1031">
+<foxml:datastreamVersion ID="RELS-EXT.0" LABEL="RDF Statements about this object" CREATED="2019-07-01T17:12:45.000Z" MIMETYPE="application/rdf+xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSExt-1.0" SIZE="1031">
 <foxml:contentDigest TYPE="MD5" DIGEST=""/>
 <foxml:xmlContent>
 <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:fedora="info:fedora/fedora-system:def/relations-external#" xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:uwdc="http://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#">
@@ -50,13 +50,13 @@ xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="BIB0" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
-<foxml:datastreamVersion ID="BIB0.0" LABEL="MODS Record for this object" CREATED="2019-07-01T17:12:45.311Z" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3" SIZE="4049">
+<foxml:datastreamVersion ID="BIB0.0" LABEL="MODS Record for this object" CREATED="2019-07-01T17:12:45.000Z" MIMETYPE="text/xml" FORMAT_URI="http://www.loc.gov/mods/v3" SIZE="4049">
 <foxml:contentDigest TYPE="MD5" DIGEST=""/>
 <foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:UWPAbout+BIB0+BIB0.0"/>
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="DC" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
-<foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" CREATED="2019-07-01T17:12:45.311Z" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/" SIZE="395">
+<foxml:datastreamVersion ID="DC.0" LABEL="Dublin Core Record for this object" CREATED="2019-07-01T17:12:45.000Z" MIMETYPE="text/xml" FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/" SIZE="395">
 <foxml:contentDigest TYPE="MD5" DIGEST=""/>
 <foxml:xmlContent>
 <oai_dc:dc xmlns:oai_dc="http://www.openarchives.org/OAI/2.0/oai_dc/"
@@ -70,19 +70,19 @@ xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.opena
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="ADMINMD" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
-<foxml:datastreamVersion ID="ADMINMD.0" LABEL="Administrative metadata for this object" CREATED="2019-07-01T17:12:45.311Z" MIMETYPE="text/xml" SIZE="5101">
+<foxml:datastreamVersion ID="ADMINMD.0" LABEL="Administrative metadata for this object" CREATED="2019-07-01T17:12:45.000Z" MIMETYPE="text/xml" SIZE="5101">
 <foxml:contentDigest TYPE="MD5" DIGEST=""/>
 <foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:UWPAbout+ADMINMD+ADMINMD.0"/>
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="THUMB" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
-<foxml:datastreamVersion ID="THUMB.0" LABEL="History of UW–Platteville (thumbnail)" CREATED="2019-07-01T17:12:45.311Z" MIMETYPE="image/jpeg" SIZE="58476">
+<foxml:datastreamVersion ID="THUMB.0" LABEL="History of UW–Platteville (thumbnail)" CREATED="2019-07-01T17:12:45.000Z" MIMETYPE="image/jpeg" SIZE="58476">
 <foxml:contentDigest TYPE="MD5" DIGEST=""/>
 <foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:UWPAbout+THUMB+THUMB.0"/>
 </foxml:datastreamVersion>
 </foxml:datastream>
 <foxml:datastream ID="REF" STATE="A" CONTROL_GROUP="M" VERSIONABLE="true">
-<foxml:datastreamVersion ID="REF.0" LABEL="History of UW–Platteville (reference)" CREATED="2019-07-01T17:12:45.311Z" MIMETYPE="image/jpeg" SIZE="238194">
+<foxml:datastreamVersion ID="REF.0" LABEL="History of UW–Platteville (reference)" CREATED="2019-07-01T17:12:45.000Z" MIMETYPE="image/jpeg" SIZE="238194">
 <foxml:contentDigest TYPE="MD5" DIGEST=""/>
 <foxml:contentLocation TYPE="INTERNAL_ID" REF="1711.dl:UWPAbout+REF+REF.0"/>
 </foxml:datastreamVersion>
