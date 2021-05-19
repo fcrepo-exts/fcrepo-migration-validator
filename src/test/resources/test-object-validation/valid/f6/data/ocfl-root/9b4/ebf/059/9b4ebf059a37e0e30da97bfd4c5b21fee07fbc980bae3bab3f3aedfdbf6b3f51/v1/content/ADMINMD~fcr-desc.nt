@@ -1,2 +1,2 @@
-<info:fedora/1711.dl:UWPAbout/ADMINMD> <http://fedora.info/definitions/1/0/access/objState> "A" .
-<info:fedora/1711.dl:UWPAbout/ADMINMD> <http://purl.org/dc/terms/title> "Administrative metadata for this object" .
+<info:fedora/1711.dl:UWPAbout/ADMINMD> <http://fedora.info/definitions/1/0/access/objState> "A"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:UWPAbout/ADMINMD> <http://purl.org/dc/terms/title> "Administrative metadata for this object"^^<http://www.w3.org/2001/XMLSchema#string> .
