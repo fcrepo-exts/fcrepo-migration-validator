@@ -60,12 +60,8 @@ public class HtmlReportHandler implements ReportHandler {
 
         // Setup FreeMarker template
         this.config = new Configuration(VERSION_2_3_30);
-        try {
-            this.outputDir.mkdirs();
-            config.setDirectoryForTemplateLoading(new File("src/main/resources/templates"));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        this.outputDir.mkdirs();
+        config.setClassLoaderForTemplateLoading(this.getClass().getClassLoader(), "/templates");
 
         // These configuration items are set per the FreeMarker guidance:
         // https://freemarker.apache.org/docs/pgui_quickstart_createconfiguration.html
