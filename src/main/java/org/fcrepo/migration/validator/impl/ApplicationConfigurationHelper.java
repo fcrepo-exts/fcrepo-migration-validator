@@ -20,6 +20,7 @@ package org.fcrepo.migration.validator.impl;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import edu.wisc.library.ocfl.api.MutableOcflRepository;
@@ -40,11 +41,12 @@ import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.storage.ocfl.CommitType;
 import org.fcrepo.storage.ocfl.DefaultOcflObjectSessionFactory;
 import org.fcrepo.storage.ocfl.OcflObjectSessionFactory;
-import org.fcrepo.storage.ocfl.cache.NoOpCache;
+import org.fcrepo.storage.ocfl.cache.CaffeineCache;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -157,11 +159,22 @@ public class ApplicationConfigurationHelper {
         final var objectMapper = new ObjectMapper().configure(WRITE_DATES_AS_TIMESTAMPS, false)
                 .registerModule(new JavaTimeModule())
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        final var headersCache = Caffeine.newBuilder()
+                .maximumSize(512)
+                .expireAfterAccess(Duration.ofMinutes(10))
+                .build();
+
+        final var rootIdCache = Caffeine.newBuilder()
+                .maximumSize(512)
+                .expireAfterAccess(Duration.ofMinutes(10))
+                .build();
         // https://jira.lyrasis.org/browse/FCREPO-3632:
         return new DefaultOcflObjectSessionFactory(repositorySupplier.get(),
                 workDirectory,
                 objectMapper,
-                new NoOpCache<>(),
+                new CaffeineCache<>(headersCache),
+                new CaffeineCache<>(rootIdCache),
                 CommitType.UNVERSIONED,
                 "Authored by Fedora 6",
                 "fedoraAdmin",
