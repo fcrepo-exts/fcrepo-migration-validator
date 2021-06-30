@@ -9,7 +9,7 @@ A command-line tool for validating migrations of Fedora 3 datasets to Fedora 6.
 General usage is as follows:
 
 ```bash
-java -jar target/fcrepo-migration-validator-0.1.0-SNAPSHOT-driver.jar [cli options | --help]
+java -jar target/fcrepo-migration-validator-<version>-driver.jar [cli options | --help]
 ```
 
 _Note: the migration validator requires Java 11+ to run_
