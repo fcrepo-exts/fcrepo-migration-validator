@@ -17,6 +17,9 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -58,5 +61,13 @@ public class ObjectReportSummary {
     @JsonIgnore
     public String getReportFilename() {
         return reportFilename;
+    }
+
+    /**
+     * @return the encoded href for the html report
+     */
+    @JsonIgnore
+    public String getReportHref() {
+        return URLEncoder.encode(reportFilename, StandardCharsets.UTF_8);
     }
 }
