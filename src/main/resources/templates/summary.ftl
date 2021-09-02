@@ -64,7 +64,7 @@
     <h2>Objects with errors</h2>
     <ol>
       <#list errors as x>
-      <li><a href='${x.reportFilename}'>${x.reportFilename}</a></li>
+      <li><a href='${x.reportHref}'>${x.reportFilename}</a></li>
       </#list>
     </ol>
   </div>
@@ -74,7 +74,7 @@
     <h2>Object result details</h2>
     <ol>
       <#list objects as x>
-      <li><a href='${x.reportFilename}'>${x.reportFilename}</a></li>
+      <li><a href='${x.reportHref}'>${x.reportFilename}</a></li>
       </#list>
     </ol>
   </div>
