@@ -28,7 +28,6 @@ import org.fcrepo.migration.validator.api.ValidationResultsSummary;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -98,11 +97,10 @@ public class HtmlReportHandler implements ReportHandler {
         data.put("errors", errors);
         data.put("errorCount", errors.size());
 
-        try {
+        final var file = new File(outputDir, filename);
+        file.getParentFile().mkdirs();
+        try (final var writer = new FileWriter(file)) {
             final Template template = config.getTemplate("object.ftl");
-            final var file = new File(outputDir, filename);
-            file.getParentFile().mkdirs();
-            final Writer writer = new FileWriter(file);
             template.process(data, writer);
         } catch (final IOException | TemplateException e) {
             throw new RuntimeException(e);
@@ -115,11 +113,9 @@ public class HtmlReportHandler implements ReportHandler {
     public String repositoryLevelReport(final ObjectValidationResults objectValidationResults) {
         final String filename = "repository.html";
 
-        try {
+        final var file = new File(outputDir, filename);
+        try (final var writer = new FileWriter(file)) {
             final Template template = config.getTemplate("repository.ftl");
-            final var file = new File(outputDir, filename);
-            file.getParentFile().mkdirs();
-            final Writer writer = new FileWriter(file);
             template.process(null, writer);
         } catch (final IOException | TemplateException e) {
             throw new RuntimeException(e);
@@ -156,9 +152,9 @@ public class HtmlReportHandler implements ReportHandler {
         data.put("errors", errors);
         data.put("errorCount", errors.size());
 
-        try {
+        final var file = new File(outputDir, reportFilename);
+        try (final var writer = new FileWriter(file)) {
             final Template template = config.getTemplate("summary.ftl");
-            final Writer writer = new FileWriter(new File(outputDir, reportFilename));
             template.process(data, writer);
         } catch (final IOException | TemplateException e) {
             throw new RuntimeException(e);
