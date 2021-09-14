@@ -64,6 +64,7 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
 
         try {
             object.processObject(new ObjectAbstractionStreamingFedoraObjectHandler(handler));
+            object.close();
             return handler.getValidationResults();
         } catch (Exception ex) {
             LOGGER.error("Source object {} could not be read due to: {}", objectInfo.getPid(), ex.getMessage(), ex);
