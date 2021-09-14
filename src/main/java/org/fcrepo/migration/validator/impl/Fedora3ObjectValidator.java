@@ -62,9 +62,8 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
         final var ocflSession = this.factory.newSession(fedoraId);
         final var handler = new ValidatingObjectHandler(ocflSession, objectValidationConfig);
 
-        try {
+        try (object) {
             object.processObject(new ObjectAbstractionStreamingFedoraObjectHandler(handler));
-            object.close();
             return handler.getValidationResults();
         } catch (Exception ex) {
             LOGGER.error("Source object {} could not be read due to: {}", objectInfo.getPid(), ex.getMessage(), ex);
