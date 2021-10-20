@@ -27,6 +27,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
@@ -53,6 +54,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -94,6 +96,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String F3_OWNER_ID = "info:fedora/fedora-system:def/model#ownerId";
 
+    private static final String RELS_INT = "RELS-INT";
+    private static final String DOWNLOAD_NAME_PROP = "info:fedora/fedora-system:def/model#downloadFilename";
+
     private F3State objectState;
     private ObjectInfo objectInfo;
     private final boolean checksum;
@@ -106,6 +111,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private int indexCounter;
     private final Set<String> headDatastreamIds = new HashSet<>();
     private final F6DigestAlgorithm digestAlgorithm;
+
+    // track changes from RELS-INT
+    private final Map<String, String> filenameMap;
 
     /**
      * Properties which migrated to OCFL headers
@@ -171,6 +179,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         this.deleteInactive = config.deleteInactive();
         this.digestAlgorithm = config.getDigestAlgorithm();
         this.validateHeadOnly = config.isValidateHeadOnly();
+        this.filenameMap = new HashMap<>();
     }
 
     /**
@@ -274,6 +283,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource, targetResource,
                                                         OBJECT_RESOURCE);
 
+        var softVersion = false;
         var sourceVersionCount = 0;
         var sourceDeletedCount = 0;
         String sourceCreated = null;
@@ -283,6 +293,21 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // in f3 the created entry on the first version is what we want to check against for all ocfl versions
             if (sourceCreated == null) {
                 sourceCreated = dsVersion.getCreated();
+            }
+
+            // for RELS-INT datastreams, we need to check for silent versions where metadata associated with a
+            // datastream is updated
+            if (RELS_INT.equals(dsId)) {
+                final var rdf = parseRdf(dsVersion);
+                final var models = splitRelsInt(rdf);
+                models.forEach((id, model) -> {
+                    model.listStatements().forEach(statement -> {
+                        if (DOWNLOAD_NAME_PROP.equals(statement.getPredicate().getURI())) {
+                            LOGGER.debug("[{}] has download prop for {}", sourceObjectId, id);
+                            filenameMap.put(id, statement.getObject().toString());
+                        }
+                    });
+                });
             }
 
             // setup the version info and check for deleted/head datastreams
@@ -306,6 +331,16 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     validateCreatedDate(sourceCreated, headers, version, builder);
                     validateLastModified(dsVersion, headers, version, builder);
                     validateChecksum(dsVersion, headers, version, builder);
+                }
+
+                // we should only need to check for soft versions once... hopefully
+                if (!softVersion &&
+                    filenameMap.containsKey(sourceResource) &&
+                    !headers.getFilename().equals(filenameMap.get(sourceResource))) {
+                    LOGGER.info("[{}] Detected soft version for {} ({}/{})", sourceObjectId, sourceResource,
+                                filenameMap.get(sourceResource), headers.getFilename());
+                    softVersion = true;
+                    sourceVersionCount++;
                 }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
@@ -335,6 +370,28 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
         validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
                 BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
+    }
+
+    private Model parseRdf(final DatastreamVersion dv) {
+        final var model = ModelFactory.createDefaultModel();
+        try (var is = dv.getContent()) {
+            RDFDataMgr.read(model, is, Lang.RDFXML);
+            return model;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse RDF XML", e);
+        }
+    }
+
+    private Map<String, Model> splitRelsInt(final Model relsIntModel) {
+        final Map<String, Model> splitModels = new HashMap<>();
+        for (final var it = relsIntModel.listStatements(); it.hasNext();) {
+            final var statement = it.next();
+            final var uri = statement.getSubject().getURI();
+            final var id = uri.startsWith("info:fedora/") ? uri.substring(12) : uri;
+            final var model = splitModels.computeIfAbsent(id, k -> ModelFactory.createDefaultModel());
+            model.add(statement);
+        }
+        return splitModels;
     }
 
     private void validateDeleted(final String resource,
@@ -372,8 +429,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * @param version the version number
      * @param builder helper for building ValidationResults
      */
-    private void validateChecksum(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                                  final String version, final ValidationResultBuilder builder) {
+    private void validateChecksum(final DatastreamVersion dsVersion,
+                                  final ResourceHeaders headers,
+                                  final String version,
+                                  final ValidationResultBuilder builder) {
         final var success = "%s binary checksums match: %s";
         final var error = "%s binary checksums do no match: sourceValue=%s, targetValue=%s";
         final var notFound = "%s binary checksum not found in Fedora 6 headers";
@@ -412,8 +471,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
-    private void validateLastModified(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                                      final String version, final ValidationResultBuilder builder) {
+    private void validateLastModified(final DatastreamVersion dsVersion,
+                                      final ResourceHeaders headers,
+                                      final String version,
+                                      final ValidationResultBuilder builder) {
         final var error = "%s binary last modified dates do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary last modified dates match: %s";
 
@@ -429,8 +490,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
-    private void validateCreatedDate(final String sourceCreated, final ResourceHeaders headers,
-                                     final String version, final ValidationResultBuilder builder) {
+    private void validateCreatedDate(final String sourceCreated,
+                                     final ResourceHeaders headers,
+                                     final String version,
+                                     final ValidationResultBuilder builder) {
         final var error = "%s binary creation dates do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary creation dates match: %s";
 
@@ -443,8 +506,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
-    private void validateSize(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                              final OcflObjectVersion ocflObjectVersion, final String version,
+    private void validateSize(final DatastreamVersion dsVersion,
+                              final ResourceHeaders headers,
+                              final OcflObjectVersion ocflObjectVersion,
+                              final String version,
                               final ValidationResultBuilder builder) {
         final var error = "%s binary size does not match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary size matches: %s";
@@ -464,7 +529,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // compare file size by looking at the filesystem
             final var sourceFile = dsVersion.getFile();
             final var result = sourceFile.map(file -> {
-                final var ocflRelativePath = ocflObjectVersion.getFile(headers.getFilename()).getStorageRelativePath();
+                final var ocflRelativePath = ocflObjectVersion.getFile(headers.getContentPath())
+                                                              .getStorageRelativePath();
                 final var targetPath = ocflRoot.resolve(ocflRelativePath);
                 if (Files.notExists(targetPath)) {
                     return builder.fail(BINARY_SIZE, format(notFound, version, "target"));
