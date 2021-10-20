@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This class is responsible for coordinating and managing the lifecycle of the classes involved in a validation run.
@@ -41,13 +41,12 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
 
+    private final Semaphore semaphore;
     private final ExecutorService executorService;
     private final OcflObjectSessionFactory ocflObjectSessionFactory;
     private final ValidationResultWriter writer;
     private final ObjectSource source;
     private final Set<String> objectsToValidate;
-    private final AtomicLong count;
-    private final Object lock;
     private final ObjectValidationConfig objectValidationConfig;
     private final ApplicationConfigurationHelper config;
 
@@ -62,8 +61,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         this.objectsToValidate = config.readObjectsToValidate();
         this.ocflObjectSessionFactory = config.ocflObjectSessionFactory();
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
-        this.count = new AtomicLong(0);
-        this.lock = new Object();
+        this.semaphore = new Semaphore(config.getThreadCount());
         this.objectValidationConfig = config.getObjectValidationConfig();
     }
 
@@ -72,8 +70,11 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         try {
             // track count of objects processed for final f3 to ocfl validation
             long numObjects = 0;
+
+            // When iterating, we block on the semaphore as creating a new ObjectProcessor will open a file handle
             for (final var objectProcessor : source) {
                 numObjects++;
+                semaphore.acquire();
                 final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
                 if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
                     final var task = new F3ObjectValidationTaskBuilder().processor(objectProcessor)
@@ -88,6 +89,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
             final var repository = config.ocflRepository();
             final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty();
             final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, numObjects, repository, writer);
+            semaphore.acquire();
             submit(repositoryTask);
 
             awaitCompletion();
@@ -110,33 +112,19 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                 //https://jira.lyrasis.org/browse/FCREPO-3633
                 LOGGER.error("validation task failed {}", ex.getMessage(), ex);
             } finally {
-                count.decrementAndGet();
-                synchronized (lock) {
-                    lock.notifyAll();
-                }
+                semaphore.release();
             }
         });
-
-        count.incrementAndGet();
     }
 
 
     /**
-     * Blocks until all migration tasks are complete. Note, this does not prevent additional tasks from being submitted.
-     * It simply waits until the queue is empty.
+     * Blocks until all migration tasks are complete.
      *
      * @throws InterruptedException on interrupt
      */
     private void awaitCompletion() throws InterruptedException {
-        if (count.get() == 0) {
-            return;
-        }
-
-        synchronized (lock) {
-            while (count.get() > 0) {
-                lock.wait();
-            }
-        }
+        semaphore.acquire(config.getThreadCount());
     }
 
     /**
