@@ -464,7 +464,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // compare file size by looking at the filesystem
             final var sourceFile = dsVersion.getFile();
             final var result = sourceFile.map(file -> {
-                final var ocflRelativePath = ocflObjectVersion.getFile(headers.getFilename()).getStorageRelativePath();
+                final var ocflRelativePath = ocflObjectVersion.getFile(headers.getContentPath())
+                                                              .getStorageRelativePath();
                 final var targetPath = ocflRoot.resolve(ocflRelativePath);
                 if (Files.notExists(targetPath)) {
                     return builder.fail(BINARY_SIZE, format(notFound, version, "target"));
