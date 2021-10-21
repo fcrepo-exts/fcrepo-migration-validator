@@ -96,9 +96,9 @@ xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai_dc/ http://www.opena
 </foxml:datastream>
 <foxml:datastream ID="RELS-INT" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
 <foxml:datastreamVersion ID="RELS-INT.0" LABEL="RDF Statements about this object" CREATED="2019-07-08T18:48:47.030Z" MIMETYPE="application/rdf+xml" SIZE="1617">
-<foxml:contentDigest TYPE="MD5" DIGEST="f0a403b43e20beb102eef1918489a46b"/>
+<foxml:contentDigest TYPE="MD5" DIGEST="051a79e42c9626b153ec54f0195d801b"/>
 <foxml:xmlContent>
-<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:uwdc="https://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.w3.org/1999/02/22-rdf-syntax-ns# http://www.w3.org/2000/07/rdf.xsd">
+<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:uwdc="https://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#">
           <rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/MASTER0">
             <uwdc:hasTechnicalMetadata rdf:resource="info:fedora/1711.dl:FEG6WWJ664RHQ8X/TECH0"></uwdc:hasTechnicalMetadata>
           </rdf:Description>
