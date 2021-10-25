@@ -374,11 +374,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     validateChecksum(dsVersion, headers, version, builder);
                 }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
-                validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
-                                                           SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
-                                                           targetObjectId, sourceResource, targetResource,
-                                                           "Source object resource does not exist in target for " +
-                                                           "source version=" + currentVersion + "."));
+                final var error = "Source object resource does not exist in target for source version=%d";
+                validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET,
+                                                   format(error, currentVersion)));
             }
 
             // check if we need to handle a delete as well
@@ -392,17 +390,17 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             sourceVersionCount++;
         }
 
+        final var versionSuccess = "binary version counts match for resource: source=%d, RELS-INT=%d, target=%d";
+        final var versionFailure = "binary version counts do not match for resource: source=%d, RELS-INT=%d, target=%d";
         final var f3VersionCount = sourceVersionCount + softVersionCount;
         final var targetVersionCount = targetVersions.size() - sourceDeletedCount;
-        final var ok = f3VersionCount == targetVersionCount;
-        var details = format("binary version counts match for resource: source=%d, source RELS-INT:%d, target=%d",
-                             sourceVersionCount, softVersionCount, targetVersionCount);
-        if (!ok) {
-            details = format("binary version counts do not match: source=%d, source RELS-INT=%d, target=%d",
-                             sourceVersionCount, softVersionCount, targetVersionCount);
+        if (f3VersionCount == targetVersionCount) {
+            final var details = format(versionSuccess, sourceVersionCount, softVersionCount, targetVersionCount);
+            validationResults.add(builder.ok(BINARY_VERSION_COUNT, details));
+        } else {
+            final var details = format(versionFailure, sourceVersionCount, softVersionCount, targetVersionCount);
+            validationResults.add(builder.fail(BINARY_VERSION_COUNT, details));
         }
-        validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
-                BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
     }
 
     private int searchSoftVersions(final String sourceResource,
@@ -437,11 +435,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     }
 
     private Map<String, Model> splitRelsInt(final Model relsIntModel) {
+        final var infoFedora = "info:fedora/";
         final Map<String, Model> splitModels = new HashMap<>();
         for (final var it = relsIntModel.listStatements(); it.hasNext();) {
             final var statement = it.next();
             final var uri = statement.getSubject().getURI();
-            final var id = uri.startsWith("info:fedora/") ? uri.substring(12) : uri;
+            final var id = uri.startsWith(infoFedora) ? uri.substring(infoFedora.length()) : uri;
             final var model = splitModels.computeIfAbsent(id, k -> ModelFactory.createDefaultModel());
             model.add(statement);
         }
