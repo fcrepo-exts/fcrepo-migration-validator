@@ -1,3 +1,4 @@
+<info:fedora/1711.dl:FEG6WWJ664RHQ8X/DS1> <info:fedora/fedora-system:def/model#downloadFilename> "datastream.xml"^^<http://www.w3.org/2001/XMLSchema#string> .
 <info:fedora/1711.dl:FEG6WWJ664RHQ8X/DS1> <http://purl.org/dc/terms/title> "Example inline XML datastream"^^<http://www.w3.org/2001/XMLSchema#string> .
 <info:fedora/1711.dl:FEG6WWJ664RHQ8X/DS1> <http://fedora.info/definitions/1/0/access/objState> "A"^^<http://www.w3.org/2001/XMLSchema#string> .
 <info:fedora/1711.dl:FEG6WWJ664RHQ8X/DS1> <http://www.loc.gov/premis/rdf/v1#formatDesignation> "format:uri"^^<http://www.w3.org/2001/XMLSchema#string> .
