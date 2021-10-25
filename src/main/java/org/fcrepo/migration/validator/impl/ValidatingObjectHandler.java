@@ -175,7 +175,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var pid = objectInfo.getPid();
 
         final var filenameMap = new HashMap<String, String>();
-        final var dsVersions = objectReference.getDatastreamVersions(RELS_INT);
+        final var dsVersions = Optional.ofNullable(objectReference.getDatastreamVersions(RELS_INT))
+                                       .orElse(List.of());
 
         for (final var dsVersion : dsVersions) {
             final var rdf = parseRdf(dsVersion);
