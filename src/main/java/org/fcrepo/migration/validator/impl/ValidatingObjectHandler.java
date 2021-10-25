@@ -99,6 +99,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
 
     private static final String RELS_INT = "RELS-INT";
     private static final String DOWNLOAD_NAME_PROP = "info:fedora/fedora-system:def/model#downloadFilename";
+    private static final String RELS_DELETED_ENTRY = "FCREPO_MIGRATION_VALIDATOR_DELETED_ENTRY";
 
     private F3State objectState;
     private ObjectInfo objectInfo;
@@ -114,8 +115,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private final F6DigestAlgorithm digestAlgorithm;
 
     // track changes from RELS-INT
-    private final Map<String, String> filenameMap;
-    private final Map<String, List<String>> storedMap = new HashMap<>();
+    private final Map<String, List<String>> relsFilenames = new HashMap<>();
 
     /**
      * Properties which migrated to OCFL headers
@@ -161,7 +161,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final ObjectReference objectReference = referenceIterator.next().getObject();
             LOGGER.debug("beginning processing on object: pid={}", objectInfo);
             if (initialObjectValidation(objectReference.getObjectProperties())) {
-                preprocessRelsInt(RELS_INT, objectReference);
+                preprocessRelsInt(objectReference);
                 objectReference.listDatastreamIds().forEach(dsId -> validateDatastream(dsId, objectReference));
                 completeObjectValidation();
             }
@@ -171,16 +171,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     /**
      * Process the RELS-INT for any updates to datastreams which we need to track later
      */
-    private void preprocessRelsInt(final String dsId, final ObjectReference objectReference) {
+    private void preprocessRelsInt(final ObjectReference objectReference) {
         final var pid = objectInfo.getPid();
 
         final var filenameMap = new HashMap<String, String>();
-        final var dsVersions = objectReference.getDatastreamVersions(dsId);
+        final var dsVersions = objectReference.getDatastreamVersions(RELS_INT);
 
-        // maybe what needs to happen here is we iterate through each datastream and compare the download filename to
-        // what the expected filename of the f6 binary should be... kind of a lot of work but doable... otherwise
-        // could store all n number of downloadFilenames for each datastream and iterate through each fedora 6 version
-        // it might make more sense.
         for (final var dsVersion : dsVersions) {
             final var rdf = parseRdf(dsVersion);
             final var models = splitRelsInt(rdf);
@@ -188,13 +184,15 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final var oldIds = new HashSet<>(filenameMap.keySet());
             filenameMap.clear();
 
+            // Pretty much the same as ArchiveGroupHandler - check for the downloadFilename triple in RELS-INT
+            // and keep a running list of changes/deletes
             models.forEach((id, model) -> {
                 model.listStatements().forEach(statement -> {
                     if (DOWNLOAD_NAME_PROP.equals(statement.getPredicate().getURI())) {
-                        LOGGER.info("[{}] has download prop for {}", pid, id);
+                        LOGGER.trace("{} has download prop for {}", pid, id);
                         final var filename = statement.getObject().toString();
-                        final var prevFilenames = // all this to get a mutable list... lol
-                            storedMap.computeIfAbsent(id, ignored -> new ArrayList<>(List.of(filename))                                                                           );
+                        final var prevFilenames =
+                            relsFilenames.computeIfAbsent(id, ignored -> new ArrayList<>(List.of(filename)));
 
                         // track filenames changes in RELS-INT
                         if (!prevFilenames.get(prevFilenames.size() - 1).equals(filename)) {
@@ -208,12 +206,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             // when a deleted filename occurs, track that with a distinct name
             final var deleted = Sets.difference(oldIds, filenameMap.keySet());
             deleted.forEach(id -> {
-                LOGGER.info("[{}] has a deleted download prop for {}", pid, id);
-                storedMap.get(id).add("FCREPO_MIGRATION_VALIDATOR_DELETED_ENTRY");
+                LOGGER.trace("{} has a deleted download prop for {}", pid, id);
+                relsFilenames.get(id).add(RELS_DELETED_ENTRY);
             });
         }
-
-        LOGGER.info("FINAL RELS-INT PROCESSING LOOKS LIKE: {}", storedMap);
     }
 
     /**
@@ -230,7 +226,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         this.deleteInactive = config.deleteInactive();
         this.digestAlgorithm = config.getDigestAlgorithm();
         this.validateHeadOnly = config.isValidateHeadOnly();
-        this.filenameMap = new HashMap<>();
     }
 
     /**
@@ -338,8 +333,8 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         var sourceDeletedCount = 0;
         String sourceCreated = null;
 
-        final var downloadFilenames = Optional.ofNullable(storedMap.get(sourceResource));
-        final int softVersionsCount =
+        final var downloadFilenames = Optional.ofNullable(relsFilenames.get(sourceResource));
+        final int softVersionCount =
             downloadFilenames.map(filenames -> searchSoftVersions(sourceResource, targetVersions, filenames))
                              .orElse(0);
 
@@ -352,16 +347,21 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             }
 
             // setup the version info and check for deleted/head datastreams
-            // if head store the dataStreamId for future validations
-            String version = "version " + sourceVersionCount;
+            // if head store the dataStreamId for future validations and skip all versions from rels-int changes
+            final String version;
+            final int currentVersion;
             final var isHead = dsVersion.isLastVersionIn(objectReference);
             if (isHead) {
                 version = "HEAD";
                 headDatastreamIds.add(dsId);
+                currentVersion = sourceVersionCount + softVersionCount;
+            } else {
+                version = "version " + sourceVersionCount;
+                currentVersion = sourceVersionCount;
             }
 
             try {
-                final var ocflVersionInfo = targetVersions.get(sourceVersionCount + sourceDeletedCount);
+                final var ocflVersionInfo = targetVersions.get(currentVersion + sourceDeletedCount);
                 final var objectVersionId = ObjectVersionId.version(ocflVersionInfo.getOcflObjectId(),
                                                                     ocflVersionInfo.getVersionNumber());
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
@@ -378,7 +378,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                                                            SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
                                                            targetObjectId, sourceResource, targetResource,
                                                            "Source object resource does not exist in target for " +
-                                                           "source version=" + sourceVersionCount + "."));
+                                                           "source version=" + currentVersion + "."));
             }
 
             // check if we need to handle a delete as well
@@ -386,19 +386,20 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             if (state.isDeleted(deleteInactive) || (isHead && objectState.isDeleted(deleteInactive))) {
                 sourceDeletedCount++;
                 headDatastreamIds.remove(dsId);
-                validateDeleted(targetResource, sourceVersionCount + softVersionsCount, targetVersions, builder);
+                validateDeleted(targetResource, currentVersion, targetVersions, builder);
             }
 
             sourceVersionCount++;
         }
 
-        final var finalF3Versions = sourceVersionCount + softVersionsCount;
+        final var f3VersionCount = sourceVersionCount + softVersionCount;
         final var targetVersionCount = targetVersions.size() - sourceDeletedCount;
-        final var ok = finalF3Versions == targetVersionCount;
-        var details = format("binary version counts match for resource: %s", finalF3Versions);
+        final var ok = f3VersionCount == targetVersionCount;
+        var details = format("binary version counts match for resource: source=%d, source RELS-INT:%d, target=%d",
+                             sourceVersionCount, softVersionCount, targetVersionCount);
         if (!ok) {
-            details = format("binary version counts do not match: source=%d, target=%d",
-                             finalF3Versions, targetVersionCount);
+            details = format("binary version counts do not match: source=%d, source RELS-INT=%d, target=%d",
+                             sourceVersionCount, softVersionCount, targetVersionCount);
         }
         validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
                 BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
@@ -410,7 +411,6 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         int transitions = 0;
         for (final var targetVersion : targetVersions) {
             if (filenames.isEmpty()) {
-                LOGGER.info("{} finished checking for soft versions", sourceResource);
                 break;
             }
 
@@ -418,7 +418,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final var headers = ocflSession.readHeaders(targetVersion.getResourceId(),
                                                         targetVersion.getVersionNumber());
             if (!f3Filename.equals(headers.getFilename())) {
-                LOGGER.info("{} has soft version {} -> {}", sourceResource, headers.getFilename(), f3Filename);
+                LOGGER.debug("{} has filename update {} -> {}", sourceResource, headers.getFilename(), f3Filename);
                 transitions++;
             }
         }
