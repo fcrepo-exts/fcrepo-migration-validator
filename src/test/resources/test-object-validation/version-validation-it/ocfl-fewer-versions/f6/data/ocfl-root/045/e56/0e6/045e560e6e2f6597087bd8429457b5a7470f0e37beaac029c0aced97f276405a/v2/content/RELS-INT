@@ -1,0 +1,6 @@
+
+<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rel="info:fedora/fedora-system:def/relations-external#">
+	<rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/DS1">
+		<fedora-model:downloadFilename>datastream.xml</fedora-model:downloadFilename>
+	</rdf:Description>
+</rdf:RDF>
