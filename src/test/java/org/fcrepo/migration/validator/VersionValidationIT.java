@@ -97,9 +97,9 @@ public class VersionValidationIT extends AbstractValidationIT {
 
         // verify expected results
         final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(1)
+        assertThat(errors).hasSize(2)
                           .map(ValidationResult::getValidationType)
-                          .containsOnly(BINARY_VERSION_COUNT);
+                          .containsOnly(BINARY_VERSION_COUNT, BINARY_METADATA);
     }
 
     @Test
