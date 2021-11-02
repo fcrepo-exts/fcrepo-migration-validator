@@ -5,6 +5,7 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import com.google.common.collect.Sets;
 import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
@@ -15,6 +16,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.DatastreamVersion;
@@ -41,6 +43,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -82,6 +85,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     public static final String F3_LAST_MODIFIED_DATE = "info:fedora/fedora-system:def/view#lastModifiedDate";
     public static final String F3_OWNER_ID = "info:fedora/fedora-system:def/model#ownerId";
 
+    private static final String RELS_INT = "RELS-INT";
+    private static final String DOWNLOAD_NAME_PROP = "info:fedora/fedora-system:def/model#downloadFilename";
+    private static final String RELS_DELETED_ENTRY = "FCREPO_MIGRATION_VALIDATOR_DELETED_ENTRY";
+
     private F3State objectState;
     private ObjectInfo objectInfo;
     private final boolean checksum;
@@ -94,6 +101,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
     private int indexCounter;
     private final Set<String> headDatastreamIds = new HashSet<>();
     private final F6DigestAlgorithm digestAlgorithm;
+
+    // track changes from RELS-INT
+    private final Map<String, List<String>> relsFilenames = new HashMap<>();
 
     /**
      * Properties which migrated to OCFL headers
@@ -139,9 +149,55 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             final ObjectReference objectReference = referenceIterator.next().getObject();
             LOGGER.debug("beginning processing on object: pid={}", objectInfo);
             if (initialObjectValidation(objectReference.getObjectProperties())) {
+                preprocessRelsInt(objectReference);
                 objectReference.listDatastreamIds().forEach(dsId -> validateDatastream(dsId, objectReference));
                 completeObjectValidation();
             }
+        }
+    }
+
+    /**
+     * Process the RELS-INT for any updates to datastreams which we need to track later
+     */
+    private void preprocessRelsInt(final ObjectReference objectReference) {
+        final var pid = objectInfo.getPid();
+
+        final var filenameMap = new HashMap<String, String>();
+        final var dsVersions = Optional.ofNullable(objectReference.getDatastreamVersions(RELS_INT))
+                                       .orElse(List.of());
+
+        for (final var dsVersion : dsVersions) {
+            final var rdf = parseRdf(dsVersion);
+            final var models = splitRelsInt(rdf);
+
+            final var oldIds = new HashSet<>(filenameMap.keySet());
+            filenameMap.clear();
+
+            // Pretty much the same as ArchiveGroupHandler - check for the downloadFilename triple in RELS-INT
+            // and keep a running list of changes/deletes
+            models.forEach((id, model) -> {
+                model.listStatements().forEach(statement -> {
+                    if (DOWNLOAD_NAME_PROP.equals(statement.getPredicate().getURI())) {
+                        LOGGER.trace("{} has download prop for {}", pid, id);
+                        final var filename = statement.getObject().toString();
+                        final var prevFilenames =
+                            relsFilenames.computeIfAbsent(id, ignored -> new ArrayList<>(List.of(filename)));
+
+                        // track filenames changes in RELS-INT
+                        if (!prevFilenames.get(prevFilenames.size() - 1).equals(filename)) {
+                            prevFilenames.add(filename);
+                        }
+                        filenameMap.put(id, statement.getObject().toString());
+                    }
+                });
+            });
+
+            // when a deleted filename occurs, track that with a distinct name
+            final var deleted = Sets.difference(oldIds, filenameMap.keySet());
+            deleted.forEach(id -> {
+                LOGGER.trace("{} has a deleted download prop for {}", pid, id);
+                relsFilenames.get(id).add(RELS_DELETED_ENTRY);
+            });
         }
     }
 
@@ -265,6 +321,12 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         var sourceVersionCount = 0;
         var sourceDeletedCount = 0;
         String sourceCreated = null;
+
+        final var downloadFilenames = Optional.ofNullable(relsFilenames.get(sourceResource));
+        final int softVersionCount =
+            downloadFilenames.map(filenames -> searchSoftVersions(sourceResource, targetVersions, filenames))
+                             .orElse(0);
+
         for (final var dsVersion : dsVersions) {
             final var dsInfo = dsVersion.getDatastreamInfo();
 
@@ -274,18 +336,23 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             }
 
             // setup the version info and check for deleted/head datastreams
-            // if head store the dataStreamId for future validations
-            String version = "version " + sourceVersionCount;
+            // if head store the dataStreamId for future validations and skip all versions from rels-int changes
+            final String version;
+            final int currentVersion;
             final var isHead = dsVersion.isLastVersionIn(objectReference);
             if (isHead) {
                 version = "HEAD";
                 headDatastreamIds.add(dsId);
+                currentVersion = sourceVersionCount + softVersionCount;
+            } else {
+                version = "version " + sourceVersionCount;
+                currentVersion = sourceVersionCount;
             }
 
             try {
-                final var ocflVersionInfo = targetVersions.get(sourceVersionCount + sourceDeletedCount);
+                final var ocflVersionInfo = targetVersions.get(currentVersion + sourceDeletedCount);
                 final var objectVersionId = ObjectVersionId.version(ocflVersionInfo.getOcflObjectId(),
-                                                                      ocflVersionInfo.getVersionNumber());
+                                                                    ocflVersionInfo.getVersionNumber());
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
                 final var ocflObject = repository.getObject(objectVersionId);
 
@@ -296,11 +363,9 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     validateChecksum(dsVersion, headers, version, builder);
                 }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
-                validationResults.add(new ValidationResult(indexCounter++, FAIL, OBJECT_RESOURCE,
-                                                           SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, sourceObjectId,
-                                                           targetObjectId, sourceResource, targetResource,
-                                                           "Source object resource does not exist in target for " +
-                                                           "source version=" + sourceVersionCount + "."));
+                final var error = "Source object resource does not exist in target for source version=%d";
+                validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET,
+                                                   format(error, currentVersion)));
             }
 
             // check if we need to handle a delete as well
@@ -308,21 +373,67 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
             if (state.isDeleted(deleteInactive) || (isHead && objectState.isDeleted(deleteInactive))) {
                 sourceDeletedCount++;
                 headDatastreamIds.remove(dsId);
-                validateDeleted(targetResource, sourceVersionCount, targetVersions, builder);
+                validateDeleted(targetResource, currentVersion, targetVersions, builder);
             }
 
             sourceVersionCount++;
         }
 
+        final var versionSuccess = "binary version counts match for resource: source=%d, RELS-INT=%d, target=%d";
+        final var versionFailure = "binary version counts do not match for resource: source=%d, RELS-INT=%d, target=%d";
+        final var f3VersionCount = sourceVersionCount + softVersionCount;
         final var targetVersionCount = targetVersions.size() - sourceDeletedCount;
-        final var ok = sourceVersionCount == targetVersionCount;
-        var details = format("binary version counts match for resource: %s", sourceVersionCount);
-        if (!ok) {
-            details = format("binary version counts do not match: source=%d, target=%d", sourceVersionCount,
-                    targetVersionCount);
+        if (f3VersionCount == targetVersionCount) {
+            final var details = format(versionSuccess, sourceVersionCount, softVersionCount, targetVersionCount);
+            validationResults.add(builder.ok(BINARY_VERSION_COUNT, details));
+        } else {
+            final var details = format(versionFailure, sourceVersionCount, softVersionCount, targetVersionCount);
+            validationResults.add(builder.fail(BINARY_VERSION_COUNT, details));
         }
-        validationResults.add(new ValidationResult(indexCounter++, ok ? OK : FAIL, OBJECT_RESOURCE,
-                BINARY_VERSION_COUNT, sourceObjectId, targetObjectId, sourceResource, targetResource, details));
+    }
+
+    private int searchSoftVersions(final String sourceResource,
+                                   final List<OcflVersionInfo> targetVersions,
+                                   final List<String> filenames) {
+        int transitions = 0;
+        for (final var targetVersion : targetVersions) {
+            if (filenames.isEmpty()) {
+                break;
+            }
+
+            final var f3Filename = filenames.remove(0);
+            final var headers = ocflSession.readHeaders(targetVersion.getResourceId(),
+                                                        targetVersion.getVersionNumber());
+            if (!f3Filename.equals(headers.getFilename())) {
+                LOGGER.debug("{} has filename update {} -> {}", sourceResource, headers.getFilename(), f3Filename);
+                transitions++;
+            }
+        }
+
+        return transitions;
+    }
+
+    private Model parseRdf(final DatastreamVersion dv) {
+        final var model = ModelFactory.createDefaultModel();
+        try (var is = dv.getContent()) {
+            RDFDataMgr.read(model, is, Lang.RDFXML);
+            return model;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse RDF XML", e);
+        }
+    }
+
+    private Map<String, Model> splitRelsInt(final Model relsIntModel) {
+        final var infoFedora = "info:fedora/";
+        final Map<String, Model> splitModels = new HashMap<>();
+        for (final var it = relsIntModel.listStatements(); it.hasNext();) {
+            final var statement = it.next();
+            final var uri = statement.getSubject().getURI();
+            final var id = uri.startsWith(infoFedora) ? uri.substring(infoFedora.length()) : uri;
+            final var model = splitModels.computeIfAbsent(id, k -> ModelFactory.createDefaultModel());
+            model.add(statement);
+        }
+        return splitModels;
     }
 
     private void validateDeleted(final String resource,
@@ -360,8 +471,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
      * @param version the version number
      * @param builder helper for building ValidationResults
      */
-    private void validateChecksum(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                                  final String version, final ValidationResultBuilder builder) {
+    private void validateChecksum(final DatastreamVersion dsVersion,
+                                  final ResourceHeaders headers,
+                                  final String version,
+                                  final ValidationResultBuilder builder) {
         final var success = "%s binary checksums match: %s";
         final var error = "%s binary checksums do no match: sourceValue=%s, targetValue=%s";
         final var notFound = "%s binary checksum not found in Fedora 6 headers";
@@ -400,8 +513,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
-    private void validateLastModified(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                                      final String version, final ValidationResultBuilder builder) {
+    private void validateLastModified(final DatastreamVersion dsVersion,
+                                      final ResourceHeaders headers,
+                                      final String version,
+                                      final ValidationResultBuilder builder) {
         final var error = "%s binary last modified dates do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary last modified dates match: %s";
 
@@ -417,8 +532,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
-    private void validateCreatedDate(final String sourceCreated, final ResourceHeaders headers,
-                                     final String version, final ValidationResultBuilder builder) {
+    private void validateCreatedDate(final String sourceCreated,
+                                     final ResourceHeaders headers,
+                                     final String version,
+                                     final ValidationResultBuilder builder) {
         final var error = "%s binary creation dates do no match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary creation dates match: %s";
 
@@ -431,8 +548,10 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
     }
 
-    private void validateSize(final DatastreamVersion dsVersion, final ResourceHeaders headers,
-                              final OcflObjectVersion ocflObjectVersion, final String version,
+    private void validateSize(final DatastreamVersion dsVersion,
+                              final ResourceHeaders headers,
+                              final OcflObjectVersion ocflObjectVersion,
+                              final String version,
                               final ValidationResultBuilder builder) {
         final var error = "%s binary size does not match: sourceValue=%s, targetValue=%s";
         final var success = "%s binary size matches: %s";

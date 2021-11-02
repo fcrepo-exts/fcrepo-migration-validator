@@ -1,0 +1,3 @@
+<info:fedora/1711.dl:FEG6WWJ664RHQ8X/RELS-INT> <http://purl.org/dc/terms/title> "Internal Datastream Relations"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:FEG6WWJ664RHQ8X/RELS-INT> <http://fedora.info/definitions/1/0/access/objState> "A"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:FEG6WWJ664RHQ8X/RELS-INT> <http://www.loc.gov/premis/rdf/v1#formatDesignation> "info:fedora/fedora-system:FedoraRELSInt-1.0"^^<http://www.w3.org/2001/XMLSchema#string> .

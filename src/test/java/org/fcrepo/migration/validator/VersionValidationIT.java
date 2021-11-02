@@ -29,6 +29,7 @@ public class VersionValidationIT extends AbstractValidationIT {
 
     @Test
     public void test() {
+        final var datastreamId = "DS1";
         final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "valid/f3/datastreams");
         final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "valid/f3/objects");
         final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "valid/f6/data/ocfl-root");
@@ -38,14 +39,26 @@ public class VersionValidationIT extends AbstractValidationIT {
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
 
         // verify datastream metadata
-        // only 1 inline datastream with two versions, so we expect 2 results on all but size which should have none
+        // DS1 has 2 versions (not including RELS-INT), so we expect 2 results on all but size which should have none
         final var validations = reportHandler.getPassed().stream()
                      .filter(result -> result.getValidationType() == BINARY_METADATA)
+                     .filter(result -> result.getTargetResourceId().contains(datastreamId))
                      .map(BinaryMetadataValidation::fromResult)
                      .collect(Collectors.toList());
         assertThat(validations).containsOnly(CREATION_DATE, LAST_MODIFIED_DATE);
         assertThat(validations).filteredOn(validation -> validation == CREATION_DATE).hasSize(2);
         assertThat(validations).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(2);
+
+        // verify binary version count has an additional version from the RELS-INT
+        final var binaryVersionCount = reportHandler.getPassed().stream()
+            .filter(result -> result.getValidationType() == BINARY_VERSION_COUNT)
+            .filter(result -> result.getTargetResourceId().contains(datastreamId))
+            .findFirst().orElseThrow(() -> new RuntimeException("Unable to find BINARY_VERSION_COUNT for DS1"));
+
+        final var relsCount = "RELS-INT=1";
+        final var sourceCount = "source=2";
+        final var targetCount = "target=3";
+        assertThat(binaryVersionCount.getDetails()).contains(sourceCount, relsCount, targetCount);
     }
 
     @Test
@@ -72,9 +85,9 @@ public class VersionValidationIT extends AbstractValidationIT {
 
         // verify expected results
         final var errors = reportHandler.getErrors();
-        assertThat(errors).hasSize(1)
+        assertThat(errors).hasSize(2)
                           .map(ValidationResult::getValidationType)
-                          .containsOnly(BINARY_VERSION_COUNT);
+                          .containsOnly(BINARY_VERSION_COUNT, BINARY_METADATA);
     }
 
     @Test
