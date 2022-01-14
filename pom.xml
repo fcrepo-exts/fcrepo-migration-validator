@@ -31,6 +31,7 @@
         <javadoc.plugin.version>3.2.0</javadoc.plugin.version>
         <source.plugin.version>3.2.0</source.plugin.version>
         <main.class>org.fcrepo.migration.validator.Driver</main.class>
+        <sonatype.host>s01.oss.sonatype.org</sonatype.host>
     </properties>
 
     <scm>
@@ -337,20 +338,15 @@
     </dependencies>
 
     <distributionManagement>
-        <site>
-            <id>gh-pages</id>
-            <name>Deployment through GitHub's site deployment plugin</name>
-            <url>site/${project.version}</url>
-        </site>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Shapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
+      <snapshotRepository>
+        <id>sonatype-nexus-snapshots</id>
+        <name>Sonatype Nexus Shapshots</name>
+        <url>https://${sonatype.host}/content/repositories/snapshots/</url>
+      </snapshotRepository>
+      <repository>
+        <id>sonatype-nexus-staging</id>
+        <url>https://${sonatype.host}/service/local/staging/deploy/maven2/</url>
+      </repository>
     </distributionManagement>
 
     <profiles>
@@ -409,7 +405,7 @@
         <repository>
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://${sonatype.host}/content/repositories/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -423,7 +419,7 @@
         <pluginRepository>
             <id>sonatype-nexus-snapshots</id>
             <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <url>https://${sonatype.host}/content/repositories/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
