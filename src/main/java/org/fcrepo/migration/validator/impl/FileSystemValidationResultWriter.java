@@ -14,6 +14,7 @@ import java.io.FileWriter;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.impl.ValidationResultUtils.resolvePathToJsonResult;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -26,23 +27,29 @@ public class FileSystemValidationResultWriter implements ValidationResultWriter 
 
     private static final Logger LOGGER = getLogger(FileSystemValidationResultWriter.class);
 
-    private Path validationRoot;
-
+    private final Path validationRoot;
+    private final boolean writeFailureOnly;
 
     /**
      * Constructor
      *
      * @param validationRoot The root of validation report associated with the run
+     * @param writeFailureOnly Flag to indicate if we should write only failed validations or all
      */
-    public FileSystemValidationResultWriter(final Path validationRoot) {
+    public FileSystemValidationResultWriter(final Path validationRoot, final boolean writeFailureOnly) {
         this.validationRoot = validationRoot;
-        this.validationRoot.toFile().mkdirs();
+        this.writeFailureOnly = writeFailureOnly;
+        validationRoot.toFile().mkdirs();
     }
 
     @Override
     public void write(final List<ValidationResult> results) {
         final var objectMapper = new ObjectMapper();
         for (final var result : results) {
+            if (result.getStatus() == OK && writeFailureOnly) {
+                continue;
+            }
+
             LOGGER.info("Writing of results here: {}", result);
             final var jsonFilePath = this.validationRoot.resolve(resolvePathToJsonResult(result));
             final var file = jsonFilePath.toFile();

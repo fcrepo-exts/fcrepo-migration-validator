@@ -104,6 +104,10 @@ public class Driver implements Callable<Integer> {
                         description = "Validate objects in the Inactive state as deleted.")
     private boolean deleteInactive;
 
+    @CommandLine.Option(names = {"--failure-only"}, order = 19,
+                        description = "Report only objects which have failed validations.")
+    private boolean failureOnly;
+
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
 
@@ -125,6 +129,7 @@ public class Driver implements Callable<Integer> {
         config.setOcflRepositoryRootDirectory(ocflRootDirectory);
         config.setObjectsToValidate(objectsToValidate);
         config.setDeleteInactive(deleteInactive);
+        config.setFailureOnly(failureOnly);
         LOGGER.info("Configuration created: {}", config);
 
         LOGGER.info("Preparing to execute validation run...");
