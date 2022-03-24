@@ -50,7 +50,7 @@ public class FileSystemValidationResultWriter implements ValidationResultWriter 
                 continue;
             }
 
-            LOGGER.info("Writing of results here: {}", result);
+            LOGGER.debug("Writing of results here: {}", result);
             final var jsonFilePath = this.validationRoot.resolve(resolvePathToJsonResult(result));
             final var file = jsonFilePath.toFile();
             file.getParentFile().mkdirs();

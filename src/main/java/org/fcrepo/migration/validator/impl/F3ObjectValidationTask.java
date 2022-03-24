@@ -49,7 +49,7 @@ public class F3ObjectValidationTask extends ValidationTask {
 
     @Override
     public void run() {
-        LOGGER.info("starting to process {} ", processor.getObjectInfo().getPid());
+        LOGGER.info("Processing {} ", processor.getObjectInfo().getPid());
         final var validator = new Fedora3ObjectValidator(ocflObjectSessionFactory, objectValidationConfig);
         final var results = validator.validate(processor);
         writer.write(results);
