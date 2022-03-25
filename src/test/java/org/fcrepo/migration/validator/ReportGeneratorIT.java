@@ -57,7 +57,7 @@ public class ReportGeneratorIT extends AbstractValidationIT {
     }
 
     @Test
-    public void testAllPassHTML() throws Exception {
+    public void testAllPass() throws Exception {
         final var f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
         final var f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
         final var f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
@@ -85,7 +85,7 @@ public class ReportGeneratorIT extends AbstractValidationIT {
     }
 
     @Test
-    public void testOnlyWriteFailureAllPassHTML() throws IOException {
+    public void testOnlyWriteFailureAllPass() throws IOException {
         final var f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
         final var f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
         final var f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
