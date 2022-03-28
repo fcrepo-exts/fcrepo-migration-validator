@@ -15,10 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class is responsible for coordinating and managing the lifecycle of the classes involved in a validation run.
@@ -37,6 +39,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     private final Set<String> objectsToValidate;
     private final ObjectValidationConfig objectValidationConfig;
     private final ApplicationConfigurationHelper config;
+    private final AtomicBoolean isRunning;
 
     /**
      * Constructor
@@ -49,6 +52,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         this.objectsToValidate = config.readObjectsToValidate();
         this.ocflObjectSessionFactory = config.ocflObjectSessionFactory();
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
+        this.isRunning = new AtomicBoolean(true);
         this.semaphore = new Semaphore(config.getThreadCount());
         this.objectValidationConfig = config.getObjectValidationConfig();
     }
@@ -92,17 +96,29 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     }
 
     private void submit(final ValidationTask task) {
-        executorService.submit(() -> {
+        if (isRunning.get()) {
+            CompletableFuture.runAsync(task, executorService)
+                             .whenComplete(this::handleException);
+        }
+    }
+
+    /**
+     * boop bop
+     *
+     * @param throwable
+     */
+    private void handleException(final Void v, final Throwable throwable) {
+        //TODO Handle this in such a away that it is captured in the final report
+        //https://jira.lyrasis.org/browse/FCREPO-3633
+        if (throwable != null) {
+            LOGGER.error("validation task failed, halting {}", throwable.getMessage(), throwable);
             try {
-                task.run();
-            } catch (Exception ex) {
-                //TODO Handle this in such a away that it is captured in the final report
-                //https://jira.lyrasis.org/browse/FCREPO-3633
-                LOGGER.error("validation task failed {}", ex.getMessage(), ex);
-            } finally {
-                semaphore.release();
+                shutdown();
+            } catch (InterruptedException ex) {
             }
-        });
+        }
+
+        semaphore.release();
     }
 
 
@@ -122,6 +138,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
      */
     private void shutdown() throws InterruptedException {
         try {
+            isRunning.set(false);
             executorService.shutdown();
             if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
                 LOGGER.error("Failed to shutdown executor service cleanly after 1 minute of waiting");
