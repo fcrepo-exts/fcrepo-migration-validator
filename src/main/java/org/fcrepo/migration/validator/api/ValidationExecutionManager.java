@@ -14,6 +14,7 @@ public interface ValidationExecutionManager {
 
     /**
      * Perform a validation run.
+     * @return
      */
-    void doValidation();
+    boolean doValidation();
 }

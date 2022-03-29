@@ -134,19 +134,21 @@ public class Driver implements Callable<Integer> {
 
         LOGGER.info("Preparing to execute validation run...");
         final var executionManager = new Fedora3ValidationExecutionManager(new ApplicationConfigurationHelper(config));
-        executionManager.doValidation();
+        final var completedRun = executionManager.doValidation();
 
-        final ReportHandler reportHandler;
-        if (reportType == ReportType.html) {
-            reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
-        } else {
-            reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
+        if (completedRun) {
+            final ReportHandler reportHandler;
+            if (reportType == ReportType.html) {
+                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
+            } else {
+                reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
+            }
+            final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
+            final var summaryFile = generator.generate();
+            LOGGER.info("Validation report written to: {}", summaryFile);
         }
-        final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
-        final var summaryFile = generator.generate();
-        LOGGER.info("Validation report written to: {}", summaryFile);
 
-        return 0;
+        return completedRun ? 0 : 1;
     }
 
     /**

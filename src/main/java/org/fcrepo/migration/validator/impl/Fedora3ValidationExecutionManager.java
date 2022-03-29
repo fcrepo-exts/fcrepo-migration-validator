@@ -31,6 +31,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
 
+    private final AtomicBoolean abort;
     private final Semaphore semaphore;
     private final ExecutorService executorService;
     private final OcflObjectSessionFactory ocflObjectSessionFactory;
@@ -39,7 +40,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     private final Set<String> objectsToValidate;
     private final ObjectValidationConfig objectValidationConfig;
     private final ApplicationConfigurationHelper config;
-    private final AtomicBoolean isRunning;
 
     /**
      * Constructor
@@ -52,19 +52,24 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         this.objectsToValidate = config.readObjectsToValidate();
         this.ocflObjectSessionFactory = config.ocflObjectSessionFactory();
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
-        this.isRunning = new AtomicBoolean(true);
         this.semaphore = new Semaphore(config.getThreadCount());
         this.objectValidationConfig = config.getObjectValidationConfig();
+        this.abort = new AtomicBoolean();
     }
 
     @Override
-    public void doValidation() {
+    public boolean doValidation() {
         try {
             // track count of objects processed for final f3 to ocfl validation
             long numObjects = 0;
 
             // When iterating, we block on the semaphore as creating a new ObjectProcessor will open a file handle
             for (final var objectProcessor : source) {
+                if (abort.get()) {
+                    LOGGER.info("Abort flag set, ending validation");
+                    break;
+                }
+
                 numObjects++;
                 semaphore.acquire();
                 final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
@@ -93,32 +98,30 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
             } catch (InterruptedException ex) {
             }
         }
+
+        return !abort.get();
     }
 
     private void submit(final ValidationTask task) {
-        if (isRunning.get()) {
-            CompletableFuture.runAsync(task, executorService)
-                             .whenComplete(this::handleException);
-        }
+        CompletableFuture.runAsync(task, executorService)
+                         .whenComplete(this::finishTask);
     }
 
     /**
-     * boop bop
+     * Check if a ValidationTask completed successfully and release a permit on the semaphore for other tasks
      *
-     * @param throwable
+     * @param v the result of the task
+     * @param throwable the exception thrown by the ValidationTask
      */
-    private void handleException(final Void v, final Throwable throwable) {
+    private void finishTask(final Void v, final Throwable throwable) {
+        semaphore.release();
+
         //TODO Handle this in such a away that it is captured in the final report
         //https://jira.lyrasis.org/browse/FCREPO-3633
         if (throwable != null) {
-            LOGGER.error("validation task failed, halting {}", throwable.getMessage(), throwable);
-            try {
-                shutdown();
-            } catch (InterruptedException ex) {
-            }
+            LOGGER.error("Validation task failed", throwable);
+            abort.set(true);
         }
-
-        semaphore.release();
     }
 
 
@@ -138,7 +141,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
      */
     private void shutdown() throws InterruptedException {
         try {
-            isRunning.set(false);
             executorService.shutdown();
             if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
                 LOGGER.error("Failed to shutdown executor service cleanly after 1 minute of waiting");

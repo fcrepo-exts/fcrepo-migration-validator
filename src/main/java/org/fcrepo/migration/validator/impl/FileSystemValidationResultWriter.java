@@ -11,6 +11,7 @@ import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.slf4j.Logger;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -57,8 +58,8 @@ public class FileSystemValidationResultWriter implements ValidationResultWriter 
             try (final var writer = new FileWriter(file)) {
                 final var resultStr = objectMapper.writeValueAsString(result);
                 writer.write(resultStr);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            } catch (final IOException ex) {
+                throw new RuntimeException(ex);
             }
         }
     }
