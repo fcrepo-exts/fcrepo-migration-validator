@@ -289,7 +289,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         final var property = op.getName();
         final var sourceValue = op.getValue();
 
-        LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
+        LOGGER.debug("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
         final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
         if (resolver != null) {
             final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
@@ -303,7 +303,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                         .map(targetVal -> resolver.equals(sourceValue, targetVal) ?
                                  builder.ok(METADATA, format(success, pid, property, sourceValue, targetVal)) :
                                  builder.fail(METADATA, format(error, pid, property, sourceValue, targetVal)))
-                        .orElse(builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
+                        .orElseGet(() -> builder.fail(METADATA, format(notFound, pid, property, sourceValue)));
             validationResults.add(result);
         }
     }
@@ -584,7 +584,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
                     return builder.ok(BINARY_SIZE, format(success, version, sourceBytes));
                 }
                 return builder.fail(BINARY_SIZE, format(error, version, sourceBytes, targetBytes));
-            }).orElse(builder.fail(BINARY_SIZE, format(notFound, version, "source")));
+            }).orElseGet(() -> builder.fail(BINARY_SIZE, format(notFound, version, "source")));
             validationResults.add(result);
         }
     }
@@ -636,6 +636,7 @@ public class ValidatingObjectHandler implements FedoraObjectVersionHandler {
         }
 
         public ValidationResult fail(final ValidationType type, final String details) {
+            LOGGER.info("[{}] {} validation failed: {}", sourceObjectId, type, details);
             return new ValidationResult(indexCounter++, FAIL, validationLevel, type, sourceObjectId, targetObjectId,
                                         sourceResource, targetResource, details);
         }

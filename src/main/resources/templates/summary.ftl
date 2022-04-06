@@ -49,7 +49,7 @@
     <h2>Summary</h2>
     <table>
       <tr>
-        <td>Total objects:</td>
+        <td>Total object reports:</td>
         <td>${objectCount}</td>
       </tr>
       <tr>
@@ -70,6 +70,7 @@
   </div>
   </#if>
 
+  <#if objectCount gt 0>
   <div class="container">
     <h2>Object result details</h2>
     <ol>
@@ -78,5 +79,6 @@
       </#list>
     </ol>
   </div>
+  </#if>
 </body>
 </html>

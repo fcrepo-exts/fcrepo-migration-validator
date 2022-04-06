@@ -17,6 +17,7 @@ import java.io.File;
 public class Fedora3ValidationConfig extends ValidationConfig {
 
     private boolean checksum;
+    private boolean failureOnly;
     private boolean deleteInactive;
     private boolean validateHeadOnly;
     private boolean checkNumObjects;
@@ -181,6 +182,18 @@ public class Fedora3ValidationConfig extends ValidationConfig {
      */
     public Fedora3ValidationConfig setDeleteInactive(final boolean deleteInactive) {
         this.deleteInactive = deleteInactive;
+        return this;
+    }
+
+    public boolean isFailureOnly() {
+        return failureOnly;
+    }
+
+    /**
+     * @param failureOnly
+     */
+    public Fedora3ValidationConfig setFailureOnly(final boolean failureOnly) {
+        this.failureOnly = failureOnly;
         return this;
     }
 }

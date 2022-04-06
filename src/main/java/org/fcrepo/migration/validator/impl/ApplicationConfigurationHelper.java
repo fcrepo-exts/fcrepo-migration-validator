@@ -64,7 +64,7 @@ public class ApplicationConfigurationHelper {
     }
 
     public ValidationResultWriter validationResultWriter() {
-        return new FileSystemValidationResultWriter(config.getJsonOutputDirectory());
+        return new FileSystemValidationResultWriter(config.getJsonOutputDirectory(), config.isFailureOnly());
     }
 
     public ObjectSource objectSource() {
