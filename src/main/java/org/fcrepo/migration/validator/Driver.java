@@ -146,6 +146,8 @@ public class Driver implements Callable<Integer> {
             final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
             final var summaryFile = generator.generate();
             LOGGER.info("Validation report written to: {}", summaryFile);
+        } else {
+            LOGGER.warn("Skipping report writing due to exception");
         }
 
         return completedRun ? 0 : 1;
