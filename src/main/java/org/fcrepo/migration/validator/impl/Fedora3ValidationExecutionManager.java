@@ -15,10 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class is responsible for coordinating and managing the lifecycle of the classes involved in a validation run.
@@ -29,6 +31,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
 
+    private final AtomicBoolean abort;
     private final Semaphore semaphore;
     private final ExecutorService executorService;
     private final OcflObjectSessionFactory ocflObjectSessionFactory;
@@ -51,16 +54,22 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         executorService = Executors.newFixedThreadPool(config.getThreadCount());
         this.semaphore = new Semaphore(config.getThreadCount());
         this.objectValidationConfig = config.getObjectValidationConfig();
+        this.abort = new AtomicBoolean();
     }
 
     @Override
-    public void doValidation() {
+    public boolean doValidation() {
         try {
             // track count of objects processed for final f3 to ocfl validation
             long numObjects = 0;
 
             // When iterating, we block on the semaphore as creating a new ObjectProcessor will open a file handle
             for (final var objectProcessor : source) {
+                if (abort.get()) {
+                    LOGGER.info("Abort flag set, ending validation");
+                    break;
+                }
+
                 numObjects++;
                 semaphore.acquire();
                 final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
@@ -89,20 +98,30 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
             } catch (InterruptedException ex) {
             }
         }
+
+        return !abort.get();
     }
 
     private void submit(final ValidationTask task) {
-        executorService.submit(() -> {
-            try {
-                task.run();
-            } catch (Exception ex) {
-                //TODO Handle this in such a away that it is captured in the final report
-                //https://jira.lyrasis.org/browse/FCREPO-3633
-                LOGGER.error("validation task failed {}", ex.getMessage(), ex);
-            } finally {
-                semaphore.release();
-            }
-        });
+        CompletableFuture.runAsync(task, executorService)
+                         .whenComplete(this::finishTask);
+    }
+
+    /**
+     * Check if a ValidationTask completed successfully and release a permit on the semaphore for other tasks
+     *
+     * @param v the result of the task
+     * @param throwable the exception thrown by the ValidationTask
+     */
+    private void finishTask(final Void v, final Throwable throwable) {
+        semaphore.release();
+
+        //TODO Handle this in such a away that it is captured in the final report
+        //https://jira.lyrasis.org/browse/FCREPO-3633
+        if (throwable != null) {
+            LOGGER.error("Validation task failed", throwable);
+            abort.set(true);
+        }
     }
 
 

@@ -102,7 +102,7 @@ public abstract class AbstractValidationIT {
 
         public static ObjectMetadataValidation fromResult(final ValidationResult result) {
             if (result.getValidationType() != ValidationResult.ValidationType.METADATA) {
-                throw new IllegalArgumentException("Enum type is only for BINARY_METADATA!");
+                throw new IllegalArgumentException("Enum type is only for METADATA!");
             }
 
             final var details = result.getDetails();

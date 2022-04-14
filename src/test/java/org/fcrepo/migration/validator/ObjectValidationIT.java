@@ -6,6 +6,7 @@
 package org.fcrepo.migration.validator;
 
 import org.fcrepo.migration.validator.api.ValidationResult;
+import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.Test;
 
@@ -128,6 +129,20 @@ public class ObjectValidationIT extends AbstractValidationIT {
             assertEquals("Should be validation level OBJECT", OBJECT, result.getValidationLevel());
             assertEquals("Should be validation type BINARY_HEAD_COUNT", BINARY_HEAD_COUNT, result.getValidationType());
         }, () -> fail("Unable to find error for BINARY_HEAD_COUNT"));
+    }
+
+    @Test
+    public void testResultWriterException() {
+        final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
+        final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
+        final File f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
+
+        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final var configHelper = new TestApplicationConfigurationHelper(config);
+        final var executionManager = new Fedora3ValidationExecutionManager(configHelper);
+        final var completedRun = executionManager.doValidation();
+
+        assertThat(completedRun).isEqualTo(false);
     }
 
 }
