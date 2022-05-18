@@ -63,7 +63,7 @@ public class ApplicationConfigurationHelper {
             throw new RuntimeException(e);
         }
         this.repositorySupplier = Suppliers.memoize(() -> repository(config, workDirectory));
-        this.resumeManager = new ResumeManagerImpl(config.getResultsDirectory(), config.getLimit(), !config.isResume());
+        this.resumeManager = new ResumeManagerImpl(config.getResultsDirectory(), !config.isResume());
     }
 
     public ResumeManager resumeManager() {
@@ -197,6 +197,10 @@ public class ApplicationConfigurationHelper {
 
     public int getThreadCount() {
         return config.getThreadCount();
+    }
+
+    public int getLimit() {
+        return config.getLimit();
     }
 
     public ObjectValidationConfig getObjectValidationConfig() {
