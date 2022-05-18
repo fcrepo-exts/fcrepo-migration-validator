@@ -24,7 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.StreamSupport;
 
 /**
@@ -36,6 +36,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
 
+    private final int limit;
     private final AtomicBoolean abort;
     private final Semaphore semaphore;
     private final ResumeManager resumeManager;
@@ -53,6 +54,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
      */
     public Fedora3ValidationExecutionManager(final ApplicationConfigurationHelper config) {
         this.config = config;
+        this.limit = config.getLimit();
         this.source = config.objectSource();
         this.writer = config.validationResultWriter();
         this.objectsToValidate = config.readObjectsToValidate();
@@ -68,17 +70,16 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     public boolean doValidation() {
         try {
             // track count of objects processed for final f3 to ocfl validation
-            long numObjects = 0;
-            boolean halted = false;
+            final var numProcessed = new AtomicLong(0);
+            final var halted = new AtomicBoolean(false);
 
             StreamSupport.stream(source.spliterator(), false)
-                .filter(op -> ResumeManager.State.OK == resumeManager.accept(op.getObjectInfo().getPid()))
-                .takeWhile(op -> !abort.get())
+                .filter(op -> resumeManager.accept(op.getObjectInfo().getPid()))
+                .takeWhile(op -> !abort.get() && !halted.get())
                 .forEach(op -> {
-                    // run it bay-bee
-                    numObjects++;
                     final var sourceObjectId = op.getObjectInfo().getPid();
                     try {
+                        // we block on the semaphore as each ObjectProcessor will open a file handle
                         semaphore.acquire();
                         if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
                             final var task = new F3ObjectValidationTaskBuilder()
@@ -93,51 +94,21 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                         LOGGER.error("Error submitting task", ex);
                         abort.set(true);
                     }
+
+                    halted.set(limit != 0 && limit <= numProcessed.incrementAndGet());
                 });
-
-
-            // When iterating, we block on the semaphore as creating a new ObjectProcessor will open a file handle
-            for (final var objectProcessor : source) {
-                numObjects++;
-                final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
-
-                // should we abort? (fatal error in previous validation)
-                if (abort.get()) {
-                    LOGGER.info("Abort flag set, ending validation");
-                    break;
-                }
-
-                // should we process?
-                // note that we don't want to acquire the semaphore in the event that we are halting/skipping
-                // as we will not be able to release it later
-                final var accepted = resumeManager.accept(sourceObjectId);
-                if (accepted == ResumeManager.State.HALT_LIMIT) {
-                    LOGGER.info("Reached processing limit, stopping validation");
-                    halted = true;
-                    break;
-                } else if (accepted == ResumeManager.State.SKIP) {
-                    continue;
-                }
-
-                semaphore.acquire();
-                if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
-                    final var task = new F3ObjectValidationTaskBuilder().processor(objectProcessor)
-                        .withValidationConfig(objectValidationConfig)
-                        .writer(writer)
-                        .objectSessionFactory(ocflObjectSessionFactory)
-                        .build();
-                    submit(task);
-                }
-            }
 
             // only run repository validator if doing a full run
             final var repository = config.ocflRepository();
-            final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted;
-            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, numObjects, repository, writer);
+            final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted.get();
+            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, numProcessed.get(),
+                                                                      repository, writer);
             semaphore.acquire();
             submit(repositoryTask);
 
             awaitCompletion();
+
+            resumeManager.updateResumeFile();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {
@@ -151,17 +122,17 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     }
 
     private void submit(final ValidationTask task) {
-        CompletableFuture.runAsync(task, executorService)
+        CompletableFuture.supplyAsync(task, executorService)
                          .whenComplete(this::finishTask);
     }
 
     /**
      * Check if a ValidationTask completed successfully and release a permit on the semaphore for other tasks
      *
-     * @param v the result of the task
+     * @param task the task which was run
      * @param throwable the exception thrown by the ValidationTask
      */
-    private void finishTask(final Void v, final Throwable throwable) {
+    private void finishTask(final ValidationTask task, final Throwable throwable) {
         semaphore.release();
 
         //TODO Handle this in such a away that it is captured in the final report
@@ -169,6 +140,11 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         if (throwable != null) {
             LOGGER.error("Validation task failed", throwable);
             abort.set(true);
+
+            // allow the pid to be retried in successive runs
+            task.getPid().ifPresent(resumeManager::fail);
+        } else {
+            task.getPid().ifPresent(resumeManager::completed);
         }
     }
 
