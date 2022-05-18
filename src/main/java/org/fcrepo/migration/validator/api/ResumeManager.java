@@ -7,10 +7,10 @@ package org.fcrepo.migration.validator.api;
  */
 public interface ResumeManager {
 
-    enum State {
-        OK, SKIP, HALT_LIMIT
-    }
+    void fail(final String pid);
+    void completed(final String pid);
+    void updateResumeFile();
 
-    State accept(final String pid);
+    boolean accept(final String pid);
 
 }
