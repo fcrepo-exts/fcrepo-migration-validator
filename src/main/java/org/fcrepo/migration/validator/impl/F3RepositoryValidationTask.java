@@ -5,6 +5,8 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import java.util.Optional;
+
 import edu.wisc.library.ocfl.api.OcflRepository;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
@@ -44,10 +46,16 @@ public class F3RepositoryValidationTask extends ValidationTask {
     }
 
     @Override
-    public void run() {
+    public ValidationTask get() {
         LOGGER.info("starting repository processor");
         final var repositoryValidator = new F3RepositoryValidator(checkNumObjects, numObjects);
         final var results = repositoryValidator.validate(ocflRepository);
         writer.write(results);
+        return this;
+    }
+
+    @Override
+    public Optional<String> getPid() {
+        return Optional.empty();
     }
 }
