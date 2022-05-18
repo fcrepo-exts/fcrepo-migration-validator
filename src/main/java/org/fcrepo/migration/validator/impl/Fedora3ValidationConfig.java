@@ -203,7 +203,7 @@ public class Fedora3ValidationConfig extends ValidationConfig {
         return limit;
     }
 
-    public Fedora3ValidationConfig setLimit(int limit) {
+    public Fedora3ValidationConfig setLimit(final int limit) {
         this.limit = limit;
         return this;
     }
@@ -212,7 +212,7 @@ public class Fedora3ValidationConfig extends ValidationConfig {
         return resume;
     }
 
-    public Fedora3ValidationConfig setResume(boolean resume) {
+    public Fedora3ValidationConfig setResume(final boolean resume) {
         this.resume = resume;
         return this;
     }
