@@ -11,17 +11,23 @@ import org.fcrepo.migration.validator.api.ResumeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ *
+ * @author shake
+ */
 public class ResumeManagerImpl implements ResumeManager {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ResumeManagerImpl.class);
 
+    private long count;
     private final boolean acceptAll;
     private final Path resumeFile;
     private final Set<String> processedPids;
 
-    public ResumeManagerImpl(final Path pidDir, final boolean acceptAll) {
+    public ResumeManagerImpl(final Path resultsDir, final boolean acceptAll) {
+        this.count = 0;
         this.acceptAll = acceptAll;
-        this.resumeFile = pidDir.resolve("resume.txt");
+        this.resumeFile = resultsDir.resolve("resume.txt");
         this.processedPids = new ConcurrentSkipListSet<>();
         try {
             loadResumeFile();
@@ -33,6 +39,7 @@ public class ResumeManagerImpl implements ResumeManager {
     private void loadResumeFile() throws IOException {
         // touch the file so that we always have it
         if (!Files.exists(resumeFile)) {
+            Files.createDirectories(resumeFile.getParent());
             Files.createFile(resumeFile);
         }
 
@@ -56,12 +63,9 @@ public class ResumeManagerImpl implements ResumeManager {
         processedPids.add(pid);
     }
 
-    public void fail(final String pid) {
-        processedPids.remove(pid);
-    }
-
     @Override
     public boolean accept(final String pid) {
+        count++;
         final String logMsg = "PID: " + pid + ", accept? ";
 
         if (!acceptAll && processedPids.contains(pid)) {
@@ -71,6 +75,10 @@ public class ResumeManagerImpl implements ResumeManager {
 
         LOGGER.debug(logMsg + true);
         return true;
+    }
+
+    public long totalProcessed() {
+        return count;
     }
 
 }

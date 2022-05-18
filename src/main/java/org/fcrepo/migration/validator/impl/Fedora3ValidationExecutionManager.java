@@ -5,7 +5,6 @@
  */
 package org.fcrepo.migration.validator.impl;
 
-import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ResumeManager;
@@ -17,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -101,7 +99,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
             // only run repository validator if doing a full run
             final var repository = config.ocflRepository();
             final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted.get();
-            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, numProcessed.get(),
+            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, resumeManager.totalProcessed(),
                                                                       repository, writer);
             semaphore.acquire();
             submit(repositoryTask);
@@ -140,9 +138,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         if (throwable != null) {
             LOGGER.error("Validation task failed", throwable);
             abort.set(true);
-
-            // allow the pid to be retried in successive runs
-            task.getPid().ifPresent(resumeManager::fail);
         } else {
             task.getPid().ifPresent(resumeManager::completed);
         }

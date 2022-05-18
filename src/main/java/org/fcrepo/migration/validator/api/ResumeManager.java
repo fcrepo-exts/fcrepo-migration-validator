@@ -7,7 +7,7 @@ package org.fcrepo.migration.validator.api;
  */
 public interface ResumeManager {
 
-    void fail(final String pid);
+    long totalProcessed();
     void completed(final String pid);
     void updateResumeFile();
 
