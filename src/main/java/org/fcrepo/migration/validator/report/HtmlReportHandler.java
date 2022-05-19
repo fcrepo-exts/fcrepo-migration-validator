@@ -36,14 +36,16 @@ public class HtmlReportHandler implements ReportHandler {
 
     private final File outputDir;
     private final Configuration config;
-    private ValidationResultsSummary validationSummary;
+    private final long numProcessed;
 
     /**
      * Constructor
      * @param outputDir to which the HTML files are written
+     * @param numProcessed the number of PIDs validated in the current run
      */
-    public HtmlReportHandler(final Path outputDir) {
+    public HtmlReportHandler(final Path outputDir, final long numProcessed) {
         this.outputDir = outputDir.toFile();
+        this.numProcessed = numProcessed;
 
         // Setup FreeMarker template
         this.config = new Configuration(VERSION_2_3_30);
@@ -139,6 +141,7 @@ public class HtmlReportHandler implements ReportHandler {
         data.put("objects", validationSummary.getObjectReports());
         data.put("errors", errors);
         data.put("errorCount", errors.size());
+        data.put("numProcessed", numProcessed);
 
         final var file = new File(outputDir, reportFilename);
         try (final var writer = new FileWriter(file)) {

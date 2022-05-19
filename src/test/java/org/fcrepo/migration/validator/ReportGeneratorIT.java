@@ -69,7 +69,8 @@ public class ReportGeneratorIT extends AbstractValidationIT {
         final var executionManager = new Fedora3ValidationExecutionManager(configHelper);
         executionManager.doValidation();
 
-        final var handler = reportType == ReportType.html ? new HtmlReportHandler(reportDir)
+        final var numProcessed = executionManager.getNumProcessed();
+        final var handler = reportType == ReportType.html ? new HtmlReportHandler(reportDir, numProcessed)
                                                           : new CsvReportHandler(reportDir, reportType);
         final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), handler);
         generator.generate();
@@ -98,7 +99,8 @@ public class ReportGeneratorIT extends AbstractValidationIT {
         final var executionManager = new Fedora3ValidationExecutionManager(configHelper);
         executionManager.doValidation();
 
-        final var handler = reportType == ReportType.html ? new HtmlReportHandler(reportDir)
+        final var numProcessed = executionManager.getNumProcessed();
+        final var handler = reportType == ReportType.html ? new HtmlReportHandler(reportDir, numProcessed)
                                                           : new CsvReportHandler(reportDir, reportType);
         final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), handler);
         generator.generate();

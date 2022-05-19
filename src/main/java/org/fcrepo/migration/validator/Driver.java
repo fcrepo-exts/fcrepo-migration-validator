@@ -149,7 +149,8 @@ public class Driver implements Callable<Integer> {
         if (completedRun) {
             final ReportHandler reportHandler;
             if (reportType == ReportType.html) {
-                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
+                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType),
+                                                      executionManager.getNumProcessed());
             } else {
                 reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
             }

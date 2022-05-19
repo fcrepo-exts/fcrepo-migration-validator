@@ -33,6 +33,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Fedora3ValidationExecutionManager.class);
 
+    private long numProcessed;
     private final int limit;
     private final AtomicBoolean abort;
     private final Semaphore semaphore;
@@ -61,6 +62,7 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         this.objectValidationConfig = config.getObjectValidationConfig();
         this.abort = new AtomicBoolean();
         this.resumeManager = config.resumeManager();
+        this.numProcessed = 0;
     }
 
     @Override
@@ -68,7 +70,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         try {
             // track count of objects processed for final f3 to ocfl validation
             var totalCount = 0L;
-            var numProcessed = 0L;
             var halted = false;
 
             for (FedoraObjectProcessor op : source) {
@@ -172,5 +173,13 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         } finally {
             //close any open resources.
         }
+    }
+
+    /**
+     * Returns the number of PIDs which were validated
+     * @return numProcessed
+     */
+    public long getNumProcessed() {
+        return numProcessed;
     }
 }

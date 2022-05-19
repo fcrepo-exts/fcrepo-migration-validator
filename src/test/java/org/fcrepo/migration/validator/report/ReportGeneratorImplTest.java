@@ -35,7 +35,7 @@ public class ReportGeneratorImplTest {
             }
         }
         Assert.assertTrue("Error making output dir: " + outputDir, outputDir.toFile().mkdirs());
-        final ReportHandler reportHandler = new HtmlReportHandler(outputDir);
+        final ReportHandler reportHandler = new HtmlReportHandler(outputDir, 1);
         this.generator = new ReportGeneratorImpl(resultDir, reportHandler);
     }
 
