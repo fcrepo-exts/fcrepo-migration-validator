@@ -5,7 +5,6 @@
  */
 package org.fcrepo.migration.validator.impl;
 
-import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ResumeManager;
@@ -72,21 +71,21 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
             var totalCount = 0L;
             var halted = false;
 
-            for (FedoraObjectProcessor op : source) {
+            // When iterating, we block on the semaphore as creating a new ObjectProcessor will open a file handle
+            for (final var objectProcessor : source) {
                 totalCount++;
-                if (resumeManager.accept(op.getObjectInfo().getPid())) {
+                if (resumeManager.accept(objectProcessor.getObjectInfo().getPid())) {
                     if (abort.get() || halted) {
                         break;
                     }
 
                     numProcessed++;
-                    final var sourceObjectId = op.getObjectInfo().getPid();
+                    final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
                     try {
-                        // we block on the semaphore as each ObjectProcessor will open a file handle
                         semaphore.acquire();
                         if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
                             final var task = new F3ObjectValidationTaskBuilder()
-                                .processor(op)
+                                .processor(objectProcessor)
                                 .withValidationConfig(objectValidationConfig)
                                 .writer(writer)
                                 .objectSessionFactory(ocflObjectSessionFactory)
