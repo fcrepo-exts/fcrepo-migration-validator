@@ -12,6 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Class which uses a file (resume.txt) in order to track which PIDs have been previously validated and do not need
+ * to be processed
  *
  * @author shake
  */
@@ -63,7 +65,6 @@ public class ResumeManagerImpl implements ResumeManager {
         processedPids.add(pid);
     }
 
-    @Override
     public boolean accept(final String pid) {
         count++;
         final String logMsg = "PID: " + pid + ", accept? ";
