@@ -5,6 +5,7 @@
  */
 package org.fcrepo.migration.validator.impl;
 
+import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ResumeManager;
@@ -22,8 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.StreamSupport;
 
 /**
  * This class is responsible for coordinating and managing the lifecycle of the classes involved in a validation run.
@@ -68,13 +67,18 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     public boolean doValidation() {
         try {
             // track count of objects processed for final f3 to ocfl validation
-            final var numProcessed = new AtomicLong(0);
-            final var halted = new AtomicBoolean(false);
+            var totalCount = 0L;
+            var numProcessed = 0L;
+            var halted = false;
 
-            StreamSupport.stream(source.spliterator(), false)
-                .filter(op -> resumeManager.accept(op.getObjectInfo().getPid()))
-                .takeWhile(op -> !abort.get() && !halted.get())
-                .forEach(op -> {
+            for (FedoraObjectProcessor op : source) {
+                totalCount++;
+                if (resumeManager.accept(op.getObjectInfo().getPid())) {
+                    if (abort.get() || halted) {
+                        break;
+                    }
+
+                    numProcessed++;
                     final var sourceObjectId = op.getObjectInfo().getPid();
                     try {
                         // we block on the semaphore as each ObjectProcessor will open a file handle
@@ -93,14 +97,14 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                         abort.set(true);
                     }
 
-                    halted.set(limit != 0 && limit <= numProcessed.incrementAndGet());
-                });
+                    halted = limit != 0 && limit <= numProcessed;
+                }
+            }
 
             // only run repository validator if doing a full run
             final var repository = config.ocflRepository();
-            final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted.get();
-            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, resumeManager.totalProcessed(),
-                                                                      repository, writer);
+            final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted;
+            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, totalCount, repository, writer);
             semaphore.acquire();
             submit(repositoryTask);
 

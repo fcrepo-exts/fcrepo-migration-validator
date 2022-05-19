@@ -14,13 +14,6 @@ package org.fcrepo.migration.validator.api;
 public interface ResumeManager {
 
     /**
-     * Get the total number of PIDs which have been tested through {@link ResumeManager#accept}
-     *
-     * @return the number of PIDs
-     */
-    long totalProcessed();
-
-    /**
      * Update the resume file with all PIDs which have been processed successfully
      */
     void updateResumeFile();

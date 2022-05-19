@@ -26,13 +26,11 @@ public class ResumeManagerImpl implements ResumeManager {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(ResumeManagerImpl.class);
 
-    private long count;
     private final boolean acceptAll;
     private final Path resumeFile;
     private final Set<String> processedPids;
 
     public ResumeManagerImpl(final Path resultsDir, final boolean acceptAll) {
-        this.count = 0;
         this.acceptAll = acceptAll;
         this.resumeFile = resultsDir.resolve("resume.txt");
         this.processedPids = new ConcurrentSkipListSet<>();
@@ -71,7 +69,6 @@ public class ResumeManagerImpl implements ResumeManager {
     }
 
     public boolean accept(final String pid) {
-        count++;
         final String logMsg = "PID: " + pid + ", accept? ";
 
         if (!acceptAll && processedPids.contains(pid)) {
@@ -81,10 +78,6 @@ public class ResumeManagerImpl implements ResumeManager {
 
         LOGGER.debug(logMsg + true);
         return true;
-    }
-
-    public long totalProcessed() {
-        return count;
     }
 
 }
