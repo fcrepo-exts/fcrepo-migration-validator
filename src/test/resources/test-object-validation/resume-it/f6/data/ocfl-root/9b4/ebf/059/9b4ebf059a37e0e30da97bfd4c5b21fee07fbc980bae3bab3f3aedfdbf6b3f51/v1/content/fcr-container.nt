@@ -1,0 +1,9 @@
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#hasModel> <info:fedora/1711.dl:CModelUWDCObject> .
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#hasModel> <info:fedora/1711.dl:CModelFirstClassObject> .
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#hasModel> <info:fedora/1711.dl:CModelCollection> .
+<info:fedora/1711.dl:UWPAbout> <http://digital.library.wisc.edu/1711.dl/rdf/1.0/relations#hasAccessPolicy> <http://digital.library.wisc.edu/1711.dl/Access-policy-open-access-all> .
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#state> "Active"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#label> "History of UW\u2013Platteville"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#ownerId> ""^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/model#createdDate> "2019-07-01T17:12:45.311Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<info:fedora/1711.dl:UWPAbout> <info:fedora/fedora-system:def/view#lastModifiedDate> "2019-07-25T17:43:56.259Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .

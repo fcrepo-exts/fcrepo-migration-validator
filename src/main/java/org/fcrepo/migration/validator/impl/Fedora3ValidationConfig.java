@@ -16,6 +16,8 @@ import java.io.File;
  */
 public class Fedora3ValidationConfig extends ValidationConfig {
 
+    private int limit;
+    private boolean resume;
     private boolean checksum;
     private boolean failureOnly;
     private boolean deleteInactive;
@@ -194,6 +196,24 @@ public class Fedora3ValidationConfig extends ValidationConfig {
      */
     public Fedora3ValidationConfig setFailureOnly(final boolean failureOnly) {
         this.failureOnly = failureOnly;
+        return this;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public Fedora3ValidationConfig setLimit(final int limit) {
+        this.limit = limit;
+        return this;
+    }
+
+    public boolean isResume() {
+        return resume;
+    }
+
+    public Fedora3ValidationConfig setResume(final boolean resume) {
+        this.resume = resume;
         return this;
     }
 }

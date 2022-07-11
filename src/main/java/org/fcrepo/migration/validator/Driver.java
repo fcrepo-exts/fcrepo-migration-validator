@@ -104,7 +104,15 @@ public class Driver implements Callable<Integer> {
                         description = "Validate objects in the Inactive state as deleted.")
     private boolean deleteInactive;
 
-    @CommandLine.Option(names = {"--failure-only"}, order = 19,
+    @CommandLine.Option(names = {"--limit", "-L"}, order = 19,
+                        description = "Limit the number of object to validate in a single run")
+    private int limit;
+
+    @CommandLine.Option(names = {"--resume", "-E"}, order = 20,
+                        description = "Resume from last validated object")
+    private boolean resume;
+
+    @CommandLine.Option(names = {"--failure-only"}, order = 28,
                         description = "Report only objects which have failed validations.")
     private boolean failureOnly;
 
@@ -130,6 +138,8 @@ public class Driver implements Callable<Integer> {
         config.setObjectsToValidate(objectsToValidate);
         config.setDeleteInactive(deleteInactive);
         config.setFailureOnly(failureOnly);
+        config.setLimit(limit);
+        config.setResume(resume);
         LOGGER.info("Configuration created: {}", config);
 
         LOGGER.info("Preparing to execute validation run...");
@@ -139,7 +149,8 @@ public class Driver implements Callable<Integer> {
         if (completedRun) {
             final ReportHandler reportHandler;
             if (reportType == ReportType.html) {
-                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType));
+                reportHandler = new HtmlReportHandler(config.getReportDirectory(reportType),
+                                                      executionManager.getNumProcessed());
             } else {
                 reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
             }

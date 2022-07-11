@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
+import java.util.Optional;
+
 /**
  * This class is responsible for performing all validations on a single F3 object.
  *
@@ -48,10 +50,17 @@ public class F3ObjectValidationTask extends ValidationTask {
     }
 
     @Override
-    public void run() {
+    public ValidationTask get() {
         LOGGER.info("Processing {} ", processor.getObjectInfo().getPid());
         final var validator = new Fedora3ObjectValidator(ocflObjectSessionFactory, objectValidationConfig);
         final var results = validator.validate(processor);
         writer.write(results);
+        return this;
     }
+
+    @Override
+    public Optional<String> getPid() {
+        return Optional.of(processor.getObjectInfo().getPid());
+    }
+
 }

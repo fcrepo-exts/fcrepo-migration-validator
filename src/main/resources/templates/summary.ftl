@@ -49,8 +49,8 @@
     <h2>Summary</h2>
     <table>
       <tr>
-        <td>Total object reports:</td>
-        <td>${objectCount}</td>
+        <td>Processed PIDs:</td>
+        <td>${numProcessed}</td>
       </tr>
       <tr>
         <td>Failed objects:</td>

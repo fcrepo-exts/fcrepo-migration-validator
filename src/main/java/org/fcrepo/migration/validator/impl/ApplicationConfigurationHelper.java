@@ -24,6 +24,7 @@ import org.fcrepo.migration.foxml.InternalIDResolver;
 import org.fcrepo.migration.foxml.LegacyFSIDResolver;
 import org.fcrepo.migration.foxml.NativeFoxmlDirectoryObjectSource;
 import org.fcrepo.migration.validator.api.ObjectValidationConfig;
+import org.fcrepo.migration.validator.api.ResumeManager;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.storage.ocfl.CommitType;
 import org.fcrepo.storage.ocfl.DefaultOcflObjectSessionFactory;
@@ -51,6 +52,7 @@ public class ApplicationConfigurationHelper {
 
     private final Fedora3ValidationConfig config;
     private final Path workDirectory;
+    private final ResumeManager resumeManager;
     private final Supplier<MutableOcflRepository> repositorySupplier;
 
     public ApplicationConfigurationHelper(final Fedora3ValidationConfig config) {
@@ -61,6 +63,11 @@ public class ApplicationConfigurationHelper {
             throw new RuntimeException(e);
         }
         this.repositorySupplier = Suppliers.memoize(() -> repository(config, workDirectory));
+        this.resumeManager = new ResumeManagerImpl(config.getResultsDirectory(), !config.isResume());
+    }
+
+    public ResumeManager resumeManager() {
+        return resumeManager;
     }
 
     public ValidationResultWriter validationResultWriter() {
@@ -75,7 +82,7 @@ public class ApplicationConfigurationHelper {
         }
     }
 
-    private ObjectSource doObjectSource () throws IOException {
+    private ObjectSource doObjectSource() throws IOException {
         final ObjectSource objectSource;
         final var f3ExportedDir = config.getExportedDirectory();
         final var f3DatastreamsDir = config.getDatastreamsDirectory();
@@ -190,6 +197,10 @@ public class ApplicationConfigurationHelper {
 
     public int getThreadCount() {
         return config.getThreadCount();
+    }
+
+    public int getLimit() {
+        return config.getLimit();
     }
 
     public ObjectValidationConfig getObjectValidationConfig() {

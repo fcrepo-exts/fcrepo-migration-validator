@@ -5,10 +5,15 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import java.util.Optional;
+import java.util.function.Supplier;
+
 /**
  * A runnable responsible for executing validations and processing the results.
  *
  * @author dbernstein
  */
-public abstract class ValidationTask implements Runnable {
+public abstract class ValidationTask implements Supplier<ValidationTask> {
+
+    abstract public Optional<String> getPid();
 }

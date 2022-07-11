@@ -1,0 +1,3 @@
+<info:fedora/1711.dl:UWPAbout/RELS-EXT> <http://purl.org/dc/terms/title> "RDF Statements about this object"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:UWPAbout/RELS-EXT> <http://fedora.info/definitions/1/0/access/objState> "A"^^<http://www.w3.org/2001/XMLSchema#string> .
+<info:fedora/1711.dl:UWPAbout/RELS-EXT> <http://www.loc.gov/premis/rdf/v1#formatDesignation> "info:fedora/fedora-system:FedoraRELSExt-1.0"^^<http://www.w3.org/2001/XMLSchema#string> .
