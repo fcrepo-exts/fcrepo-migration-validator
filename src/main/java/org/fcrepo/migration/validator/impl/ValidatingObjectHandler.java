@@ -61,7 +61,6 @@ public class ValidatingObjectHandler implements ValidationHandler {
     private ObjectInfo objectInfo;
     private final boolean checksum;
     private final boolean deleteInactive;
-    private final boolean validateHeadOnly;
     private final Path ocflRoot;
     private final OcflRepository repository;
     private final OcflObjectSession ocflSession;
@@ -148,7 +147,6 @@ public class ValidatingObjectHandler implements ValidationHandler {
         this.repository = config.getOcflRepository();
         this.deleteInactive = config.deleteInactive();
         this.digestAlgorithm = config.getDigestAlgorithm();
-        this.validateHeadOnly = config.isValidateHeadOnly();
     }
 
     /**
@@ -156,6 +154,7 @@ public class ValidatingObjectHandler implements ValidationHandler {
      *
      * @return
      */
+    @Override
     public List<ValidationResult> getValidationResults() {
         return validationResults;
     }
@@ -265,16 +264,14 @@ public class ValidatingObjectHandler implements ValidationHandler {
                 final var headers = ocflSession.readHeaders(targetResource, ocflVersionInfo.getVersionNumber());
                 final var ocflObject = repository.getObject(objectVersionId);
 
-                if (isHead || !validateHeadOnly) {
-                    validateSizeMeta(dsVersion, headers, version, builder).ifPresent(validationResults::add);
-                    validateSizeOnDisk(dsVersion, ocflRoot, headers, ocflObject, version, builder)
+                validateSizeMeta(dsVersion, headers, version, builder).ifPresent(validationResults::add);
+                validateSizeOnDisk(dsVersion, ocflRoot, headers, ocflObject, version, builder)
+                    .ifPresent(validationResults::add);
+                validateCreatedDate(sourceCreated, headers, version, builder).ifPresent(validationResults::add);
+                validateLastModified(dsVersion, headers, version, builder).ifPresent(validationResults::add);
+                if (checksum) {
+                    validateChecksum(dsVersion, headers, digestAlgorithm, version, builder)
                         .ifPresent(validationResults::add);
-                    validateCreatedDate(sourceCreated, headers, version, builder).ifPresent(validationResults::add);
-                    validateLastModified(dsVersion, headers, version, builder).ifPresent(validationResults::add);
-                    if (checksum) {
-                        validateChecksum(dsVersion, headers, digestAlgorithm, version, builder)
-                            .ifPresent(validationResults::add);
-                    }
                 }
             } catch (NotFoundException | IndexOutOfBoundsException ex) {
                 final var error = "Source object resource does not exist in target for source version=%d";

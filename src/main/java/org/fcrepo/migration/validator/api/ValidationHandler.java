@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -347,5 +348,6 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         return result;
     }
 
+    List<ValidationResult> getValidationResults();
 
 }
