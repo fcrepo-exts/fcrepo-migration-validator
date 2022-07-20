@@ -24,6 +24,8 @@ import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.api.exception.NotFoundException;
 import edu.wisc.library.ocfl.api.model.ObjectVersionId;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.riot.RDFDataMgr;
+import org.apache.jena.riot.RDFFormat;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.ObjectProperties;
 import org.fcrepo.migration.ObjectReference;
@@ -119,6 +121,11 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
             return validation.getStatus() == OK;
         } else {
             if (headers.isPresent()) {
+                // read the fcr-container.nt
+                ocflSession.readContent(ocflId)
+                           .getContentStream()
+                           .ifPresent(is -> RDFDataMgr.read(model, is, RDFFormat.NTRIPLES.getLang()));
+
                 properties.forEach(op -> validateObjectProperty(ocflId, objectInfo, op, headers.get(), model, builder)
                     .ifPresent(validationResults::add));
             } else {
