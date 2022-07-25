@@ -112,7 +112,7 @@ public class VersionValidationIT extends AbstractValidationIT {
     public void testValidateHeadOnly() {
         final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "valid/f3/datastreams");
         final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "valid/f3/objects");
-        final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "valid/f6/data/ocfl-root");
+        final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "head-only/f6/data/ocfl-root");
         final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
         config.setValidateHeadOnly(true);
 
