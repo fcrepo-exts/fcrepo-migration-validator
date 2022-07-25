@@ -6,7 +6,6 @@
 package org.fcrepo.migration.validator.impl;
 
 import static java.lang.String.format;
-import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT_RESOURCE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
@@ -21,7 +20,6 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.wisc.library.ocfl.api.OcflRepository;
-import edu.wisc.library.ocfl.api.exception.NotFoundException;
 import edu.wisc.library.ocfl.api.model.ObjectVersionId;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.RDFDataMgr;
@@ -35,6 +33,7 @@ import org.fcrepo.migration.validator.api.ValidationHandler;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
 import org.fcrepo.storage.ocfl.ResourceHeaders;
+import org.fcrepo.storage.ocfl.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,12 +113,14 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
         final var headers = readHeaders(ocflId);
         final var objectState = F3State.fromProperty(stateProperty);
 
+        // object is deleted -> check if it exists and ignore further validations (return false)
+        boolean continueValidations = false;
         if (objectState.isDeleted(deleteInactive)) {
             final var validation = headers.map(ignored -> builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorDeleted))
                 .orElseGet(() -> builder.ok(SOURCE_OBJECT_EXISTS_IN_TARGET, successDeleted));
             validationResults.add(validation);
-            return validation.getStatus() == OK;
         } else {
+            // object exists -> validate headers or fail if they don't exist
             if (headers.isPresent()) {
                 // read the fcr-container.nt
                 ocflSession.readContent(ocflId)
@@ -128,13 +129,13 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
 
                 properties.forEach(op -> validateObjectProperty(ocflId, objectInfo, op, headers.get(), model, builder)
                     .ifPresent(validationResults::add));
+                continueValidations = true;
             } else {
                 validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorActive));
-                return false;
             }
         }
 
-        return true;
+        return continueValidations;
     }
 
     public void validateDatastream(final String dsId, final ObjectReference objectReference) {
@@ -143,7 +144,6 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
         final var targetObjectId = ocflSession.ocflObjectId();
         final var sourceResource = sourceObjectId + "/" + dsId;
         final var targetResource = targetObjectId + "/" + dsId;
-        final var targetVersions = ocflSession.listVersions(targetResource);
         final var builder = new ValidationResultBuilder(sourceObjectId, targetObjectId, sourceResource, targetResource,
                                                         OBJECT_RESOURCE, index);
 
@@ -169,16 +169,15 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
         // get the original created date
         final var created = dsVersions.get(0).getCreated();
 
-        // prep for validation
-        final var ocflVersionInfo = targetVersions.get(0);
-        final var objectVersionId = ObjectVersionId.version(ocflVersionInfo.getOcflObjectId(),
-                                                            ocflVersionInfo.getVersionNumber());
-        final var headersOpt = readHeaders(targetResource);
-        final var ocflObject = repository.getObject(objectVersionId);
-        final var readError = "Source object resource does not exist in target";
+        try {
+            final var headers = ocflSession.readHeaders(targetResource);
+            final var versions = ocflSession.listVersions(targetResource);
+            final var ocflVersionInfo = versions.get(0);
+            final var objectVersionId = ObjectVersionId.version(ocflVersionInfo.getOcflObjectId(),
+                                                                ocflVersionInfo.getVersionNumber());
+            final var ocflObject = repository.getObject(objectVersionId);
 
-        // datastream validations
-        headersOpt.ifPresentOrElse(headers -> {
+            // datastream validations
             validateSizeMeta(head, headers, "HEAD", builder).ifPresent(validationResults::add);
             validateSizeOnDisk(head, ocflRoot, headers, ocflObject, "HEAD", builder).ifPresent(validationResults::add);
             validateCreatedDate(created, headers, "HEAD", builder).ifPresent(validationResults::add);
@@ -186,15 +185,18 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
             if (checksum) {
                 validateChecksum(head, headers, digestAlgorithm, "HEAD", builder).ifPresent(validationResults::add);
             }
-        }, () -> validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, readError)));
 
-        // validate we have only one version in ocfl
-        if (targetVersions.size() == 1) {
-            final var versionSuccess = "Resource has single binary version";
-            validationResults.add(builder.ok(BINARY_VERSION_COUNT, versionSuccess));
-        } else {
-            final var versionFailure = "Resource has more than just a HEAD version: count=%s";
-            validationResults.add(builder.fail(BINARY_VERSION_COUNT, format(versionFailure, targetVersions.size())));
+            // validate we have only one version in ocfl
+            if (versions.size() == 1) {
+                final var versionSuccess = "Resource has single binary version";
+                validationResults.add(builder.ok(BINARY_VERSION_COUNT, versionSuccess));
+            } else {
+                final var versionFailure = "Resource has more than just a HEAD version: count=%s";
+                validationResults.add(builder.fail(BINARY_VERSION_COUNT, format(versionFailure, versions.size())));
+            }
+        } catch (NotFoundException ignored) {
+            final var readError = "Source object resource does not exist in target";
+            validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, readError));
         }
     }
 
