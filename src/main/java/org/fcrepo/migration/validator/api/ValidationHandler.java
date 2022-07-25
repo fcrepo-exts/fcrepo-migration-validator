@@ -174,7 +174,6 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         LOGGER.debug("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
         final var resolver = OCFL_PROPERTY_RESOLVERS.get(property);
         if (resolver != null) {
-            LOGGER.info("PID = {}, object property: name = {}, value = {}", pid, property, sourceValue);
             final var success = "pid: %s -> properties match: f3 prop name=%s, source=%s, target=%s";
             final var error = "pid: %s -> properties do not match: f3 prop name=%s, source=%s, target=%s";
             final var notFound = "pid: %s -> property not found in OCFL: f3 prop name=%s, source=%s";
