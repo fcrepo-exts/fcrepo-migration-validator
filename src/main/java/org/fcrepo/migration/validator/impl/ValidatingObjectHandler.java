@@ -303,6 +303,14 @@ public class ValidatingObjectHandler implements ValidationHandler {
         }
     }
 
+    /**
+     * Search for filename updates from RELS-INT metadata changes
+     *
+     * @param sourceResource the name of the resource
+     * @param targetVersions the OCFL versions
+     * @param filenames the filename changes from RELS-INT data
+     * @return the number of additional version to expect from updated filenames
+     */
     private int searchSoftVersions(final String sourceResource,
                                    final List<OcflVersionInfo> targetVersions,
                                    final List<String> filenames) {

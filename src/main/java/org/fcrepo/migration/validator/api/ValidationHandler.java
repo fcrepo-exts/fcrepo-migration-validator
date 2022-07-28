@@ -48,6 +48,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Migration validator which performs a few basic types of validations built in:
+ * - F3 object property against ocfl headers or stored model
+ * - F3 datastream size against ocfl headers
+ * - F3 datastream size against ocfl object on disk
+ * - F3 datastream created date against ocfl headers
+ * - F3 datastream last modified date against ocfl headers
+ * - F3 checksum against ocfl object on disk
  *
  * @author mikejritter
  */
@@ -67,7 +74,7 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
     String RELS_DELETED_ENTRY = "FCREPO_MIGRATION_VALIDATOR_DELETED_ENTRY";
 
     /**
-     * Properties which migrated to OCFL headers
+     * Fedora 3 ObjectProperties which migrated to OCFL
      */
     Map<String, PropertyResolver> OCFL_PROPERTY_RESOLVERS = Map.of(
         F3_LABEL, headers -> Optional.empty(),
@@ -77,8 +84,11 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         F3_LAST_MODIFIED_DATE, (DateTimeResolver) headers -> Optional.of(headers.getLastModifiedDate().toString())
     );
 
+    /**
+     * Interface to resolve a Fedora 3 ObjectProperty in Fedora 6
+     */
     interface PropertyResolver {
-        Optional<String> resolve(ResourceHeaders headers);
+        Optional<String> resolve(final ResourceHeaders headers);
 
         default boolean equals(final String source, final String target) {
             return source.equals(target);
@@ -91,6 +101,9 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         }
     }
 
+    /**
+     * DateTime resolver for mapping times to an Instant in order to account for differences in string formatting
+     */
     interface DateTimeResolver extends PropertyResolver {
         @Override
         default boolean equals(final String source, final String target) {
@@ -102,7 +115,7 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
     }
 
     /**
-     * Hold a few values so we can have an easier time creating ValidationResults in various places
+     * Builder for creating ValidationResults in various places
      */
     class ValidationResultBuilder {
         private final String sourceObjectId;
@@ -135,6 +148,12 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         }
     }
 
+    /**
+     * Read an RDF from a DatastreamVersion
+     *
+     * @param dv the datastream version
+     * @return the RDF model
+     */
     default Model parseRdf(final DatastreamVersion dv) {
         final var model = ModelFactory.createDefaultModel();
         try (var is = dv.getContent()) {
@@ -145,6 +164,12 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         }
     }
 
+    /**
+     * Read a RELS-INT entry in order to extract the RDF models it has
+     *
+     * @param relsIntModel the RELS-INT model
+     * @return a Map of each RDF Model the RELS-INT contains
+     */
     default Map<String, Model> splitRelsInt(final Model relsIntModel) {
         final var infoFedora = "info:fedora/";
         final Map<String, Model> splitModels = new HashMap<>();
@@ -158,8 +183,17 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         return splitModels;
     }
 
-    // shared validations
-
+    /**
+     * Validate an ObjectProperty from Fedora 3 to what exists in Fedora 6
+     *
+     * @param ocflId the id of the ocfl object
+     * @param objectInfo the Fedora3 ObjectInto
+     * @param op the Fedora3 ObjectProperty
+     * @param headers the OCFL ResourceHeaders
+     * @param model the model read from ocfl (if it exists)
+     * @param builder the ValidationResultBuilder
+     * @return the ValidationResults
+     */
     default Optional<ValidationResult> validateObjectProperty(final String ocflId,
                                                               final ObjectInfo objectInfo,
                                                               final ObjectProperty op,
@@ -190,6 +224,15 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         return result;
     }
 
+    /**
+     * Validate the binary size of a DatastreamVersion from Fedora 3 to what is in the Fedora 6 headers
+     *
+     * @param dsVersion the DatastreamVersion
+     * @param headers the Fedora 6 ResourceHeaders
+     * @param version a string representation of the object version
+     * @param builder the ValidationResultBuilder
+     * @return the ValidationResults
+     */
     default Optional<ValidationResult> validateSizeMeta(final DatastreamVersion dsVersion,
                                                         final ResourceHeaders headers,
                                                         final String version,
@@ -213,6 +256,17 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         return result;
     }
 
+    /**
+     * Validate the size of a DatastreamVersion to the size of the object on disk in the Fedora 6 OCFL repository
+     *
+     * @param dsVersion the DatastreamVersion
+     * @param ocflRoot the ocfl-root directory
+     * @param headers the Fedora 6 ResourceHeaders
+     * @param ocflObjectVersion the OcflObjectVersion of the object
+     * @param version a string representation of the object version
+     * @param builder the ValidationResultBuilder
+     * @return the ValidationResults
+     */
     default Optional<ValidationResult> validateSizeOnDisk(final DatastreamVersion dsVersion,
                                                           final Path ocflRoot,
                                                           final ResourceHeaders headers,
@@ -248,6 +302,15 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         return Optional.empty();
     }
 
+    /**
+     * Validate the created date of a DatastreamVersion from Fedora 3 to what is in the Fedora 6 headers
+     *
+     * @param sourceCreated the string representation of the Fedora 3 object creation date
+     * @param headers the Fedora 6 ResourceHeaders
+     * @param version a string representation of the object version
+     * @param builder the ValidationResultBuilder
+     * @return the result of validation
+     */
     default Optional<ValidationResult> validateCreatedDate(final String sourceCreated,
                                                            final ResourceHeaders headers,
                                                            final String version,
@@ -267,6 +330,15 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         return result;
     }
 
+    /**
+     * Validate the last modified date of a DatastreamVersion from Fedora 3 to what is in the Fedora 6 headers
+     *
+     * @param dsVersion the DatastreamVersion of the Fedora 3 object
+     * @param headers the ResourceHeaders of the Fedora 6 object
+     * @param version a string representation of the object version
+     * @param builder the ValidationResultBuilder
+     * @return the ValidationResults
+     */
     default Optional<ValidationResult> validateLastModified(final DatastreamVersion dsVersion,
                                                             final ResourceHeaders headers,
                                                             final String version,
@@ -290,18 +362,20 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
     }
 
     /**
-     * Validate the checksum of a datastream.
+     * Validate the checksum of a datastream. If the Fedora 3 object is not managed, no validation is run and an empty
+     * Optional is returned.
      *
      * This can fail in multiple ways:
      * 1 - The F3 datastream can not be read
      * 2 - The F6 headers do not contain a checksum (only checking sha512 atm)
      * 3 - The two calculated checksums do not match
      *
-     * @param dsVersion the datastream
-     * @param headers the ocfl headers
+     * @param dsVersion the DatastreamVersion of the Fedora 3 object
+     * @param headers the ResourceHeaders of the Fedora 6 object
      * @param digestAlgorithm the digest algorithm to use
-     * @param version the version number
-     * @param builder helper for building ValidationResults
+     * @param version a string representation of the object version
+     * @param builder the ValidationResultBuilder
+     * @return the ValidationResult
      */
     default Optional<ValidationResult> validateChecksum(final DatastreamVersion dsVersion,
                                                         final ResourceHeaders headers,
@@ -347,6 +421,9 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         return result;
     }
 
+    /**
+     * @return the ValidationResults for an object
+     */
     List<ValidationResult> getValidationResults();
 
 }

@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import edu.wisc.library.ocfl.api.OcflRepository;
@@ -32,7 +31,6 @@ import org.fcrepo.migration.validator.api.ObjectValidationConfig;
 import org.fcrepo.migration.validator.api.ValidationHandler;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.storage.ocfl.OcflObjectSession;
-import org.fcrepo.storage.ocfl.ResourceHeaders;
 import org.fcrepo.storage.ocfl.exception.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,10 +54,10 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
     private final List<ValidationResult> validationResults;
 
     /**
-     * Konstructor
+     * Constructor
      *
-     * @param session
-     * @param config
+     * @param session the ocfl session
+     * @param config the validation config
      */
     public HeadOnlyValidationHandler(final OcflObjectSession session, final ObjectValidationConfig config) {
         this.index = new AtomicInteger();
@@ -109,36 +107,38 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
                                             .findFirst()
                                             .orElseThrow(() -> new IllegalStateException("Could not find " + F3_STATE +
                                                                                          "on object" + ocflId));
-
-        final var headers = readHeaders(ocflId);
-        final var objectState = F3State.fromProperty(stateProperty);
-
-        // object is deleted -> check if it exists and ignore further validations (return false)
         boolean continueValidations = false;
-        if (objectState.isDeleted(deleteInactive)) {
-            final var validation = headers.map(ignored -> builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorDeleted))
-                .orElseGet(() -> builder.ok(SOURCE_OBJECT_EXISTS_IN_TARGET, successDeleted));
-            validationResults.add(validation);
-        } else {
-            // object exists -> validate headers or fail if they don't exist
-            if (headers.isPresent()) {
+        final var objectState = F3State.fromProperty(stateProperty);
+        final var isDeleted = objectState.isDeleted(deleteInactive);
+
+        // expect deleted objects to not exist in OCFL
+        // and active objects to run through normal validations
+        try {
+            final var headers = ocflSession.readHeaders(ocflId);
+            if (!isDeleted) {
                 // read the fcr-container.nt
                 ocflSession.readContent(ocflId)
                            .getContentStream()
                            .ifPresent(is -> RDFDataMgr.read(model, is, RDFFormat.NTRIPLES.getLang()));
 
-                properties.forEach(op -> validateObjectProperty(ocflId, objectInfo, op, headers.get(), model, builder)
+                properties.forEach(op -> validateObjectProperty(ocflId, objectInfo, op, headers, model, builder)
                     .ifPresent(validationResults::add));
                 continueValidations = true;
             } else {
                 validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorActive));
+            }
+        } catch (final NotFoundException ignored) {
+            if (isDeleted) {
+                validationResults.add(builder.ok(SOURCE_OBJECT_EXISTS_IN_TARGET, successDeleted));
+            } else {
+                validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorDeleted));
             }
         }
 
         return continueValidations;
     }
 
-    public void validateDatastream(final String dsId, final ObjectReference objectReference) {
+    private void validateDatastream(final String dsId, final ObjectReference objectReference) {
         final var dsVersions = objectReference.getDatastreamVersions(dsId);
         final var sourceObjectId = objectInfo.getPid();
         final var targetObjectId = ocflSession.ocflObjectId();
@@ -151,8 +151,8 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
         final var dsInfo = head.getDatastreamInfo();
         final var state = F3State.fromString(dsInfo.getState());
 
+        // check that the datastream was deleted + return
         if (state.isDeleted(deleteInactive)) {
-            // check datastream deleted + return
             final var success = "Source object resource deleted from ocfl object";
             final var error = "Source object resource does not exist in target for source version";
             try {
@@ -162,7 +162,6 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
                 builder.ok(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, success);
             }
 
-            // there are no other validations to run on deleted objects so return here
             return;
         }
 
@@ -198,17 +197,6 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
             final var readError = "Source object resource does not exist in target";
             validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, readError));
         }
-    }
-
-    private Optional<ResourceHeaders> readHeaders(final String id) {
-        Optional<ResourceHeaders> headers;
-        try {
-            headers = Optional.of(ocflSession.readHeaders(id));
-        } catch (NotFoundException ignored) {
-            headers = Optional.empty();
-        }
-
-        return headers;
     }
 
     @Override
