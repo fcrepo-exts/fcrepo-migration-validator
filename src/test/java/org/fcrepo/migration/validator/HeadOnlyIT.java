@@ -114,7 +114,7 @@ public class HeadOnlyIT extends AbstractValidationIT {
     public void failObjectNotMigrated() {
         // reuse the versioned object
         final var f3ObjectsDir = new File(VERSION_BASE_DIR, "valid/f3/objects");
-        final var f6OcflRootDir = new File(EMPTY_BASE_DIR, "valid/f6/data/ocfl-root");
+        final var f6OcflRootDir = new File(EMPTY_BASE_DIR, "f6/data/ocfl-root");
         final var config = getConfig(emptyDatastreamDir(), f3ObjectsDir, f6OcflRootDir);
         config.setValidateHeadOnly(true);
 
