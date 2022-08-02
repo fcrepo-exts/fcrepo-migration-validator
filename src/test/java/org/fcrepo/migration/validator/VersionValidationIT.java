@@ -30,10 +30,9 @@ public class VersionValidationIT extends AbstractValidationIT {
     @Test
     public void test() {
         final var datastreamId = "DS1";
-        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "valid/f3/datastreams");
         final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "valid/f3/objects");
         final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "valid/f6/data/ocfl-root");
-        final var reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final var reportHandler = doValidation(emptyDatastreamDir(), f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
@@ -63,10 +62,9 @@ public class VersionValidationIT extends AbstractValidationIT {
 
     @Test
     public void testOcflMissingVersion() {
-        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "valid/f3/datastreams");
         final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "valid/f3/objects");
         final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "ocfl-fewer-versions/f6/data/ocfl-root");
-        final var reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final var reportHandler = doValidation(emptyDatastreamDir(), f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
         final var errors = reportHandler.getErrors();
@@ -78,10 +76,9 @@ public class VersionValidationIT extends AbstractValidationIT {
 
     @Test
     public void testF3MissingVersion() {
-        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "valid/f3/datastreams");
         final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "valid/f3/objects");
         final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "ocfl-more-versions/f6/data/ocfl-root");
-        final var reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final var reportHandler = doValidation(emptyDatastreamDir(), f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
         final var errors = reportHandler.getErrors();
@@ -92,10 +89,9 @@ public class VersionValidationIT extends AbstractValidationIT {
 
     @Test
     public void testInvalidMetadata() {
-        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "invalid-metadata/f3/datastreams");
         final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "invalid-metadata/f3/objects");
         final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "valid/f6/data/ocfl-root");
-        final var reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final var reportHandler = doValidation(emptyDatastreamDir(), f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
         // 2 creation dates match; 2 last modified dates match; 0 size matches

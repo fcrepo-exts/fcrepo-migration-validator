@@ -20,7 +20,6 @@ import org.fcrepo.migration.validator.impl.ValidatingObjectHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
 import org.junit.After;
-import org.junit.Before;
 
 /**
  * @author awoods
