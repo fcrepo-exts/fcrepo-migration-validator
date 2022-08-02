@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<foxml:digitalObject VERSION="1.1" PID="1711.dl:FEG6WWJ664RHQ8X"
+xmlns:foxml="info:fedora/fedora-system:def/foxml#"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="info:fedora/fedora-system:def/foxml# http://www.fedora.info/definitions/1/0/foxml1-1.xsd">
+<foxml:objectProperties>
+<foxml:property NAME="info:fedora/fedora-system:def/model#state" VALUE="Active"/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#label" VALUE=""/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#ownerId" VALUE=""/>
+<foxml:property NAME="info:fedora/fedora-system:def/model#createdDate" VALUE="2019-07-08T18:48:38.370Z"/>
+<foxml:property NAME="info:fedora/fedora-system:def/view#lastModifiedDate" VALUE="2019-07-25T16:09:42.640Z"/>
+</foxml:objectProperties>
+<foxml:datastream ID="RELS-INT" STATE="D" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="RELS-INT.0" LABEL="Internal Datastream Relations" CREATED="2019-07-17T20:31:16.658Z" MIMETYPE="text/xml" FORMAT_URI="info:fedora/fedora-system:FedoraRELSInt-1.0" SIZE="497">
+<foxml:contentDigest TYPE="MD5" DIGEST="0b0dffa849e5103fbdea394acfd30f60"/>
+<foxml:xmlContent>
+<rdf:RDF xmlns:fedora-model="info:fedora/fedora-system:def/model#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rel="info:fedora/fedora-system:def/relations-external#">
+	<rdf:Description rdf:about="info:fedora/1711.dl:FEG6WWJ664RHQ8X/DS1">
+		<fedora-model:downloadFilename>datastream.xml</fedora-model:downloadFilename>
+	</rdf:Description>
+</rdf:RDF>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+<foxml:datastream ID="DS1" STATE="A" CONTROL_GROUP="X" VERSIONABLE="true">
+<foxml:datastreamVersion ID="DS1.0" LABEL="Example inline XML datastream" CREATED="2015-01-27T19:08:43.701Z" ALT_IDS="alternate_id" MIMETYPE="text/xml" FORMAT_URI="format:uri" SIZE="34">
+<foxml:xmlContent>
+<test>
+  This is a test.
+</test>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+<foxml:datastreamVersion ID="DS1.1" LABEL="Example inline XML datastream" CREATED="2015-01-27T19:20:40.678Z" ALT_IDS="alternate_id" MIMETYPE="text/xml" FORMAT_URI="format:uri" SIZE="50">
+<foxml:xmlContent>
+<test>
+  This is a test that was edited.
+</test>
+</foxml:xmlContent>
+</foxml:datastreamVersion>
+</foxml:datastream>
+</foxml:digitalObject>
