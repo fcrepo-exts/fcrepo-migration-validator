@@ -108,26 +108,4 @@ public class VersionValidationIT extends AbstractValidationIT {
         assertThat(errors).filteredOn(validation -> validation == LAST_MODIFIED_DATE).hasSize(2);
     }
 
-    @Test
-    public void testValidateHeadOnly() {
-        final var f3DatastreamsDir = new File(VERSIONS_BASE_DIR, "valid/f3/datastreams");
-        final var f3ObjectsDir = new File(VERSIONS_BASE_DIR, "valid/f3/objects");
-        final var f6OcflRootDir = new File(VERSIONS_BASE_DIR, "head-only/f6/data/ocfl-root");
-        final var config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
-        config.setValidateHeadOnly(true);
-
-        final var reportHandler = doValidation(config);
-
-        // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
-
-        // verify datastream metadata
-        // only 1 inline datastream with two versions, so we expect 2 results on all but size which should have none
-        final var validations = reportHandler.getPassed().stream()
-                                             .filter(result -> result.getValidationType() == BINARY_METADATA)
-                                             .map(ValidationResult::getDetails)
-                                             .collect(Collectors.toList());
-        assertThat(validations).allMatch(details -> details.contains("HEAD"));
-    }
-
 }
