@@ -125,13 +125,13 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
                     .ifPresent(validationResults::add));
                 continueValidations = true;
             } else {
-                validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorActive));
+                validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorDeleted));
             }
         } catch (final NotFoundException ignored) {
             if (isDeleted) {
                 validationResults.add(builder.ok(SOURCE_OBJECT_EXISTS_IN_TARGET, successDeleted));
             } else {
-                validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorDeleted));
+                validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorActive));
             }
         }
 
@@ -157,9 +157,9 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
             final var error = "Source object resource does not exist in target for source version";
             try {
                 ocflSession.readHeaders(targetResource);
-                builder.fail(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, error);
+                validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, error));
             } catch (NotFoundException ex) {
-                builder.ok(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, success);
+                validationResults.add(builder.ok(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, success));
             }
 
             return;
@@ -195,7 +195,7 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
             }
         } catch (NotFoundException ignored) {
             final var readError = "Source object resource does not exist in target";
-            validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, readError));
+            validationResults.add(builder.fail(SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET, readError));
         }
     }
 
