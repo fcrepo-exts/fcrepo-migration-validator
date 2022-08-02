@@ -85,10 +85,11 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
     }
 
     /**
-     * if deleted -> ensure object is not found
-     * if exists -> check standard properties
+     * Perform initial object level validations. When an object is marked as deleted in F3, make sure it does not exist
+     * in OCFL, otherwise perform the normal validations against the object properties.
      *
-     * @param objectProperties
+     * @param objectProperties the object properties
+     * @return whether to continue further validations on the object resources
      */
     private boolean initialObjectValidation(final ObjectProperties objectProperties) {
         final var errorActive = "Source object not found in target repository";
@@ -111,8 +112,6 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
         final var objectState = F3State.fromProperty(stateProperty);
         final var isDeleted = objectState.isDeleted(deleteInactive);
 
-        // expect deleted objects to not exist in OCFL
-        // and active objects to run through normal validations
         try {
             final var headers = ocflSession.readHeaders(ocflId);
             if (!isDeleted) {
@@ -128,6 +127,7 @@ public class HeadOnlyValidationHandler implements ValidationHandler {
                 validationResults.add(builder.fail(SOURCE_OBJECT_EXISTS_IN_TARGET, errorDeleted));
             }
         } catch (final NotFoundException ignored) {
+            // object not in ocfl, check if it is deleted in F3 as well
             if (isDeleted) {
                 validationResults.add(builder.ok(SOURCE_OBJECT_EXISTS_IN_TARGET, successDeleted));
             } else {
