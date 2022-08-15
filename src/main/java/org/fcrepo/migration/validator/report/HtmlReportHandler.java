@@ -106,7 +106,9 @@ public class HtmlReportHandler implements ReportHandler {
         final var file = new File(outputDir, filename);
         try (final var writer = new FileWriter(file)) {
             final Template template = config.getTemplate("repository.ftl");
-            template.process(null, writer);
+            final Map<String, Object> data = new HashMap<>();
+            data.put("validations", objectValidationResults.getResults());
+            template.process(data, writer);
         } catch (final IOException | TemplateException e) {
             throw new RuntimeException(e);
         }
