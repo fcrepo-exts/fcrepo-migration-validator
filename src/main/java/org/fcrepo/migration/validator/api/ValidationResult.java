@@ -77,7 +77,7 @@ public class ValidationResult {
                             final ValidationLevel validationLevel,
                             final ValidationType validationType,
                             final String details) {
-        this(index, status, validationLevel, validationType, null, null,details);
+        this(index, status, validationLevel, validationType, null, null, details);
     }
 
 

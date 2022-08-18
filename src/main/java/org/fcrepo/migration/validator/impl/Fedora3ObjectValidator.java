@@ -48,7 +48,9 @@ public class Fedora3ObjectValidator implements Validator<FedoraObjectProcessor> 
             fedoraId = "info:fedora/" + objectInfo.getPid();
         }
         final var ocflSession = this.factory.newSession(fedoraId);
-        final var handler = new ValidatingObjectHandler(ocflSession, objectValidationConfig);
+        final var handler = objectValidationConfig.isValidateHeadOnly()
+                            ? new HeadOnlyValidationHandler(ocflSession, objectValidationConfig)
+                            : new ValidatingObjectHandler(ocflSession, objectValidationConfig);
 
         try (object) {
             object.processObject(new ObjectAbstractionStreamingFedoraObjectHandler(handler));

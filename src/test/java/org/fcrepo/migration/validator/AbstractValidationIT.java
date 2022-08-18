@@ -6,6 +6,9 @@
 package org.fcrepo.migration.validator;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.api.ValidationResult;
@@ -122,4 +125,18 @@ public abstract class AbstractValidationIT {
         }
     }
 
+    /**
+     * For tests which have inline datastreams, create an empty directory
+     * @return the empty directory
+     */
+    public File emptyDatastreamDir() {
+        final Path parent = RESULTS_DIR.toPath().getParent();
+        try {
+            final var dir = Files.createDirectories(parent.resolve("empty-datastreams"));
+            dir.toFile().deleteOnExit();
+            return dir.toFile();
+        } catch (IOException e) {
+            throw new IllegalStateException("Unable to create tmp directory for testing");
+        }
+    }
 }
