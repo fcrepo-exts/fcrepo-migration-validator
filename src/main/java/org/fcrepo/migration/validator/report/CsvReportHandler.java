@@ -19,6 +19,8 @@ import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.ValidationResultsSummary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Report handler for csv output
@@ -26,6 +28,8 @@ import org.fcrepo.migration.validator.api.ValidationResultsSummary;
  * @author mikejritter
  */
 public class CsvReportHandler implements ReportHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(CsvReportHandler.class);
 
     private final Path outputDir;
     private final ReportType reportType;
@@ -75,6 +79,7 @@ public class CsvReportHandler implements ReportHandler {
              var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {
             csvWriter.writeAll(validationSummary.getObjectReports());
         } catch (IOException ex) {
+            LOGGER.error("Unable to write report {}", csvFile.getFileName(), ex);
             throw new RuntimeException(ex);
         }
 
@@ -99,6 +104,7 @@ public class CsvReportHandler implements ReportHandler {
              var csvWriter = mapper.writer(schema).writeValues(fileWriter)) {
             csvWriter.writeAll(objectValidationResults.getResults());
         } catch (IOException e) {
+            LOGGER.error("Unable to write report {}", file.getFileName(), e);
             throw new RuntimeException(e);
         }
 
