@@ -102,8 +102,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
 
             // only run repository validator if doing a full run
             final var repository = config.ocflRepository();
-            final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted;
-            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, totalCount, repository, writer);
+            //final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted;
+            final var repositoryTask = new F3RepositoryValidationTask(config, totalCount, repository, writer);
             submit(repositoryTask);
 
             awaitCompletion();

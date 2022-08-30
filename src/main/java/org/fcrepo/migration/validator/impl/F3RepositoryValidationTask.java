@@ -23,9 +23,10 @@ public class F3RepositoryValidationTask extends ValidationTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(F3RepositoryValidationTask.class);
 
     private final long numObjects;
-    private final boolean checkNumObjects;
+    private boolean checkNumObjects;
     private final OcflRepository ocflRepository;
     private final ValidationResultWriter writer;
+    private ApplicationConfigurationHelper config;
 
     /**
      * Constructor
@@ -45,10 +46,29 @@ public class F3RepositoryValidationTask extends ValidationTask {
         this.checkNumObjects = checkNumObjects;
     }
 
+    /**
+     * Constructor
+     *
+     * @param config
+     * @param numObjects
+     * @param ocflRepository
+     * @param writer
+     */
+    public F3RepositoryValidationTask(final ApplicationConfigurationHelper config,
+                                      final long numObjects,
+                                      final OcflRepository ocflRepository,
+                                      final ValidationResultWriter writer) {
+        this.writer = writer;
+        this.numObjects = numObjects;
+        this.ocflRepository = ocflRepository;
+        this.config = config;
+    }
+
+
     @Override
     public ValidationTask get() {
         LOGGER.info("starting repository processor");
-        final var repositoryValidator = new F3RepositoryValidator(checkNumObjects, numObjects);
+        final var repositoryValidator = new F3RepositoryValidator(config);
         final var results = repositoryValidator.validate(ocflRepository);
         writer.write(results);
         return this;
