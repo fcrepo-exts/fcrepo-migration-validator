@@ -7,7 +7,6 @@ package org.fcrepo.migration.validator.impl;
 
 import java.util.Optional;
 
-import edu.wisc.library.ocfl.api.OcflRepository;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
 import org.slf4j.Logger;
@@ -22,54 +21,28 @@ public class F3RepositoryValidationTask extends ValidationTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(F3RepositoryValidationTask.class);
 
-    private final long numObjects;
-    private boolean checkNumObjects;
-    private final OcflRepository ocflRepository;
     private final ValidationResultWriter writer;
-    private ApplicationConfigurationHelper config;
-
-    /**
-     * Constructor
-     *
-     * @param checkNumObjects
-     * @param numObjects
-     * @param ocflRepository
-     * @param writer
-     */
-    public F3RepositoryValidationTask(final boolean checkNumObjects,
-                                      final long numObjects,
-                                      final OcflRepository ocflRepository,
-                                      final ValidationResultWriter writer) {
-        this.writer = writer;
-        this.numObjects = numObjects;
-        this.ocflRepository = ocflRepository;
-        this.checkNumObjects = checkNumObjects;
-    }
+    private final ApplicationConfigurationHelper config;
 
     /**
      * Constructor
      *
      * @param config
-     * @param numObjects
-     * @param ocflRepository
      * @param writer
      */
     public F3RepositoryValidationTask(final ApplicationConfigurationHelper config,
-                                      final long numObjects,
-                                      final OcflRepository ocflRepository,
                                       final ValidationResultWriter writer) {
-        this.writer = writer;
-        this.numObjects = numObjects;
-        this.ocflRepository = ocflRepository;
         this.config = config;
+        this.writer = writer;
     }
 
 
     @Override
     public ValidationTask get() {
-        LOGGER.info("starting repository processor");
+        LOGGER.info("Starting repository processor");
+        final var repository = config.ocflRepository();
         final var repositoryValidator = new F3RepositoryValidator(config);
-        final var results = repositoryValidator.validate(ocflRepository);
+        final var results = repositoryValidator.validate(repository);
         writer.write(results);
         return this;
     }
