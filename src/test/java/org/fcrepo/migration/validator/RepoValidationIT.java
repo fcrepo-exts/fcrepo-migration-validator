@@ -30,7 +30,7 @@ public class RepoValidationIT extends AbstractValidationIT {
         final File f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
         final File f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
         final File f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
-        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir, false);
 
         // verify expected results
         assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
@@ -41,12 +41,50 @@ public class RepoValidationIT extends AbstractValidationIT {
             .anyMatch(result -> result.getValidationLevel() == REPOSITORY);
     }
 
-    @Override
-    public ResultsReportHandler doValidation(final File f3DatastreamsDir,
-                                             final File f3ObjectsDir,
-                                             final File f6OcflRootDir) {
+    @Test
+    public void testHeadOnly() {
+        // pull from head only data
+        final File headOnlyBase = new File(FIXTURES_BASE_DIR, "head-only-it");
+        final File f3DatastreamsDir = new File(headOnlyBase, "valid/f3/datastreams");
+        final File f3ObjectsDir = new File(headOnlyBase, "valid/f3/objects");
+        final File f6OcflRootDir = new File(headOnlyBase, "valid/f6/data/ocfl-root");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir, true);
+
+        // verify expected results
+        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+
+        // check that the repository validations were run
+        assertThat(reportHandler.getPassed())
+            .anyMatch(result -> result.getValidationType() == REPOSITORY_RESOURCE_COUNT)
+            .anyMatch(result -> result.getValidationLevel() == REPOSITORY);
+    }
+
+    @Test
+    public void testHeadOnlyDeleted() {
+        // pull from deleted validation
+        final File deletedBase = new File(FIXTURES_BASE_DIR, "deleted-validation-it/deleted-object");
+        final File f3ObjectsDir = new File(deletedBase, "f3/objects");
+        final File f3DatastreamDir = new File(deletedBase, "f3/datastreams");
+        final File f6OcflRootDir = new File(FIXTURES_BASE_DIR, "empty/f6/data/ocfl-root");
+        final ResultsReportHandler reportHandler = doValidation(f3DatastreamDir, f3ObjectsDir, f6OcflRootDir, true);
+
+        // verify expected results
+        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+
+        // check that the repository validations were run
+        assertThat(reportHandler.getPassed())
+            .anyMatch(result -> result.getValidationType() == REPOSITORY_RESOURCE_COUNT)
+            .anyMatch(result -> result.getValidationLevel() == REPOSITORY);
+    }
+
+
+    private ResultsReportHandler doValidation(final File f3DatastreamsDir,
+                                              final File f3ObjectsDir,
+                                              final File f6OcflRootDir,
+                                              final boolean headOnly) {
         final Fedora3ValidationConfig config = getConfig(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
         config.setCheckNumObjects(true);
+        config.setValidateHeadOnly(headOnly);
         final var configuration = new ApplicationConfigurationHelper(config);
         final var executionManager = new Fedora3ValidationExecutionManager(configuration);
         executionManager.doValidation();
