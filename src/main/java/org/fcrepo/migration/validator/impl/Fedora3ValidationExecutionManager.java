@@ -82,7 +82,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                     numProcessed++;
                     final var sourceObjectId = objectProcessor.getObjectInfo().getPid();
                     try {
-                        semaphore.acquire();
                         if (objectsToValidate.isEmpty() || objectsToValidate.contains(sourceObjectId)) {
                             final var task = new F3ObjectValidationTaskBuilder()
                                 .processor(objectProcessor)
@@ -105,7 +104,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
             final var repository = config.ocflRepository();
             final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted;
             final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, totalCount, repository, writer);
-            semaphore.acquire();
             submit(repositoryTask);
 
             awaitCompletion();
@@ -123,7 +121,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         return !abort.get();
     }
 
-    private void submit(final ValidationTask task) {
+    private void submit(final ValidationTask task) throws InterruptedException {
+        semaphore.acquire();
         CompletableFuture.supplyAsync(task, executorService)
                          .whenComplete(this::finishTask);
     }
