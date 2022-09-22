@@ -5,13 +5,9 @@
  */
 package org.fcrepo.migration.validator.api;
 
-import org.slf4j.Logger;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * A data class defining all report wide summary information
@@ -21,8 +17,6 @@ import static org.slf4j.LoggerFactory.getLogger;
  * @since 2020-12-17
  */
 public class ValidationResultsSummary {
-
-    private static final Logger LOGGER = getLogger(ValidationResultsSummary.class);
 
     // Object-id to report filename map
     private final Map<String, ObjectReportSummary> objectReports = new HashMap<>();
@@ -38,7 +32,6 @@ public class ValidationResultsSummary {
             throw new IllegalArgumentException("Should not be overwriting existing report: " + objectId);
         }
 
-        LOGGER.debug("Adding report for object: {}, {}", objectId,  objectReportSummary.getReportFilename());
         objectReports.put(objectId, objectReportSummary);
     }
 

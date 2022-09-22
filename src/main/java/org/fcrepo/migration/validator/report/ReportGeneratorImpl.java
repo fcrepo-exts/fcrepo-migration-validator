@@ -72,6 +72,7 @@ public class ReportGeneratorImpl {
         try {
             return doProcessResults();
         } catch (IOException e) {
+            LOGGER.error("Unable to write report", e);
             throw new RuntimeException(e);
         }
     }
@@ -85,15 +86,13 @@ public class ReportGeneratorImpl {
                 // ..and the containing object has not already been loaded
                 // ..then, load all result files as a set.
                 final var depth = file.getNameCount() - resultDir.getNameCount();
-                final String objectId = file.getParent().toFile().getName();
+                final var parent = file.getParent().toFile();
+                final String objectId = parent.getName();
                 if (depth > 1 && !summary.containsReport(objectId) && isValidationResultFile(file.toFile().getName())) {
-                    final var reportSummary = loadValidationResults(file.getParent().toFile(),
-                                                                    reportHandler::objectLevelReport);
+                    final var reportSummary = loadValidationResults(parent, reportHandler::objectLevelReport);
 
                     // Update summary with newly created object reports
                     summary.addObjectReport(objectId, reportSummary);
-                } else {
-                    LOGGER.debug("Not a validation result file: {}", file);
                 }
 
                 return FileVisitResult.CONTINUE;
@@ -132,6 +131,7 @@ public class ReportGeneratorImpl {
         resultsList.sort(Comparator.comparingInt(ValidationResult::getIndex));
         final var validationResults = new ObjectValidationResults(resultsList);
         final var reportFilename = reportHandler.apply(validationResults);
+        LOGGER.info("Finished report {}", reportFilename);
         return new ObjectReportSummary(validationResults.hasErrors(), validationResults.getObjectId(), reportFilename);
     }
 }

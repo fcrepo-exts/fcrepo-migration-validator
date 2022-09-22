@@ -5,6 +5,8 @@
  */
 package org.fcrepo.migration.validator;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.impl.F3SourceTypes;
 import org.fcrepo.migration.validator.impl.ApplicationConfigurationHelper;
@@ -16,6 +18,7 @@ import org.fcrepo.migration.validator.report.HtmlReportHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ReportType;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -119,8 +122,18 @@ public class Driver implements Callable<Integer> {
     @CommandLine.Option(names = {"--debug"}, order = 30, description = "Enables debug logging")
     private boolean debug;
 
+    private static void setDebugLogLevel() {
+        final LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+        final ch.qos.logback.classic.Logger logger = loggerContext.getLogger("org.fcrepo.migration");
+        logger.setLevel(Level.toLevel("DEBUG"));
+    }
+
     @Override
     public Integer call() {
+        if (debug) {
+            setDebugLogLevel();
+        }
+
         final var config = new Fedora3ValidationConfig();
         config.setSourceType(f3SourceType);
         config.setEnableChecksums(checksum);
@@ -154,9 +167,10 @@ public class Driver implements Callable<Integer> {
             } else {
                 reportHandler = new CsvReportHandler(config.getReportDirectory(reportType), reportType);
             }
+            LOGGER.info("Starting report generation");
             final var generator = new ReportGeneratorImpl(config.getJsonOutputDirectory(), reportHandler);
             final var summaryFile = generator.generate();
-            LOGGER.info("Validation report written to: {}", summaryFile);
+            LOGGER.info("Validation report summary written to: {}", summaryFile);
         } else {
             LOGGER.warn("Skipping report writing due to exception");
         }

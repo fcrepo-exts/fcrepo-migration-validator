@@ -12,6 +12,8 @@ import org.fcrepo.migration.validator.api.ObjectReportSummary;
 import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ReportHandler;
 import org.fcrepo.migration.validator.api.ValidationResultsSummary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -33,6 +35,8 @@ import static freemarker.template.TemplateExceptionHandler.RETHROW_HANDLER;
  * @since 2020-12-16
  */
 public class HtmlReportHandler implements ReportHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HtmlReportHandler.class);
 
     private final File outputDir;
     private final Configuration config;
@@ -93,6 +97,7 @@ public class HtmlReportHandler implements ReportHandler {
             final Template template = config.getTemplate("object.ftl");
             template.process(data, writer);
         } catch (final IOException | TemplateException e) {
+            LOGGER.error("Unable to write report {}", filename, e);
             throw new RuntimeException(e);
         }
 
@@ -106,8 +111,11 @@ public class HtmlReportHandler implements ReportHandler {
         final var file = new File(outputDir, filename);
         try (final var writer = new FileWriter(file)) {
             final Template template = config.getTemplate("repository.ftl");
-            template.process(null, writer);
+            final Map<String, Object> data = new HashMap<>();
+            data.put("validations", objectValidationResults.getResults());
+            template.process(data, writer);
         } catch (final IOException | TemplateException e) {
+            LOGGER.error("Unable to write report {}", filename, e);
             throw new RuntimeException(e);
         }
 
@@ -148,6 +156,7 @@ public class HtmlReportHandler implements ReportHandler {
             final Template template = config.getTemplate("summary.ftl");
             template.process(data, writer);
         } catch (final IOException | TemplateException e) {
+            LOGGER.error("Unable to write report {}", reportFilename, e);
             throw new RuntimeException(e);
         }
 
