@@ -130,8 +130,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
      * @param throwable the exception thrown by the ValidationTask
      */
     private void finishTask(final ValidationTask task, final Throwable throwable) {
-        semaphore.release();
-
         //TODO Handle this in such a away that it is captured in the final report
         //https://jira.lyrasis.org/browse/FCREPO-3633
         if (throwable != null) {
@@ -140,6 +138,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         } else {
             task.getPid().ifPresent(resumeManager::completed);
         }
+
+        semaphore.release();
     }
 
 
