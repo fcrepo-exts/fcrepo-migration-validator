@@ -97,7 +97,8 @@ public interface ValidationHandler extends FedoraObjectVersionHandler {
         default Optional<String> fromModel(final Model model, final String ocflId, final String property) {
             return Optional.ofNullable(model.getProperty(model.createResource(ocflId), model.createProperty(property)))
                            .map(Statement::getObject)
-                           .map(RDFNode::toString);
+                           .filter(RDFNode::isLiteral)
+                           .map(node -> node.asLiteral().getLexicalForm());
         }
     }
 
