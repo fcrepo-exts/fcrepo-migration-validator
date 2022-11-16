@@ -15,7 +15,7 @@ import edu.wisc.library.ocfl.api.OcflRepository;
 import edu.wisc.library.ocfl.core.OcflRepositoryBuilder;
 import edu.wisc.library.ocfl.core.extension.storage.layout.config.HashedNTupleLayoutConfig;
 import edu.wisc.library.ocfl.core.path.mapper.LogicalPathMappers;
-import edu.wisc.library.ocfl.core.storage.filesystem.FileSystemOcflStorage;
+import edu.wisc.library.ocfl.core.storage.OcflStorageBuilder;
 import org.apache.commons.lang3.SystemUtils;
 import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.foxml.AkubraFSIDResolver;
@@ -123,8 +123,8 @@ public class ApplicationConfigurationHelper {
     }
 
     private MutableOcflRepository repository(final Fedora3ValidationConfig config, final Path workDir) {
-        final var storage = FileSystemOcflStorage.builder()
-                .repositoryRoot(config.getOcflRepositoryRootDirectory().toPath())
+        final var storage = OcflStorageBuilder.builder()
+                .fileSystem(config.getOcflRepositoryRootDirectory().toPath())
                 .build();
         final var logicalPathMapper = SystemUtils.IS_OS_WINDOWS ?
                 LogicalPathMappers.percentEncodingWindowsMapper() : LogicalPathMappers.percentEncodingLinuxMapper();

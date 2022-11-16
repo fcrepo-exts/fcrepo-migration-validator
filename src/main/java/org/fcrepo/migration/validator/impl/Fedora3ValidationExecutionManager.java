@@ -67,13 +67,10 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
     @Override
     public boolean doValidation() {
         try {
-            // track count of objects processed for final f3 to ocfl validation
-            var totalCount = 0L;
             var halted = false;
 
             // When iterating, we block on the semaphore as creating a new ObjectProcessor will open a file handle
             for (final var objectProcessor : source) {
-                totalCount++;
                 if (resumeManager.accept(objectProcessor.getObjectInfo().getPid())) {
                     if (abort.get() || halted) {
                         break;
@@ -100,14 +97,13 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
                 }
             }
 
-            // only run repository validator if doing a full run
-            final var repository = config.ocflRepository();
-            final var checkNumObjects = config.checkNumObjects() && objectsToValidate.isEmpty() && !halted;
-            final var repositoryTask = new F3RepositoryValidationTask(checkNumObjects, totalCount, repository, writer);
-            submit(repositoryTask);
+            // only run repository validator for full runs
+            if (!halted) {
+                final var repositoryTask = new F3RepositoryValidationTask(config, writer);
+                submit(repositoryTask);
+            }
 
             awaitCompletion();
-
             resumeManager.updateResumeFile();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -134,8 +130,6 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
      * @param throwable the exception thrown by the ValidationTask
      */
     private void finishTask(final ValidationTask task, final Throwable throwable) {
-        semaphore.release();
-
         //TODO Handle this in such a away that it is captured in the final report
         //https://jira.lyrasis.org/browse/FCREPO-3633
         if (throwable != null) {
@@ -144,6 +138,8 @@ public class Fedora3ValidationExecutionManager implements ValidationExecutionMan
         } else {
             task.getPid().ifPresent(resumeManager::completed);
         }
+
+        semaphore.release();
     }
 
 

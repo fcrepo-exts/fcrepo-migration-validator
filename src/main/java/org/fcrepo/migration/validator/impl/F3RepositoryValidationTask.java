@@ -7,7 +7,6 @@ package org.fcrepo.migration.validator.impl;
 
 import java.util.Optional;
 
-import edu.wisc.library.ocfl.api.OcflRepository;
 import org.fcrepo.migration.validator.api.ValidationResultWriter;
 import org.fcrepo.migration.validator.api.ValidationTask;
 import org.slf4j.Logger;
@@ -22,34 +21,28 @@ public class F3RepositoryValidationTask extends ValidationTask {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(F3RepositoryValidationTask.class);
 
-    private final long numObjects;
-    private final boolean checkNumObjects;
-    private final OcflRepository ocflRepository;
     private final ValidationResultWriter writer;
+    private final ApplicationConfigurationHelper config;
 
     /**
      * Constructor
      *
-     * @param checkNumObjects
-     * @param numObjects
-     * @param ocflRepository
+     * @param config
      * @param writer
      */
-    public F3RepositoryValidationTask(final boolean checkNumObjects,
-                                      final long numObjects,
-                                      final OcflRepository ocflRepository,
+    public F3RepositoryValidationTask(final ApplicationConfigurationHelper config,
                                       final ValidationResultWriter writer) {
+        this.config = config;
         this.writer = writer;
-        this.numObjects = numObjects;
-        this.ocflRepository = ocflRepository;
-        this.checkNumObjects = checkNumObjects;
     }
+
 
     @Override
     public ValidationTask get() {
-        LOGGER.info("starting repository processor");
-        final var repositoryValidator = new F3RepositoryValidator(checkNumObjects, numObjects);
-        final var results = repositoryValidator.validate(ocflRepository);
+        LOGGER.info("Starting repository processor");
+        final var repository = config.ocflRepository();
+        final var repositoryValidator = new F3RepositoryValidator(config);
+        final var results = repositoryValidator.validate(repository);
         writer.write(results);
         return this;
     }
