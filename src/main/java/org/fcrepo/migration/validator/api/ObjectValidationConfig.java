@@ -8,7 +8,7 @@ package org.fcrepo.migration.validator.api;
 import java.io.File;
 import java.nio.file.Path;
 
-import edu.wisc.library.ocfl.api.OcflRepository;
+import io.ocfl.api.OcflRepository;
 import org.fcrepo.migration.validator.impl.F6DigestAlgorithm;
 
 /**

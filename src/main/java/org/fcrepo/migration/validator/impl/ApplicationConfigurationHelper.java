@@ -10,12 +10,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Suppliers;
-import edu.wisc.library.ocfl.api.MutableOcflRepository;
-import edu.wisc.library.ocfl.api.OcflRepository;
-import edu.wisc.library.ocfl.core.OcflRepositoryBuilder;
-import edu.wisc.library.ocfl.core.extension.storage.layout.config.HashedNTupleLayoutConfig;
-import edu.wisc.library.ocfl.core.path.mapper.LogicalPathMappers;
-import edu.wisc.library.ocfl.core.storage.OcflStorageBuilder;
+import io.ocfl.api.MutableOcflRepository;
+import io.ocfl.api.OcflRepository;
+import io.ocfl.core.OcflRepositoryBuilder;
+import io.ocfl.core.extension.storage.layout.config.HashedNTupleLayoutConfig;
+import io.ocfl.core.path.mapper.LogicalPathMappers;
+import io.ocfl.core.storage.OcflStorageBuilder;
 import org.apache.commons.lang3.SystemUtils;
 import org.fcrepo.migration.ObjectSource;
 import org.fcrepo.migration.foxml.AkubraFSIDResolver;
@@ -40,8 +40,8 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
-import static edu.wisc.library.ocfl.api.util.Enforce.expressionTrue;
-import static edu.wisc.library.ocfl.api.util.Enforce.notNull;
+import static io.ocfl.api.util.Enforce.expressionTrue;
+import static io.ocfl.api.util.Enforce.notNull;
 
 /**
  * A helper class for configuring and creating application components.
@@ -124,16 +124,17 @@ public class ApplicationConfigurationHelper {
 
     private MutableOcflRepository repository(final Fedora3ValidationConfig config, final Path workDir) {
         final var storage = OcflStorageBuilder.builder()
-                .fileSystem(config.getOcflRepositoryRootDirectory().toPath())
-                .build();
+                                              .fileSystem(config.getOcflRepositoryRootDirectory().toPath())
+                                              .build();
         final var logicalPathMapper = SystemUtils.IS_OS_WINDOWS ?
-                LogicalPathMappers.percentEncodingWindowsMapper() : LogicalPathMappers.percentEncodingLinuxMapper();
+                                      LogicalPathMappers.percentEncodingWindowsMapper() :
+                                      LogicalPathMappers.percentEncodingLinuxMapper();
 
         return new OcflRepositoryBuilder().storage(storage)
-                .defaultLayoutConfig(new HashedNTupleLayoutConfig())
-                .logicalPathMapper(logicalPathMapper)
-                .workDir(workDir)
-                .buildMutable();
+                                          .defaultLayoutConfig(new HashedNTupleLayoutConfig())
+                                          .logicalPathMapper(logicalPathMapper)
+                                          .workDir(workDir)
+                                          .buildMutable();
     }
 
     /**
@@ -164,7 +165,7 @@ public class ApplicationConfigurationHelper {
                 .maximumSize(512)
                 .expireAfterAccess(Duration.ofMinutes(10))
                 .build();
-        // https://jira.lyrasis.org/browse/FCREPO-3632:
+
         return new DefaultOcflObjectSessionFactory(repositorySupplier.get(),
                 workDirectory,
                 objectMapper,

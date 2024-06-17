@@ -17,9 +17,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compiler.plugin.version>3.8.0</compiler.plugin.version>
         <fcrepo-build-tools.version>6.0.0</fcrepo-build-tools.version>
-        <fcrepo-migration-utils.version>6.3.0</fcrepo-migration-utils.version>
-        <fcrepo.storage.ocfl.version>6.3.0</fcrepo.storage.ocfl.version>
-        <ocfl-java.version>1.5.0</ocfl-java.version>
+        <fcrepo-migration-utils.version>6.6.0-SNAPSHOT</fcrepo-migration-utils.version>
+        <fcrepo.storage.ocfl.version>6.4.0-SNAPSHOT</fcrepo.storage.ocfl.version>
+        <ocfl-java.version>2.1.0</ocfl-java.version>
         <gpg.plugin.version>1.6</gpg.plugin.version>
         <jackson.version>2.17.1</jackson.version>
         <checkstyle.plugin.version>3.1.1</checkstyle.plugin.version>
@@ -223,7 +223,7 @@
         </dependency>
 
         <dependency>
-            <groupId>edu.wisc.library.ocfl</groupId>
+            <groupId>io.ocfl</groupId>
             <artifactId>ocfl-java-aws</artifactId>
             <version>${ocfl-java.version}</version>
             <!--

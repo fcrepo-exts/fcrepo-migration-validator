@@ -8,7 +8,7 @@ package org.fcrepo.migration.validator.impl;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import edu.wisc.library.ocfl.api.model.DigestAlgorithm;
+import io.ocfl.api.model.DigestAlgorithm;
 
 /**
  * Supported digest algorithms for ocfl
