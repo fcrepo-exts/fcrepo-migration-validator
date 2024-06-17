@@ -9,6 +9,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -113,6 +115,7 @@ public class ReportGeneratorIT extends AbstractValidationIT {
     public List<String> getExpectedObjectReports(final OcflRepository repository, final ReportType reportType) {
         return repository.listObjectIds()
                          .map(objectId -> objectId.substring("info:fedora/".length()))
+                         .map(objectId -> URLEncoder.encode(objectId, Charset.defaultCharset()))
                          .map(objectId -> objectId + reportType.getExtension())
                          .collect(Collectors.toList());
     }

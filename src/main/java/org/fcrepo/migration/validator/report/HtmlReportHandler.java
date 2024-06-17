@@ -78,7 +78,7 @@ public class HtmlReportHandler implements ReportHandler {
      */
     @Override
     public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
-        final var id = objectValidationResults.getObjectId();
+        final var id = objectValidationResults.getEncodedObjectId();
         final var filename = id + ".html";
         final var success = objectValidationResults.getPassed();
         final var errors = objectValidationResults.getErrors();

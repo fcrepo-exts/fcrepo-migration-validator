@@ -5,6 +5,8 @@
  */
 package org.fcrepo.migration.validator.api;
 
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +42,21 @@ public class ObjectValidationResults {
         }
 
         return results.stream().findFirst().map(ValidationResult::getSourceObjectId).orElse("unknown");
+    }
+
+    /**
+     * This method returns an encoded version of the object id for use as a filesystem path
+     * @return the encoded object-id
+     */
+    public String getEncodedObjectId() {
+        if (results == null || results.isEmpty()) {
+            return "unknown";
+        }
+
+        return results.stream().findFirst()
+                      .map(ValidationResult::getSourceObjectId)
+                      .map(objectId -> URLEncoder.encode(objectId, Charset.defaultCharset()))
+                      .orElse("unknown");
     }
 
     /**

@@ -12,8 +12,11 @@ import org.slf4j.Logger;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.impl.ValidationResultUtils.resolvePathToJsonResult;
@@ -30,6 +33,7 @@ public class FileSystemValidationResultWriter implements ValidationResultWriter 
 
     private final Path validationRoot;
     private final boolean writeFailureOnly;
+    private final UnaryOperator<String> pathEncoder;
 
     /**
      * Constructor
@@ -41,6 +45,8 @@ public class FileSystemValidationResultWriter implements ValidationResultWriter 
         this.validationRoot = validationRoot;
         this.writeFailureOnly = writeFailureOnly;
         validationRoot.toFile().mkdirs();
+
+        pathEncoder = original -> URLEncoder.encode(original, Charset.defaultCharset());
     }
 
     @Override
@@ -51,8 +57,8 @@ public class FileSystemValidationResultWriter implements ValidationResultWriter 
                 continue;
             }
 
-            LOGGER.debug("Writing of results here: {}", result);
-            final var jsonFilePath = this.validationRoot.resolve(resolvePathToJsonResult(result));
+            final var jsonFilePath = this.validationRoot.resolve(resolvePathToJsonResult(result, pathEncoder));
+            LOGGER.debug("Writing of results here: {}", jsonFilePath);
             final var file = jsonFilePath.toFile();
             file.getParentFile().mkdirs();
             try (final var writer = new FileWriter(file)) {
