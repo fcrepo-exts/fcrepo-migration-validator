@@ -1,0 +1,22 @@
+* text
+*.json text
+*.java text diff=java
+
+# Keep the line endings for some test files by setting to binary
+# This is to allow tests to pass in windows and *nix
+*.0 binary
+ADMINMD binary
+BIB0 binary
+props binary
+TECH0 binary
+TECH1 binary
+
+# Images
+*REF binary
+*THUMB binary
+*MASTER0 binary
+
+# Fedora 6
+*.nt eol=lf
+*.json eol=lf
+*.sha512 eol=lf
