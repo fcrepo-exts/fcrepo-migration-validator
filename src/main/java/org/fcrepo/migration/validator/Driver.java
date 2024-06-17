@@ -34,7 +34,7 @@ import static picocli.CommandLine.Help.Visibility.ALWAYS;
  * @author dbernstein
  */
 @CommandLine.Command(name = "fcrepo-migration-validator", mixinStandardHelpOptions = true, sortOptions = false,
-        version = "0.1.0-SNAPSHOT")
+        version = "Fedora Migration Validator 1.3.0")
 public class Driver implements Callable<Integer> {
 
     private static final Logger LOGGER = getLogger(Driver.class);
