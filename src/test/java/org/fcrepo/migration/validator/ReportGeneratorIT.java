@@ -121,10 +121,11 @@ public class ReportGeneratorIT extends AbstractValidationIT {
     }
 
     public List<String> getObjectReports(final Path reportDir, final Predicate<String> filter) throws IOException {
-        return Files.list(reportDir)
-                    .map(Path::getFileName)
-                    .map(Path::toString)
-                    .filter(filter)
-                    .collect(Collectors.toList());
+        try (var reports = Files.list(reportDir)) {
+            return reports.map(Path::getFileName)
+                .map(Path::toString)
+                .filter(filter)
+                .collect(Collectors.toList());
+        }
     }
 }
