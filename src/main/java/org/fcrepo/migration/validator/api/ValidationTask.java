@@ -15,5 +15,5 @@ import java.util.function.Supplier;
  */
 public abstract class ValidationTask implements Supplier<ValidationTask> {
 
-    abstract public Optional<String> getPid();
+    public abstract Optional<String> getPid();
 }
