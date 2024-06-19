@@ -55,7 +55,7 @@ import org.slf4j.Logger;
  * @author dbernstein
  */
 public class ValidatingObjectHandler implements ValidationHandler {
-    private static final Logger LOGGER = getLogger(Fedora3ObjectValidator.class);
+    private static final Logger LOGGER = getLogger(ValidatingObjectHandler.class);
 
     private F3State objectState;
     private ObjectInfo objectInfo;
