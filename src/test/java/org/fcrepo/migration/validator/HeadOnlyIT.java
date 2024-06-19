@@ -48,7 +48,7 @@ public class HeadOnlyIT extends AbstractValidationIT {
                                              .filter(result -> result.getValidationType() == BINARY_METADATA)
                                              .map(ValidationResult::getDetails)
                                              .collect(Collectors.toList());
-        assertThat(validations).allMatch(details -> details.contains("HEAD"));
+        assertThat(validations).isNotEmpty().allMatch(details -> details.contains("HEAD"));
     }
 
     @Test
@@ -107,7 +107,7 @@ public class HeadOnlyIT extends AbstractValidationIT {
         config.setValidateHeadOnly(true);
 
         final var reportHandler = doValidation(config);
-        Assertions.assertThat(reportHandler.getErrors()).hasSize(0);
+        Assertions.assertThat(reportHandler.getErrors()).isEmpty();
     }
 
     @Test
