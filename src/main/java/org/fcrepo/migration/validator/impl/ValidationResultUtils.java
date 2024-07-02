@@ -11,6 +11,7 @@ import org.fcrepo.migration.validator.api.ValidationResult;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.function.UnaryOperator;
 
 /**
  * A utility class
@@ -26,20 +27,20 @@ public class ValidationResultUtils {
      * Resolves the relative (i.e. to the validation output directory) path
      * of the json file associated with the validation result.
      *
-     * @param result The result
+     * @param result      The result
+     * @param pathEncoder The encoder for the objectId
      * @return The file path
      */
-    public static Path resolvePathToJsonResult(final ValidationResult result) {
+    public static Path resolvePathToJsonResult(final ValidationResult result,
+                                               final UnaryOperator<String> pathEncoder) {
         final var pathSegments = new ArrayList<String>();
         final var sourceId = result.getSourceObjectId();
         if (sourceId != null) {
             final var segments = Splitter.fixedLength(4).splitToList(DigestUtils.sha1Hex(sourceId)).subList(0, 4);
             pathSegments.addAll(segments);
-            pathSegments.add(sourceId);
+            pathSegments.add(pathEncoder.apply(sourceId));
         }
         pathSegments.add("result-" + result.getIndex() + ".json");
         return Path.of(String.join(File.separator, pathSegments));
-
-
     }
 }

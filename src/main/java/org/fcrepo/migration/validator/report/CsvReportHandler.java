@@ -61,7 +61,7 @@ public class CsvReportHandler implements ReportHandler {
 
     @Override
     public String objectLevelReport(final ObjectValidationResults objectValidationResults) {
-        final var csvFile = outputDir.resolve(objectValidationResults.getObjectId() + reportType.getExtension());
+        final var csvFile = outputDir.resolve(objectValidationResults.getEncodedObjectId() + reportType.getExtension());
         return writeValidationResults(csvFile, objectValidationResults);
     }
 

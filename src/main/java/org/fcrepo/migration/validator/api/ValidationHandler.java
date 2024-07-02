@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.google.common.hash.Funnels;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteStreams;
-import edu.wisc.library.ocfl.api.model.OcflObjectVersion;
+import io.ocfl.api.model.OcflObjectVersion;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;

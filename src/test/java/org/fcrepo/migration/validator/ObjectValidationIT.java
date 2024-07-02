@@ -142,7 +142,7 @@ public class ObjectValidationIT extends AbstractValidationIT {
         final var executionManager = new Fedora3ValidationExecutionManager(configHelper);
         final var completedRun = executionManager.doValidation();
 
-        assertThat(completedRun).isEqualTo(false);
+        assertThat(completedRun).isFalse();
     }
 
 }

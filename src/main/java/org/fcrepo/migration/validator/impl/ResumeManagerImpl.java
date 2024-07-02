@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ResumeManagerImpl implements ResumeManager {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ResumeManagerImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResumeManagerImpl.class);
 
     private final boolean acceptAll;
     private final Path resumeFile;
@@ -69,14 +69,14 @@ public class ResumeManagerImpl implements ResumeManager {
     }
 
     public boolean accept(final String pid) {
-        final String logMsg = "PID: " + pid + ", accept? ";
+        final String logMsg = "PID: {}, accept? {}";
 
         if (!acceptAll && processedPids.contains(pid)) {
-            LOGGER.debug(logMsg + false);
+            LOGGER.debug(logMsg, pid, false);
             return false;
         }
 
-        LOGGER.debug(logMsg + true);
+        LOGGER.debug(logMsg, pid, true);
         return true;
     }
 
