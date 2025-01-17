@@ -8,7 +8,7 @@ package org.fcrepo.migration.validator.impl;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
-import io.ocfl.api.model.DigestAlgorithm;
+import io.ocfl.api.DigestAlgorithmRegistry;
 
 /**
  * Supported digest algorithms for ocfl
@@ -16,8 +16,8 @@ import io.ocfl.api.model.DigestAlgorithm;
  * @author mikejritter
  */
 public enum F6DigestAlgorithm {
-    sha256(DigestAlgorithm.sha256.getJavaStandardName(), Hashing.sha256()),
-    sha512(DigestAlgorithm.sha512.getJavaStandardName(), Hashing.sha512());
+    sha256(DigestAlgorithmRegistry.sha256.getJavaStandardName(), Hashing.sha256()),
+    sha512(DigestAlgorithmRegistry.sha512.getJavaStandardName(), Hashing.sha512());
 
     private final String name;
     private final HashFunction hashFunction;
