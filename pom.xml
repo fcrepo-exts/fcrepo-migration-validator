@@ -16,6 +16,7 @@
         <project.copyrightYear>2020</project.copyrightYear>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compiler.plugin.version>3.8.0</compiler.plugin.version>
+        <jacoco.plugin.version>0.8.12</jacoco.plugin.version>
         <fcrepo-build-tools.version>6.0.0</fcrepo-build-tools.version>
         <fcrepo-migration-utils.version>6.6.0-SNAPSHOT</fcrepo-migration-utils.version>
         <fcrepo.storage.ocfl.version>6.4.0-SNAPSHOT</fcrepo.storage.ocfl.version>
@@ -195,12 +196,48 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>3.0.0-M3</version>
+                <configuration>
+                    <argLine>${jacoco.agent.it.arg}</argLine>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>integration-test</goal>
                             <goal>verify</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.plugin.version}</version>
+                <executions>
+                    <!-- Unit and integration test runs both append to a single exec file so
+                      that the report reflects merged coverage. -->
+                    <execution>
+                        <id>prepare-unit</id>
+                        <goals><goal>prepare-agent</goal></goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>prepare-it</id>
+                        <goals><goal>prepare-agent-integration</goal></goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
+                            <propertyName>jacoco.agent.it.arg</propertyName>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals><goal>report</goal></goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
