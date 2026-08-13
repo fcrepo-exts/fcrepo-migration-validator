@@ -5,9 +5,9 @@
  */
 package org.fcrepo.migration.validator.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.nio.file.Path;
 
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
@@ -18,11 +18,12 @@ import org.junit.Test;
 /**
  * Covers the report directory resolution and accessors on the validation config.
  *
- * @author dbernstein
+ * @author Dan Field
  */
 public class ValidationConfigTest {
 
     private static final Path RESULTS_DIR = Path.of("target", "test", "validation-config-test");
+    private static final Path OCFL_ROOT_DIR = Path.of("target", "test", "ocfl-root");
 
     private Fedora3ValidationConfig config;
 
@@ -30,26 +31,26 @@ public class ValidationConfigTest {
     public void setup() {
         config = new Fedora3ValidationConfig();
         config.setResultsDirectory(RESULTS_DIR);
-        config.setOcflRepositoryRootDirectory(new File("target/test/ocfl-root"));
+        config.setOcflRepositoryRootDirectory(OCFL_ROOT_DIR.toFile());
     }
 
     @Test
     public void testReportDirectories() {
-        assertThat(config.getReportDirectory(ReportType.html)).isEqualTo(RESULTS_DIR.resolve("html"));
-        assertThat(config.getReportDirectory(ReportType.csv)).isEqualTo(RESULTS_DIR.resolve("csv"));
-        assertThat(config.getReportDirectory(ReportType.tsv)).isEqualTo(RESULTS_DIR.resolve("tsv"));
-        assertThat(config.getJsonOutputDirectory()).isEqualTo(RESULTS_DIR.resolve("json"));
+        assertEquals(RESULTS_DIR.resolve("html"), config.getReportDirectory(ReportType.html));
+        assertEquals(RESULTS_DIR.resolve("csv"), config.getReportDirectory(ReportType.csv));
+        assertEquals(RESULTS_DIR.resolve("tsv"), config.getReportDirectory(ReportType.tsv));
+        assertEquals(RESULTS_DIR.resolve("json"), config.getJsonOutputDirectory());
     }
 
     @Test
     public void testAccessors() {
-        final var indexDir = new File("target/test/index");
-        final var pidFile = new File("target/test/pids.txt");
+        final var indexDir = Path.of("target", "test", "index");
+        final var pidFile = Path.of("target", "test", "pids.txt");
 
         config.setThreadCount(4);
-        config.setIndexDirectory(indexDir);
+        config.setIndexDirectory(indexDir.toFile());
         config.setFedora3Hostname("fedora.info");
-        config.setObjectsToValidate(pidFile);
+        config.setObjectsToValidate(pidFile.toFile());
         config.setEnableChecksums(true);
         config.setLimit(10);
         config.setResume(true);
@@ -58,18 +59,18 @@ public class ValidationConfigTest {
         config.setValidateHeadOnly(true);
         config.setCheckNumObjects(true);
 
-        assertThat(config.getThreadCount()).isEqualTo(4);
-        assertThat(config.getIndexDirectory()).isEqualTo(indexDir);
-        assertThat(config.getFedora3Hostname()).isEqualTo("fedora.info");
-        assertThat(config.getObjectsToValidate()).isEqualTo(pidFile);
-        assertThat(config.enableChecksums()).isTrue();
-        assertThat(config.getLimit()).isEqualTo(10);
-        assertThat(config.isResume()).isTrue();
-        assertThat(config.isFailureOnly()).isTrue();
-        assertThat(config.isDeleteInactive()).isTrue();
-        assertThat(config.validateHeadOnly()).isTrue();
-        assertThat(config.checkNumObjects()).isTrue();
-        assertThat(config.getOcflRepositoryRootDirectory()).isEqualTo(new File("target/test/ocfl-root"));
-        assertThat(config.toString()).contains("threadCount");
+        assertEquals(4, config.getThreadCount());
+        assertEquals(indexDir.toFile(), config.getIndexDirectory());
+        assertEquals("fedora.info", config.getFedora3Hostname());
+        assertEquals(pidFile.toFile(), config.getObjectsToValidate());
+        assertTrue(config.enableChecksums());
+        assertEquals(10, config.getLimit());
+        assertTrue(config.isResume());
+        assertTrue(config.isFailureOnly());
+        assertTrue(config.isDeleteInactive());
+        assertTrue(config.validateHeadOnly());
+        assertTrue(config.checkNumObjects());
+        assertEquals(OCFL_ROOT_DIR.toFile(), config.getOcflRepositoryRootDirectory());
+        assertTrue("Expected the config to describe itself", config.toString().contains("threadCount"));
     }
 }

@@ -5,12 +5,14 @@
  */
 package org.fcrepo.migration.validator.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.OBJECT_READABLE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +30,7 @@ import org.junit.Test;
 /**
  * Round trips validation results through the filesystem writer and reader, and covers the results summary.
  *
- * @author awoods
+ * @author Dan Field
  */
 public class ValidationResultIoTest {
 
@@ -52,12 +54,12 @@ public class ValidationResultIoTest {
                                                 "all good");
         writer.write(List.of(result));
 
-        final var written = ValidationResultUtils.resolvePathToJsonResult(result, id -> id);
-        final var read = new FileSystemValidationResultReader().read(jsonRoot.resolve(written).toFile());
+        final var written = jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(result, id -> id));
+        final var read = new FileSystemValidationResultReader().read(written.toFile());
 
-        assertThat(read.getStatus()).isEqualTo(OK);
-        assertThat(read.getSourceObjectId()).isEqualTo("object-1");
-        assertThat(read.getDetails()).isEqualTo("all good");
+        assertEquals(OK, read.getStatus());
+        assertEquals("object-1", read.getSourceObjectId());
+        assertEquals("all good", read.getDetails());
     }
 
     @Test
@@ -70,8 +72,10 @@ public class ValidationResultIoTest {
                                                 "not good");
         writer.write(List.of(passed, failed));
 
-        assertThat(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(passed, id -> id))).doesNotExist();
-        assertThat(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(failed, id -> id))).exists();
+        assertFalse("Passing results should be skipped",
+                    Files.exists(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(passed, id -> id))));
+        assertTrue("Failing results should be written",
+                   Files.exists(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(failed, id -> id))));
     }
 
     @Test
@@ -79,7 +83,7 @@ public class ValidationResultIoTest {
         final var reader = new FileSystemValidationResultReader();
         final var missing = workDir.resolve("no-such-result.json").toFile();
 
-        assertThatThrownBy(() -> reader.read(missing)).isInstanceOf(RuntimeException.class);
+        assertThrows(RuntimeException.class, () -> reader.read(missing));
     }
 
     @Test
@@ -91,19 +95,18 @@ public class ValidationResultIoTest {
         summary.addObjectReport("object-1", objectReport);
         summary.addRepositoryReport(repositoryReport);
 
-        assertThat(summary.containsReport("object-1")).isTrue();
-        assertThat(summary.getObjectReports()).containsExactly(objectReport);
-        assertThat(summary.getRepositoryReport()).isEqualTo(repositoryReport);
-        assertThat(objectReport.getReportHref()).isEqualTo("object-1.html");
+        assertTrue(summary.containsReport("object-1"));
+        assertEquals(List.of(objectReport), List.copyOf(summary.getObjectReports()));
+        assertEquals(repositoryReport, summary.getRepositoryReport());
+        assertEquals("object-1.html", objectReport.getReportHref());
     }
 
     @Test
     public void testResultsSummaryRejectsDuplicateReport() {
         final var summary = new ValidationResultsSummary();
-        summary.addObjectReport("object-1", new ObjectReportSummary(true, "object-1", "object-1.html"));
+        final var report = new ObjectReportSummary(true, "object-1", "object-1.html");
+        summary.addObjectReport("object-1", report);
 
-        assertThatThrownBy(() -> summary.addObjectReport("object-1",
-                                                         new ObjectReportSummary(true, "object-1", "object-1.html")))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> summary.addObjectReport("object-1", report));
     }
 }

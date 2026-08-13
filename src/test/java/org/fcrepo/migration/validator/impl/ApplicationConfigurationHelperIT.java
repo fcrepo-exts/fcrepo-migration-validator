@@ -5,13 +5,17 @@
  */
 package org.fcrepo.migration.validator.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 
 import io.ocfl.api.exception.OcflInputException;
 import org.apache.commons.io.FileUtils;
@@ -22,13 +26,13 @@ import org.junit.Test;
 /**
  * Covers the source-type specific wiring and pid file handling in {@link ApplicationConfigurationHelper}.
  *
- * @author mikejritter
+ * @author Dan Field
  */
 public class ApplicationConfigurationHelperIT {
 
-    private static final File FIXTURES_BASE_DIR = new File("src/test/resources/test-object-validation");
-    private static final File F3_OBJECTS_DIR = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
-    private static final File F6_OCFL_ROOT_DIR = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
+    private static final Path FIXTURES_BASE_DIR = Path.of("src", "test", "resources", "test-object-validation");
+    private static final Path F3_OBJECTS_DIR = FIXTURES_BASE_DIR.resolve("valid/f3/objects");
+    private static final Path F6_OCFL_ROOT_DIR = FIXTURES_BASE_DIR.resolve("valid/f6/data/ocfl-root");
 
     private Path workDir;
 
@@ -49,7 +53,7 @@ public class ApplicationConfigurationHelperIT {
         config.setSourceType(F3SourceTypes.EXPORTED);
         config.setExportedDirectory(exportedDir.toFile());
 
-        assertThat(new ApplicationConfigurationHelper(config).objectSource()).isNotNull();
+        assertNotNull(new ApplicationConfigurationHelper(config).objectSource());
     }
 
     @Test
@@ -58,7 +62,7 @@ public class ApplicationConfigurationHelperIT {
         config.setSourceType(F3SourceTypes.EXPORTED);
 
         final var helper = new ApplicationConfigurationHelper(config);
-        assertThatThrownBy(helper::objectSource).isInstanceOf(OcflInputException.class);
+        assertThrows(OcflInputException.class, helper::objectSource);
     }
 
     @Test
@@ -67,9 +71,9 @@ public class ApplicationConfigurationHelperIT {
         final var config = baseConfig();
         config.setSourceType(F3SourceTypes.LEGACY);
         config.setDatastreamsDirectory(datastreamsDir.toFile());
-        config.setObjectsDirectory(F3_OBJECTS_DIR);
+        config.setObjectsDirectory(F3_OBJECTS_DIR.toFile());
 
-        assertThat(new ApplicationConfigurationHelper(config).objectSource()).isNotNull();
+        assertNotNull(new ApplicationConfigurationHelper(config).objectSource());
     }
 
     @Test
@@ -78,27 +82,26 @@ public class ApplicationConfigurationHelperIT {
         final var config = baseConfig();
         config.setSourceType(F3SourceTypes.LEGACY);
         config.setDatastreamsDirectory(datastreamsDir.toFile());
-        config.setObjectsDirectory(new File(FIXTURES_BASE_DIR, "does-not-exist"));
+        config.setObjectsDirectory(FIXTURES_BASE_DIR.resolve("does-not-exist").toFile());
 
         final var helper = new ApplicationConfigurationHelper(config);
-        assertThatThrownBy(helper::objectSource).isInstanceOf(OcflInputException.class);
+        assertThrows(OcflInputException.class, helper::objectSource);
     }
 
     @Test
     public void testReadObjectsToValidate() throws IOException {
-        final var pidFile = workDir.resolve("pids.txt");
-        Files.write(pidFile, java.util.List.of("object-1", "object-2"));
+        final var pidFile = Files.write(workDir.resolve("pids.txt"), List.of("object-1", "object-2"));
 
         final var config = baseConfig();
         config.setObjectsToValidate(pidFile.toFile());
 
-        assertThat(new ApplicationConfigurationHelper(config).readObjectsToValidate())
-            .containsExactlyInAnyOrder("object-1", "object-2");
+        assertEquals(Set.of("object-1", "object-2"),
+                     new ApplicationConfigurationHelper(config).readObjectsToValidate());
     }
 
     @Test
     public void testReadObjectsToValidateWithoutPidFile() {
-        assertThat(new ApplicationConfigurationHelper(baseConfig()).readObjectsToValidate()).isEmpty();
+        assertTrue(new ApplicationConfigurationHelper(baseConfig()).readObjectsToValidate().isEmpty());
     }
 
     @Test
@@ -107,23 +110,22 @@ public class ApplicationConfigurationHelperIT {
         config.setObjectsToValidate(workDir.resolve("no-such-pid-file.txt").toFile());
 
         final var helper = new ApplicationConfigurationHelper(config);
-        assertThatThrownBy(helper::readObjectsToValidate)
-            .isInstanceOf(RuntimeException.class)
-            .hasCauseInstanceOf(IOException.class);
+        final var exception = assertThrows(RuntimeException.class, helper::readObjectsToValidate);
+        assertTrue("Expected the IOException to be wrapped", exception.getCause() instanceof IOException);
     }
 
     @Test
     public void testOcflComponents() {
         final var helper = new ApplicationConfigurationHelper(baseConfig());
 
-        assertThat(helper.ocflRepository()).isNotNull();
-        assertThat(helper.ocflObjectSessionFactory()).isNotNull();
-        assertThat(helper.getObjectValidationConfig()).isNotNull();
-        assertThat(helper.resumeManager()).isNotNull();
-        assertThat(helper.validationResultWriter()).isNotNull();
-        assertThat(helper.getThreadCount()).isEqualTo(1);
-        assertThat(helper.getLimit()).isZero();
-        assertThat(helper.checkNumObjects()).isFalse();
+        assertNotNull(helper.ocflRepository());
+        assertNotNull(helper.ocflObjectSessionFactory());
+        assertNotNull(helper.getObjectValidationConfig());
+        assertNotNull(helper.resumeManager());
+        assertNotNull(helper.validationResultWriter());
+        assertEquals(1, helper.getThreadCount());
+        assertEquals(0, helper.getLimit());
+        assertFalse(helper.checkNumObjects());
     }
 
     private Fedora3ValidationConfig baseConfig() {
@@ -131,7 +133,7 @@ public class ApplicationConfigurationHelperIT {
         config.setSourceType(F3SourceTypes.AKUBRA);
         config.setThreadCount(1);
         config.setResultsDirectory(workDir.resolve("results"));
-        config.setOcflRepositoryRootDirectory(F6_OCFL_ROOT_DIR);
+        config.setOcflRepositoryRootDirectory(F6_OCFL_ROOT_DIR.toFile());
         config.setDigestAlgorithm(F6DigestAlgorithm.sha512);
         return config;
     }

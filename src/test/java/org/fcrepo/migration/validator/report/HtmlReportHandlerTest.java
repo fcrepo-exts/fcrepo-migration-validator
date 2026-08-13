@@ -5,14 +5,15 @@
  */
 package org.fcrepo.migration.validator.report;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.REPOSITORY;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.OBJECT_READABLE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.REPOSITORY_RESOURCE_COUNT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,7 +32,7 @@ import org.junit.Test;
 /**
  * Covers the success and failure paths of the HTML report writer.
  *
- * @author awoods
+ * @author Dan Field
  */
 public class HtmlReportHandlerTest {
 
@@ -62,10 +63,10 @@ public class HtmlReportHandlerTest {
         final var summaryReport = handler.validationSummary(summary);
         handler.endReport();
 
-        assertThat(summaryReport).isEqualTo("index.html");
-        assertThat(outputDir.resolve(objectReport)).exists();
-        assertThat(outputDir.resolve(repositoryReport)).exists();
-        assertThat(outputDir.resolve(summaryReport)).exists();
+        assertEquals("index.html", summaryReport);
+        assertTrue("Expected an object report", Files.exists(outputDir.resolve(objectReport)));
+        assertTrue("Expected a repository report", Files.exists(outputDir.resolve(repositoryReport)));
+        assertTrue("Expected a summary report", Files.exists(outputDir.resolve(summaryReport)));
     }
 
     @Test
@@ -76,32 +77,32 @@ public class HtmlReportHandlerTest {
         // a directory where the report file should go makes the FileWriter fail
         Files.createDirectories(outputDir.resolve(results.getEncodedObjectId() + ".html"));
 
-        assertThatThrownBy(() -> handler.objectLevelReport(results)).isInstanceOf(RuntimeException.class);
+        assertThrows(RuntimeException.class, () -> handler.objectLevelReport(results));
     }
 
     @Test
     public void testRepositoryLevelReportFailsWhenUnwritable() throws IOException {
         final var handler = new HtmlReportHandler(outputDir, 1);
+        final var results = repositoryResults();
         Files.createDirectories(outputDir.resolve("repository.html"));
 
-        assertThatThrownBy(() -> handler.repositoryLevelReport(repositoryResults()))
-            .isInstanceOf(RuntimeException.class);
+        assertThrows(RuntimeException.class, () -> handler.repositoryLevelReport(results));
     }
 
     @Test
     public void testValidationSummaryFailsWhenUnwritable() throws IOException {
         final var handler = new HtmlReportHandler(outputDir, 1);
+        final var summary = new ValidationResultsSummary();
         Files.createDirectories(outputDir.resolve("index.html"));
 
-        assertThatThrownBy(() -> handler.validationSummary(new ValidationResultsSummary()))
-            .isInstanceOf(RuntimeException.class);
+        assertThrows(RuntimeException.class, () -> handler.validationSummary(summary));
     }
 
     @Test
     public void testValidationSummaryRequiresSummary() {
         final var handler = new HtmlReportHandler(outputDir, 1);
 
-        assertThatThrownBy(() -> handler.validationSummary(null)).isInstanceOf(NullPointerException.class);
+        assertThrows(NullPointerException.class, () -> handler.validationSummary(null));
     }
 
     private ObjectValidationResults objectResults() {

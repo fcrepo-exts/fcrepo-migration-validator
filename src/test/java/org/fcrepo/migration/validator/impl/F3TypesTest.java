@@ -5,8 +5,6 @@
  */
 package org.fcrepo.migration.validator.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.fcrepo.migration.validator.impl.F3ControlGroup.EXTERNALLY_REFERENCED;
 import static org.fcrepo.migration.validator.impl.F3ControlGroup.INLINE_XML;
 import static org.fcrepo.migration.validator.impl.F3ControlGroup.MANAGED;
@@ -14,6 +12,11 @@ import static org.fcrepo.migration.validator.impl.F3ControlGroup.REDIRECT_REFERE
 import static org.fcrepo.migration.validator.impl.F3State.ACTIVE;
 import static org.fcrepo.migration.validator.impl.F3State.DELETED;
 import static org.fcrepo.migration.validator.impl.F3State.INACTIVE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import org.fcrepo.migration.ObjectProperty;
 import org.junit.Test;
@@ -21,37 +24,36 @@ import org.junit.Test;
 /**
  * Covers the string parsing of the Fedora 3 enum types.
  *
- * @author mikejritter
+ * @author Dan Field
  */
 public class F3TypesTest {
 
     @Test
     public void testControlGroupFromString() {
-        assertThat(F3ControlGroup.fromString("X")).isEqualTo(INLINE_XML);
-        assertThat(F3ControlGroup.fromString("m")).isEqualTo(MANAGED);
-        assertThat(F3ControlGroup.fromString("E")).isEqualTo(EXTERNALLY_REFERENCED);
-        assertThat(F3ControlGroup.fromString("r")).isEqualTo(REDIRECT_REFERENCED);
+        assertEquals(INLINE_XML, F3ControlGroup.fromString("X"));
+        assertEquals(MANAGED, F3ControlGroup.fromString("m"));
+        assertEquals(EXTERNALLY_REFERENCED, F3ControlGroup.fromString("E"));
+        assertEquals(REDIRECT_REFERENCED, F3ControlGroup.fromString("r"));
     }
 
     @Test
     public void testControlGroupRejectsUnknownValue() {
-        assertThatThrownBy(() -> F3ControlGroup.fromString("Z"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> F3ControlGroup.fromString("Z"));
     }
 
     @Test
     public void testStateFromString() {
-        assertThat(F3State.fromString("A")).isEqualTo(ACTIVE);
-        assertThat(F3State.fromString("active")).isEqualTo(ACTIVE);
-        assertThat(F3State.fromString("D")).isEqualTo(DELETED);
-        assertThat(F3State.fromString("deleted")).isEqualTo(DELETED);
-        assertThat(F3State.fromString("I")).isEqualTo(INACTIVE);
-        assertThat(F3State.fromString("inactive")).isEqualTo(INACTIVE);
+        assertEquals(ACTIVE, F3State.fromString("A"));
+        assertEquals(ACTIVE, F3State.fromString("active"));
+        assertEquals(DELETED, F3State.fromString("D"));
+        assertEquals(DELETED, F3State.fromString("deleted"));
+        assertEquals(INACTIVE, F3State.fromString("I"));
+        assertEquals(INACTIVE, F3State.fromString("inactive"));
     }
 
     @Test
     public void testStateRejectsUnknownValue() {
-        assertThatThrownBy(() -> F3State.fromString("Z")).isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> F3State.fromString("Z"));
     }
 
     @Test
@@ -68,34 +70,34 @@ public class F3TypesTest {
             }
         };
 
-        assertThat(F3State.fromProperty(property)).isEqualTo(DELETED);
+        assertEquals(DELETED, F3State.fromProperty(property));
     }
 
     @Test
     public void testStateIsDeleted() {
-        assertThat(DELETED.isDeleted(false)).isTrue();
-        assertThat(DELETED.isDeleted(true)).isTrue();
-        assertThat(INACTIVE.isDeleted(false)).isFalse();
-        assertThat(INACTIVE.isDeleted(true)).isTrue();
-        assertThat(ACTIVE.isDeleted(false)).isFalse();
-        assertThat(ACTIVE.isDeleted(true)).isFalse();
+        assertTrue(DELETED.isDeleted(false));
+        assertTrue(DELETED.isDeleted(true));
+        assertFalse(INACTIVE.isDeleted(false));
+        assertTrue(INACTIVE.isDeleted(true));
+        assertFalse(ACTIVE.isDeleted(false));
+        assertFalse(ACTIVE.isDeleted(true));
     }
 
     @Test
     public void testSourceTypeToType() {
-        assertThat(F3SourceTypes.toType("akubra")).isEqualTo(F3SourceTypes.AKUBRA);
-        assertThat(F3SourceTypes.toType("LEGACY")).isEqualTo(F3SourceTypes.LEGACY);
-        assertThat(F3SourceTypes.toType("Exported")).isEqualTo(F3SourceTypes.EXPORTED);
+        assertEquals(F3SourceTypes.AKUBRA, F3SourceTypes.toType("akubra"));
+        assertEquals(F3SourceTypes.LEGACY, F3SourceTypes.toType("LEGACY"));
+        assertEquals(F3SourceTypes.EXPORTED, F3SourceTypes.toType("Exported"));
     }
 
     @Test
     public void testSourceTypeRejectsUnknownValue() {
-        assertThatThrownBy(() -> F3SourceTypes.toType("nope")).isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> F3SourceTypes.toType("nope"));
     }
 
     @Test
     public void testDigestAlgorithm() {
-        assertThat(F6DigestAlgorithm.sha256.getOcflUrn()).isEqualTo("urn:" + F6DigestAlgorithm.sha256.getName());
-        assertThat(F6DigestAlgorithm.sha512.hasher()).isNotNull();
+        assertEquals("urn:" + F6DigestAlgorithm.sha256.getName(), F6DigestAlgorithm.sha256.getOcflUrn());
+        assertNotNull(F6DigestAlgorithm.sha512.hasher());
     }
 }

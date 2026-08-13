@@ -5,12 +5,12 @@
  */
 package org.fcrepo.migration.validator.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.OBJECT_READABLE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,12 +29,12 @@ import org.junit.Test;
  * Verifies that an object which cannot be read is reported as a failed OBJECT_READABLE validation rather than
  * aborting the run.
  *
- * @author dbernstein
+ * @author Dan Field
  */
 public class Fedora3ObjectValidatorIT {
 
-    private static final File FIXTURES_BASE_DIR = new File("src/test/resources/test-object-validation");
-    private static final File F6_OCFL_ROOT_DIR = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
+    private static final Path FIXTURES_BASE_DIR = Path.of("src", "test", "resources", "test-object-validation");
+    private static final Path F6_OCFL_ROOT_DIR = FIXTURES_BASE_DIR.resolve("valid/f6/data/ocfl-root");
 
     private Path workDir;
     private ApplicationConfigurationHelper helper;
@@ -47,7 +47,7 @@ public class Fedora3ObjectValidatorIT {
         config.setSourceType(F3SourceTypes.AKUBRA);
         config.setThreadCount(1);
         config.setResultsDirectory(workDir.resolve("results"));
-        config.setOcflRepositoryRootDirectory(F6_OCFL_ROOT_DIR);
+        config.setOcflRepositoryRootDirectory(F6_OCFL_ROOT_DIR.toFile());
         config.setDigestAlgorithm(F6DigestAlgorithm.sha512);
         helper = new ApplicationConfigurationHelper(config);
     }
@@ -64,12 +64,13 @@ public class Fedora3ObjectValidatorIT {
 
         final var results = validator.validate(new UnreadableObjectProcessor("info:fedora/unreadable"));
 
-        assertThat(results).hasSize(1);
+        assertEquals(1, results.size());
         final var result = results.get(0);
-        assertThat(result.getStatus()).isEqualTo(FAIL);
-        assertThat(result.getValidationLevel()).isEqualTo(OBJECT);
-        assertThat(result.getValidationType()).isEqualTo(OBJECT_READABLE);
-        assertThat(result.getDetails()).contains("Source object could not be read");
+        assertEquals(FAIL, result.getStatus());
+        assertEquals(OBJECT, result.getValidationLevel());
+        assertEquals(OBJECT_READABLE, result.getValidationType());
+        assertTrue("Expected the read failure to be described",
+                   result.getDetails().contains("Source object could not be read"));
     }
 
     /**
@@ -82,8 +83,8 @@ public class Fedora3ObjectValidatorIT {
 
         final var results = validator.validate(new UnreadableObjectProcessor(null));
 
-        assertThat(results).hasSize(1);
-        assertThat(results.get(0).getSourceObjectId()).isEqualTo("info:fedora/unreadable-pid");
+        assertEquals(1, results.size());
+        assertEquals("info:fedora/unreadable-pid", results.get(0).getSourceObjectId());
     }
 
     /**

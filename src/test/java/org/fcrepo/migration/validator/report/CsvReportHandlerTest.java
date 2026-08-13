@@ -5,14 +5,15 @@
  */
 package org.fcrepo.migration.validator.report;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.REPOSITORY;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.OBJECT_READABLE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.REPOSITORY_RESOURCE_COUNT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +34,7 @@ import org.junit.Test;
 /**
  * Covers the success and failure paths of the delimited report writer.
  *
- * @author mikejritter
+ * @author Dan Field
  */
 public class CsvReportHandlerTest {
 
@@ -63,18 +64,17 @@ public class CsvReportHandlerTest {
     public void testHtmlReportTypeIsRejected() {
         final var outputDir = workDir.resolve("html-rejected");
 
-        assertThatThrownBy(() -> new CsvReportHandler(outputDir, ReportType.html))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThrows(IllegalArgumentException.class, () -> new CsvReportHandler(outputDir, ReportType.html));
     }
 
     @Test
     public void testUncreatableOutputDirectoryIsRejected() throws IOException {
         // an existing regular file cannot also be a directory
-        final var file = Files.createFile(workDir.resolve("not-a-directory"));
+        final var outputDir = Files.createFile(workDir.resolve("not-a-directory")).resolve("output");
 
-        assertThatThrownBy(() -> new CsvReportHandler(file.resolve("output"), ReportType.csv))
-            .isInstanceOf(RuntimeException.class)
-            .hasCauseInstanceOf(IOException.class);
+        final var exception = assertThrows(RuntimeException.class,
+                                           () -> new CsvReportHandler(outputDir, ReportType.csv));
+        assertTrue("Expected the IOException to be wrapped", exception.getCause() instanceof IOException);
     }
 
     @Test
@@ -85,22 +85,21 @@ public class CsvReportHandlerTest {
 
         Files.createDirectories(outputDir.resolve(results.getEncodedObjectId() + ".csv"));
 
-        assertThatThrownBy(() -> handler.objectLevelReport(results))
-            .isInstanceOf(RuntimeException.class)
-            .hasCauseInstanceOf(IOException.class);
+        final var exception = assertThrows(RuntimeException.class, () -> handler.objectLevelReport(results));
+        assertTrue("Expected the IOException to be wrapped", exception.getCause() instanceof IOException);
     }
 
     @Test
     public void testValidationSummaryFailsWhenUnwritable() throws IOException {
         final var outputDir = workDir.resolve("summary-unwritable");
         final var handler = new CsvReportHandler(outputDir, ReportType.csv);
+        final var summary = new ValidationResultsSummary();
 
         final var date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
         Files.createDirectories(outputDir.resolve("migration-validation-summary" + date + ".csv"));
 
-        assertThatThrownBy(() -> handler.validationSummary(new ValidationResultsSummary()))
-            .isInstanceOf(RuntimeException.class)
-            .hasCauseInstanceOf(IOException.class);
+        final var exception = assertThrows(RuntimeException.class, () -> handler.validationSummary(summary));
+        assertTrue("Expected the IOException to be wrapped", exception.getCause() instanceof IOException);
     }
 
     private void assertWritesAllReports(final ReportType reportType) {
@@ -108,19 +107,18 @@ public class CsvReportHandlerTest {
         final var handler = new CsvReportHandler(outputDir, reportType);
         handler.beginReport();
 
-        final var objectReport = handler.objectLevelReport(objectResults());
-        final var repositoryReport = handler.repositoryLevelReport(repositoryResults());
+        final var objectReport = Path.of(handler.objectLevelReport(objectResults()));
+        final var repositoryReport = Path.of(handler.repositoryLevelReport(repositoryResults()));
 
         final var summary = new ValidationResultsSummary();
-        summary.addObjectReport("object-1", new ObjectReportSummary(true, "object-1", objectReport));
-        final var summaryReport = handler.validationSummary(summary);
+        summary.addObjectReport("object-1", new ObjectReportSummary(true, "object-1", objectReport.toString()));
+        final var summaryReport = Path.of(handler.validationSummary(summary));
         handler.endReport();
 
-        assertThat(Path.of(objectReport)).exists();
-        assertThat(Path.of(repositoryReport)).exists();
-        assertThat(Path.of(summaryReport)).exists();
-        assertThat(Path.of(repositoryReport).getFileName().toString())
-            .isEqualTo("repository" + reportType.getExtension());
+        assertTrue("Expected an object report", Files.exists(objectReport));
+        assertTrue("Expected a repository report", Files.exists(repositoryReport));
+        assertTrue("Expected a summary report", Files.exists(summaryReport));
+        assertEquals("repository" + reportType.getExtension(), repositoryReport.getFileName().toString());
     }
 
     private ObjectValidationResults objectResults() {
