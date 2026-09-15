@@ -182,12 +182,22 @@ public class Driver implements Callable<Integer> {
      * @param args Command line arguments
      */
     public static void main(final String[] args) {
+        run(args);
+    }
+
+    /**
+     * Parses and runs the command without terminating the JVM.
+     *
+     * @param args Command line arguments
+     * @return the exit code of the run
+     */
+    static int run(final String[] args) {
         final Driver driver = new Driver();
         final CommandLine cmd = new CommandLine(driver);
         cmd.registerConverter(F3SourceTypes.class, F3SourceTypes::toType);
         cmd.setExecutionExceptionHandler(new ValidatorExceptionHandler(driver));
 
-        cmd.execute(args);
+        return cmd.execute(args);
     }
 
     private static class ValidatorExceptionHandler implements CommandLine.IExecutionExceptionHandler {

@@ -35,7 +35,17 @@ jobs:
         java-version: ${{ matrix.java }}
         cache: 'maven'
     - name: Build with Maven
-      run: mvn -B -U clean install
+      run: >
+        mvn -B -U clean
+        org.jacoco:jacoco-maven-plugin:0.8.15:prepare-agent
+        install
+        org.jacoco:jacoco-maven-plugin:0.8.15:report
+
+    - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.java == '21'
+      uses: codecov/codecov-action@v7
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   deploy:
     if: github.ref == 'refs/heads/main'
