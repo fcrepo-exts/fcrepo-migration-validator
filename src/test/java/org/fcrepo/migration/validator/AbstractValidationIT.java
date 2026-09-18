@@ -19,7 +19,7 @@ import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.impl.ValidatingObjectHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
-import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 
 /**
  * @author awoods
@@ -30,7 +30,7 @@ public abstract class AbstractValidationIT {
     final static File FIXTURES_BASE_DIR = new File("src/test/resources/test-object-validation");
     final static File RESULTS_DIR = new File("target/test/results-object-validation");
 
-    @After
+    @AfterEach
     public void teardown() {
         FileUtils.deleteQuietly(RESULTS_DIR);
     }

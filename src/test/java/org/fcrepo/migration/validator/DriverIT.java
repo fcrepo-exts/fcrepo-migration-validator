@@ -5,9 +5,9 @@
  */
 package org.fcrepo.migration.validator;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,8 +15,8 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Drives the command line entry point end to end so that argument binding, report selection, and the picocli
@@ -34,7 +34,7 @@ public class DriverIT {
     private static final Path F6_OCFL_ROOT_DIR = FIXTURES_BASE_DIR.resolve("valid/f6/data/ocfl-root");
     private static final Path MISSING_DIR = FIXTURES_BASE_DIR.resolve("does-not-exist");
 
-    @After
+    @AfterEach
     public void teardown() {
         FileUtils.deleteQuietly(RESULTS_DIR.toFile());
     }
@@ -43,8 +43,8 @@ public class DriverIT {
     public void testHtmlReport() {
         Driver.main(args("--report-type", "html", "--check-num-objects", "--checksum", "--debug"));
 
-        assertTrue("Expected an html summary report", Files.exists(RESULTS_DIR.resolve("html/index.html")));
-        assertTrue("Expected json results", Files.exists(RESULTS_DIR.resolve("json")));
+        assertTrue(Files.exists(RESULTS_DIR.resolve("html/index.html")), "Expected an html summary report");
+        assertTrue(Files.exists(RESULTS_DIR.resolve("json")), "Expected json results");
     }
 
     @Test
@@ -52,8 +52,8 @@ public class DriverIT {
         Driver.main(args("--report-type", "csv"));
 
         final var csvDir = RESULTS_DIR.resolve("csv");
-        assertTrue("Expected a csv report directory", Files.exists(csvDir));
-        assertTrue("Expected at least one csv report", countReports(csvDir, ".csv") > 0);
+        assertTrue(Files.exists(csvDir), "Expected a csv report directory");
+        assertTrue(countReports(csvDir, ".csv") > 0, "Expected at least one csv report");
     }
 
     @Test
@@ -61,8 +61,8 @@ public class DriverIT {
         Driver.main(args("--report-type", "tsv"));
 
         final var tsvDir = RESULTS_DIR.resolve("tsv");
-        assertTrue("Expected a tsv report directory", Files.exists(tsvDir));
-        assertTrue("Expected at least one tsv report", countReports(tsvDir, ".tsv") > 0);
+        assertTrue(Files.exists(tsvDir), "Expected a tsv report directory");
+        assertTrue(countReports(tsvDir, ".tsv") > 0, "Expected at least one tsv report");
     }
 
     @Test
@@ -70,8 +70,8 @@ public class DriverIT {
         Driver.main(args("--report-type", "html", "--head-only", "--inactive-as-deleted", "--failure-only",
                          "--limit", "1", "--resume"));
 
-        assertTrue("Expected an html summary report", Files.exists(RESULTS_DIR.resolve("html/index.html")));
-        assertTrue("Expected a resume file", Files.exists(RESULTS_DIR.resolve("resume.txt")));
+        assertTrue(Files.exists(RESULTS_DIR.resolve("html/index.html")), "Expected an html summary report");
+        assertTrue(Files.exists(RESULTS_DIR.resolve("resume.txt")), "Expected a resume file");
     }
 
     /**
@@ -88,8 +88,8 @@ public class DriverIT {
             "--results-dir", RESULTS_DIR.toString()
         });
 
-        assertNotEquals("Expected a non-zero exit code", 0, exitCode);
-        assertFalse("No report should be written", Files.exists(RESULTS_DIR.resolve("html/index.html")));
+        assertNotEquals(0, exitCode, "Expected a non-zero exit code");
+        assertFalse(Files.exists(RESULTS_DIR.resolve("html/index.html")), "No report should be written");
     }
 
     /**
@@ -106,7 +106,7 @@ public class DriverIT {
             "--debug"
         });
 
-        assertNotEquals("Expected a non-zero exit code", 0, exitCode);
+        assertNotEquals(0, exitCode, "Expected a non-zero exit code");
     }
 
     @Test
@@ -117,7 +117,7 @@ public class DriverIT {
             "--results-dir", RESULTS_DIR.toString()
         });
 
-        assertNotEquals("Expected a non-zero exit code", 0, exitCode);
+        assertNotEquals(0, exitCode, "Expected a non-zero exit code");
     }
 
     /**

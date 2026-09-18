@@ -10,14 +10,14 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.Assertions;
 import org.fcrepo.migration.validator.api.ValidationResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests for head only validations
@@ -41,7 +41,7 @@ public class HeadOnlyIT extends AbstractValidationIT {
         final var reportHandler = doValidation(config);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
 
         // verify datastream metadata for HEAD version only
         final var validations = reportHandler.getPassed().stream()
@@ -62,7 +62,7 @@ public class HeadOnlyIT extends AbstractValidationIT {
         final var reportHandler = doValidation(config);
 
         // only ds1 should have too many versions
-        assertEquals("Should be some errors!", 1, reportHandler.getErrors().size());
+        assertEquals(1, reportHandler.getErrors().size(), "Should be some errors!");
 
         // verify datastream metadata for HEAD version only
         assertThat(reportHandler.getErrors())

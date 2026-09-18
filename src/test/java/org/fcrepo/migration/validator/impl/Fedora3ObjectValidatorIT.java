@@ -8,8 +8,8 @@ package org.fcrepo.migration.validator.impl;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.OBJECT_READABLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,9 +21,9 @@ import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.FedoraObjectProcessor;
 import org.fcrepo.migration.ObjectInfo;
 import org.fcrepo.migration.StreamingFedoraObjectHandler;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Verifies that an object which cannot be read is reported as a failed OBJECT_READABLE validation rather than
@@ -39,7 +39,7 @@ public class Fedora3ObjectValidatorIT {
     private Path workDir;
     private ApplicationConfigurationHelper helper;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         workDir = Files.createTempDirectory("f3-object-validator-it");
 
@@ -52,7 +52,7 @@ public class Fedora3ObjectValidatorIT {
         helper = new ApplicationConfigurationHelper(config);
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         FileUtils.deleteQuietly(workDir.toFile());
     }
@@ -69,8 +69,8 @@ public class Fedora3ObjectValidatorIT {
         assertEquals(FAIL, result.getStatus());
         assertEquals(OBJECT, result.getValidationLevel());
         assertEquals(OBJECT_READABLE, result.getValidationType());
-        assertTrue("Expected the read failure to be described",
-                   result.getDetails().contains("Source object could not be read"));
+        assertTrue(result.getDetails().contains("Source object could not be read"),
+                   "Expected the read failure to be described");
     }
 
     /**

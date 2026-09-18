@@ -8,7 +8,7 @@ package org.fcrepo.migration.validator;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.REPOSITORY;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.REPOSITORY_RESOURCE_COUNT;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 
@@ -17,7 +17,7 @@ import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author awoods
@@ -33,7 +33,7 @@ public class RepoValidationIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir, false);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
 
         // check that the repository validations were run
         assertThat(reportHandler.getPassed())
@@ -51,7 +51,7 @@ public class RepoValidationIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir, true);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
 
         // check that the repository validations were run
         assertThat(reportHandler.getPassed())
@@ -69,7 +69,7 @@ public class RepoValidationIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = doValidation(f3DatastreamDir, f3ObjectsDir, f6OcflRootDir, true);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
 
         // check that the repository validations were run
         assertThat(reportHandler.getPassed())

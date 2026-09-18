@@ -20,7 +20,7 @@ import org.fcrepo.migration.validator.impl.F6DigestAlgorithm;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Checksum validation for datastreams
