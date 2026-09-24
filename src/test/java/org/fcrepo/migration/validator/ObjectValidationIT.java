@@ -8,7 +8,7 @@ package org.fcrepo.migration.validator;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.impl.Fedora3ValidationExecutionManager;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Arrays;
@@ -24,9 +24,9 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_SIZE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_EXISTS_IN_TARGET;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author awoods
@@ -43,7 +43,7 @@ public class ObjectValidationIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = doValidation(f3DatastreamsDir, f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
         final var resultsByType = reportHandler.getPassed().stream()
                                                .collect(Collectors.groupingBy(ValidationResult::getValidationType));
 
@@ -93,12 +93,12 @@ public class ObjectValidationIT extends AbstractValidationIT {
 
         // verify expected results (1 object in f3, 2 objects in OCFL)
         final var errors = reportHandler.getErrors();
-        assertEquals("Should be one error!", 1, errors.size());
+        assertEquals(1, errors.size(), "Should be one error!");
 
         final var validationResult = errors.get(0);
         assertNotNull(validationResult);
-        assertEquals("Should be HEAD count error", BINARY_HEAD_COUNT, validationResult.getValidationType());
-        assertEquals("Should be OBJECT validation level", OBJECT, validationResult.getValidationLevel());
+        assertEquals(BINARY_HEAD_COUNT, validationResult.getValidationType(), "Should be HEAD count error");
+        assertEquals(OBJECT, validationResult.getValidationLevel(), "Should be OBJECT validation level");
     }
 
     @Test
@@ -112,22 +112,21 @@ public class ObjectValidationIT extends AbstractValidationIT {
         final var errors = reportHandler.getErrors();
         final var sourceObject = "1711.dl:UWPAbout";
 
-        assertEquals("Should be two errors!", 2, errors.size());
+        assertEquals(2, errors.size(), "Should be two errors!");
         errors.stream()
               .filter(x -> x.getValidationType().equals(SOURCE_OBJECT_EXISTS_IN_TARGET))
               .findFirst().ifPresentOrElse(result -> {
-            assertEquals("Should be validation level OBJECT", OBJECT, result.getValidationLevel());
-            assertEquals("Source object should be " + sourceObject, sourceObject, result.getSourceObjectId());
-            assertEquals("Should be validation type SOURCE_OBJECT_EXISTS_IN_TARGET",
-                         SOURCE_OBJECT_EXISTS_IN_TARGET,
-                         result.getValidationType());
+            assertEquals(OBJECT, result.getValidationLevel(), "Should be validation level OBJECT");
+            assertEquals(sourceObject, result.getSourceObjectId(), "Source object should be " + sourceObject);
+            assertEquals(SOURCE_OBJECT_EXISTS_IN_TARGET, result.getValidationType(),
+                         "Should be validation type SOURCE_OBJECT_EXISTS_IN_TARGET");
         }, () -> fail("Unable to find error for SOURCE_OBJECT_EXISTS_IN_TARGET"));
 
         errors.stream()
               .filter(x -> x.getValidationType().equals(BINARY_HEAD_COUNT))
               .findFirst().ifPresentOrElse(result -> {
-            assertEquals("Should be validation level OBJECT", OBJECT, result.getValidationLevel());
-            assertEquals("Should be validation type BINARY_HEAD_COUNT", BINARY_HEAD_COUNT, result.getValidationType());
+            assertEquals(OBJECT, result.getValidationLevel(), "Should be validation level OBJECT");
+            assertEquals(BINARY_HEAD_COUNT, result.getValidationType(), "Should be validation type BINARY_HEAD_COUNT");
         }, () -> fail("Unable to find error for BINARY_HEAD_COUNT"));
     }
 

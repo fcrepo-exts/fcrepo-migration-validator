@@ -7,9 +7,9 @@ package org.fcrepo.migration.validator.report;
 
 import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.api.ReportHandler;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -22,7 +22,7 @@ public class ReportGeneratorImplTest {
 
     private ReportGeneratorImpl generator;
 
-    @Before
+    @BeforeEach
     public void setup() {
         final Path resultDir = Path.of("src/test/resources/results");
         final Path outputDir = Path.of("target/test/html");
@@ -31,10 +31,10 @@ public class ReportGeneratorImplTest {
             try {
                 FileUtils.forceDelete(outputDir.toFile());
             } catch (IOException e) {
-                Assert.fail("Error removing output dir: " + outputDir);
+                Assertions.fail("Error removing output dir: " + outputDir);
             }
         }
-        Assert.assertTrue("Error making output dir: " + outputDir, outputDir.toFile().mkdirs());
+        Assertions.assertTrue(outputDir.toFile().mkdirs(), "Error making output dir: " + outputDir);
         final ReportHandler reportHandler = new HtmlReportHandler(outputDir, 1);
         this.generator = new ReportGeneratorImpl(resultDir, reportHandler);
     }
@@ -42,8 +42,8 @@ public class ReportGeneratorImplTest {
     @Test
     public void testGenerate() {
         final String reportFilename = generator.generate();
-        Assert.assertNotNull(reportFilename);
-        Assert.assertEquals("index.html", reportFilename);
+        Assertions.assertNotNull(reportFilename);
+        Assertions.assertEquals("index.html", reportFilename);
     }
 
 }

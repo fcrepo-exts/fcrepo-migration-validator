@@ -6,7 +6,7 @@
 package org.fcrepo.migration.validator.impl;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Suppliers;
@@ -152,9 +152,12 @@ public class ApplicationConfigurationHelper {
      * @return a session factory
      */
     public OcflObjectSessionFactory ocflObjectSessionFactory() {
-        final var objectMapper = new ObjectMapper().configure(WRITE_DATES_AS_TIMESTAMPS, false)
-                .registerModule(new JavaTimeModule())
-                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        final var objectMapper = JsonMapper.builder()
+                .configure(WRITE_DATES_AS_TIMESTAMPS, false)
+                .addModule(new JavaTimeModule())
+                .defaultPropertyInclusion(JsonInclude.Value.construct(JsonInclude.Include.NON_NULL,
+                        JsonInclude.Include.ALWAYS))
+                .build();
 
         final var headersCache = Caffeine.newBuilder()
                 .maximumSize(512)

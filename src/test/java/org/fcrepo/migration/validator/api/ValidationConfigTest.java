@@ -5,15 +5,15 @@
  */
 package org.fcrepo.migration.validator.api;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 
 import org.fcrepo.migration.validator.impl.Fedora3ValidationConfig;
 import org.fcrepo.migration.validator.report.ReportType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Covers the report directory resolution and accessors on the validation config.
@@ -27,7 +27,7 @@ public class ValidationConfigTest {
 
     private Fedora3ValidationConfig config;
 
-    @Before
+    @BeforeEach
     public void setup() {
         config = new Fedora3ValidationConfig();
         config.setResultsDirectory(RESULTS_DIR);
@@ -71,6 +71,6 @@ public class ValidationConfigTest {
         assertTrue(config.validateHeadOnly());
         assertTrue(config.checkNumObjects());
         assertEquals(OCFL_ROOT_DIR.toFile(), config.getOcflRepositoryRootDirectory());
-        assertTrue("Expected the config to describe itself", config.toString().contains("threadCount"));
+        assertTrue(config.toString().contains("threadCount"), "Expected the config to describe itself");
     }
 }

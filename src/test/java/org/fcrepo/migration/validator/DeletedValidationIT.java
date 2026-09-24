@@ -11,12 +11,12 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_DELETED;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_DELETED;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 
 import org.fcrepo.migration.validator.api.ValidationResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author mikejritter
@@ -35,7 +35,7 @@ public class DeletedValidationIT extends AbstractValidationIT {
         final var reportHandler = doValidation(config);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
 
         // verify datastream metadata
         // only 1 datastream was deleted, so we expect 1 SOURCE_OBJECT_RESOURCE_DELETED

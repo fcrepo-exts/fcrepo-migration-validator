@@ -11,13 +11,13 @@ import static org.fcrepo.migration.validator.AbstractValidationIT.BinaryMetadata
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_METADATA;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.BINARY_VERSION_COUNT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.SOURCE_OBJECT_RESOURCE_EXISTS_IN_TARGET;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.util.stream.Collectors;
 
 import org.fcrepo.migration.validator.api.ValidationResult;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author awoods
@@ -35,7 +35,7 @@ public class VersionValidationIT extends AbstractValidationIT {
         final var reportHandler = doValidation(emptyDatastreamDir(), f3ObjectsDir, f6OcflRootDir);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
 
         // verify datastream metadata
         // DS1 has 2 versions (not including RELS-INT), so we expect 2 results on all but size which should have none

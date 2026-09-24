@@ -9,10 +9,10 @@ import static org.fcrepo.migration.validator.api.ValidationResult.Status.FAIL;
 import static org.fcrepo.migration.validator.api.ValidationResult.Status.OK;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.OBJECT;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.OBJECT_READABLE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,9 +23,9 @@ import org.apache.commons.io.FileUtils;
 import org.fcrepo.migration.validator.api.ObjectReportSummary;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.ValidationResultsSummary;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Round trips validation results through the filesystem writer and reader, and covers the results summary.
@@ -36,12 +36,12 @@ public class ValidationResultIoTest {
 
     private Path workDir;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         workDir = Files.createTempDirectory("validation-result-io-test");
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         FileUtils.deleteQuietly(workDir.toFile());
     }
@@ -72,10 +72,10 @@ public class ValidationResultIoTest {
                                                 "not good");
         writer.write(List.of(passed, failed));
 
-        assertFalse("Passing results should be skipped",
-                    Files.exists(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(passed, id -> id))));
-        assertTrue("Failing results should be written",
-                   Files.exists(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(failed, id -> id))));
+        assertFalse(Files.exists(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(passed, id -> id))),
+                    "Passing results should be skipped");
+        assertTrue(Files.exists(jsonRoot.resolve(ValidationResultUtils.resolvePathToJsonResult(failed, id -> id))),
+                   "Failing results should be written");
     }
 
     @Test

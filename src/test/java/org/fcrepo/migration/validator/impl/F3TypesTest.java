@@ -12,14 +12,14 @@ import static org.fcrepo.migration.validator.impl.F3ControlGroup.REDIRECT_REFERE
 import static org.fcrepo.migration.validator.impl.F3State.ACTIVE;
 import static org.fcrepo.migration.validator.impl.F3State.DELETED;
 import static org.fcrepo.migration.validator.impl.F3State.INACTIVE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.fcrepo.migration.ObjectProperty;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Covers the string parsing of the Fedora 3 enum types.

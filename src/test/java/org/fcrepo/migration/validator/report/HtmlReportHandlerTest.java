@@ -11,9 +11,9 @@ import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLeve
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationLevel.REPOSITORY;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.OBJECT_READABLE;
 import static org.fcrepo.migration.validator.api.ValidationResult.ValidationType.REPOSITORY_RESOURCE_COUNT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,9 +25,9 @@ import org.fcrepo.migration.validator.api.ObjectReportSummary;
 import org.fcrepo.migration.validator.api.ObjectValidationResults;
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.api.ValidationResultsSummary;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Covers the success and failure paths of the HTML report writer.
@@ -38,12 +38,12 @@ public class HtmlReportHandlerTest {
 
     private Path outputDir;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         outputDir = Files.createTempDirectory("html-report-handler-test");
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         FileUtils.deleteQuietly(outputDir.toFile());
     }
@@ -64,9 +64,9 @@ public class HtmlReportHandlerTest {
         handler.endReport();
 
         assertEquals("index.html", summaryReport);
-        assertTrue("Expected an object report", Files.exists(outputDir.resolve(objectReport)));
-        assertTrue("Expected a repository report", Files.exists(outputDir.resolve(repositoryReport)));
-        assertTrue("Expected a summary report", Files.exists(outputDir.resolve(summaryReport)));
+        assertTrue(Files.exists(outputDir.resolve(objectReport)), "Expected an object report");
+        assertTrue(Files.exists(outputDir.resolve(repositoryReport)), "Expected a repository report");
+        assertTrue(Files.exists(outputDir.resolve(summaryReport)), "Expected a summary report");
     }
 
     @Test

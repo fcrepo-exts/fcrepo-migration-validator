@@ -6,7 +6,7 @@
 package org.fcrepo.migration.validator;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 import org.fcrepo.migration.validator.api.ValidationResult;
 import org.fcrepo.migration.validator.report.ResultsReportHandler;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author mikejritter
@@ -38,7 +38,7 @@ public class ResumeManagerIT extends AbstractValidationIT {
         final ResultsReportHandler reportHandler = doValidation(config);
 
         // verify expected results
-        assertEquals("Should be no errors!", 0, reportHandler.getErrors().size());
+        assertEquals(0, reportHandler.getErrors().size(), "Should be no errors!");
         final var objectResults = reportHandler.getPassed().stream()
                                                .map(ValidationResult::getSourceObjectId)
                                                .collect(Collectors.toSet());

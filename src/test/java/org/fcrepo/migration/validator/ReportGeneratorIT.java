@@ -13,8 +13,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -27,23 +25,14 @@ import org.fcrepo.migration.validator.report.CsvReportHandler;
 import org.fcrepo.migration.validator.report.HtmlReportHandler;
 import org.fcrepo.migration.validator.report.ReportGeneratorImpl;
 import org.fcrepo.migration.validator.report.ReportType;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  *
  * @author mikejritter
  */
-@RunWith(Parameterized.class)
 public class ReportGeneratorIT extends AbstractValidationIT {
-
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][] {
-            { ReportType.html }, { ReportType.csv }
-        });
-    }
 
     /**
      * Regex to ignore non-object reports
@@ -52,14 +41,9 @@ public class ReportGeneratorIT extends AbstractValidationIT {
                .asPredicate()
                .negate();
 
-    private final ReportType reportType;
-
-    public ReportGeneratorIT(final ReportType reportType) {
-        this.reportType = reportType;
-    }
-
-    @Test
-    public void testAllPass() throws Exception {
+    @ParameterizedTest
+    @EnumSource(value = ReportType.class, names = {"html", "csv"})
+    public void testAllPass(final ReportType reportType) throws Exception {
         final var f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
         final var f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
         final var f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");
@@ -87,8 +71,9 @@ public class ReportGeneratorIT extends AbstractValidationIT {
             .allMatch(objectIds::contains);
     }
 
-    @Test
-    public void testOnlyWriteFailureAllPass() throws IOException {
+    @ParameterizedTest
+    @EnumSource(value = ReportType.class, names = {"html", "csv"})
+    public void testOnlyWriteFailureAllPass(final ReportType reportType) throws IOException {
         final var f3ObjectsDir = new File(FIXTURES_BASE_DIR, "valid/f3/objects");
         final var f3DatastreamsDir = new File(FIXTURES_BASE_DIR, "valid/f3/datastreams");
         final var f6OcflRootDir = new File(FIXTURES_BASE_DIR, "valid/f6/data/ocfl-root");

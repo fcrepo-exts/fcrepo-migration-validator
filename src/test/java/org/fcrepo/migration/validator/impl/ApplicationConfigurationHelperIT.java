@@ -5,11 +5,11 @@
  */
 package org.fcrepo.migration.validator.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,9 +19,9 @@ import java.util.Set;
 
 import io.ocfl.api.exception.OcflInputException;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Covers the source-type specific wiring and pid file handling in {@link ApplicationConfigurationHelper}.
@@ -36,12 +36,12 @@ public class ApplicationConfigurationHelperIT {
 
     private Path workDir;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         workDir = Files.createTempDirectory("app-config-helper-it");
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         FileUtils.deleteQuietly(workDir.toFile());
     }
@@ -111,7 +111,7 @@ public class ApplicationConfigurationHelperIT {
 
         final var helper = new ApplicationConfigurationHelper(config);
         final var exception = assertThrows(RuntimeException.class, helper::readObjectsToValidate);
-        assertTrue("Expected the IOException to be wrapped", exception.getCause() instanceof IOException);
+        assertTrue(exception.getCause() instanceof IOException, "Expected the IOException to be wrapped");
     }
 
     @Test
