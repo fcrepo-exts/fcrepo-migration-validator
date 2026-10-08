@@ -18,7 +18,7 @@
         <compiler.plugin.version>3.16.0</compiler.plugin.version>
         <jacoco.plugin.version>0.8.15</jacoco.plugin.version>
         <fcrepo-build-tools.version>7.0.0</fcrepo-build-tools.version>
-        <fcrepo-migration-utils.version>7.0.0-SNAPSHOT</fcrepo-migration-utils.version>
+        <fcrepo-migration-utils.version>7.0.0</fcrepo-migration-utils.version>
         <fcrepo.storage.ocfl.version>7.0.0</fcrepo.storage.ocfl.version>
         <ocfl-java.version>2.2.3</ocfl-java.version>
         <gpg.plugin.version>3.2.8</gpg.plugin.version>
@@ -27,6 +27,7 @@
         <license.plugin.version>5.1.2</license.plugin.version>
         <project.java.source>21</project.java.source>
         <project_name>${project.artifactId}</project_name>
+        <central-publishing.plugin.version>0.9.0</central-publishing.plugin.version>
         <release.plugin.version>3.3.1</release.plugin.version>
         <scm-provider-gitexe.plugin.version>2.2.1</scm-provider-gitexe.plugin.version>
         <javadoc.plugin.version>3.12.0</javadoc.plugin.version>
@@ -58,6 +59,15 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>${central-publishing.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -121,6 +131,7 @@
                 <configuration>
                     <!-- see http://jira.codehaus.org/browse/MRELEASE-424 -->
                     <mavenExecutorId>forked-path</mavenExecutorId>
+                    <arguments>-DperformRelease=true</arguments>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -416,10 +427,6 @@
         <name>Sonatype Central Snapshots</name>
         <url>https://central.sonatype.com/repository/maven-snapshots/</url>
       </snapshotRepository>
-      <repository>
-        <id>sonatype-nexus-staging</id>
-        <url>https://${sonatype.host}/service/local/staging/deploy/maven2/</url>
-      </repository>
     </distributionManagement>
 
     <profiles>
