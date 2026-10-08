@@ -4,7 +4,7 @@
 
     <groupId>org.fcrepo</groupId>
     <artifactId>fcrepo-migration-validator</artifactId>
-    <version>1.2.2-SNAPSHOT</version>
+    <version>7.0.0</version>
 
     <packaging>jar</packaging>
 
@@ -54,7 +54,7 @@
         <connection>scm:git:git://github.com/fcrepo-exts/${project_name}.git</connection>
         <developerConnection>scm:git:git@github.com:fcrepo-exts/${project_name}.git</developerConnection>
         <url>https://github.com/fcrepo-exts/${project_name}</url>
-        <tag>HEAD</tag>
+        <tag>fcrepo-migration-validator-7.0.0</tag>
     </scm>
 
     <build>
